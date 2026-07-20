@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+  </head>
+
+  <body>
+    {{include_header}}
+
+    <main class="container">
+      <section>
+        <div>
+          <input class="incident-title__input" type="text" placeholder="Incident Name"></input>
+        </div>
+        {{include_modal-stage}} {{include_modal-role}} {{include_modal-action}}
+
+        <button class="btn btn-primary" id="btn--add-role">Add Role</button>
+        <button class="btn btn-primary" id="btn--add-stage">Add Stage</button>
+        <button class="btn btn-primary" id="btn--add-action">Add Action</button>
+
+        <div class="plan-builder__grid"></div>
+        <button class="btn btn-primary" id="btn--save-incident">Save</button>
+      </section>
+    </main>
+
+    <!-- Webpack bundle (JS + CSS) -->
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>

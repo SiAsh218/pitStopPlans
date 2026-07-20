@@ -1,0 +1,14 @@
+.create-incident {
+  max-width: 800px;
+}
+
+.create-incident h1 {
+  margin-bottom: 2rem;
+}
+
+#create-incident-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+}

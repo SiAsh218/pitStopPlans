@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+  </head>
+
+  <body>
+    {{include_header}}
+
+    <main class="container">
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span id="active-incident-count" class="stat-number"> 0 </span>
+
+          <span class="stat-label"> Active Incidents </span>
+        </div>
+
+        <div class="stat-card">
+          <span id="open-action-count" class="stat-number"> - </span>
+
+          <span class="stat-label"> Open Actions </span>
+        </div>
+
+        <div class="stat-card">
+          <span id="resolved-count" class="stat-number"> - </span>
+
+          <span class="stat-label"> Resolved Today </span>
+        </div>
+      </section>
+
+      <h2>Active Incidents</h2>
+
+      <div id="incident-list">
+        <p>Loading incidents...</p>
+      </div>
+    </main>
+
+    <!-- Webpack bundle (JS + CSS) -->
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>

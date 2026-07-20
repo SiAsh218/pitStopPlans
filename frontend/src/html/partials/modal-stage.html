@@ -1,0 +1,51 @@
+<div class="modal-form hidden" id="modal-form-incident-stage">
+  <div class="modal-form__overlay"></div>
+
+  <div class="modal-form__container">
+    <button class="modal-form__close" type="button">&times;</button>
+
+    <h2 class="modal-form__title">Stage</h2>
+
+    <form class="modal-form__form">
+      <div class="modal-form__group">
+        <label class="modal-form__label" for="stage-number">Stage Number</label>
+        <input
+          class="modal-form__input"
+          type="number"
+          id="modal-form-incident--stage-number"
+          name="stage-number"
+        />
+      </div>
+
+      <div class="modal-form__group">
+        <label class="modal-form__label" for="stage-name">Stage Name</label>
+        <input
+          class="modal-form__input"
+          type="text"
+          id="modal-form-incident--stage-name"
+          name="stage-name"
+        />
+      </div>
+
+      <div class="modal-form__group">
+        <label class="modal-form__label" for="mins-from-incident-start"
+          >Minutes From Incident Start</label
+        >
+        <input
+          class="modal-form__input"
+          type="number"
+          id="modal-form-incident--mins-from-incident-start"
+          name="mins-from-incident-start"
+        />
+      </div>
+
+      <button
+        class="btn btn-primary"
+        id="modal-form__submit--stage"
+        type="submit"
+      >
+        Submit
+      </button>
+    </form>
+  </div>
+</div>

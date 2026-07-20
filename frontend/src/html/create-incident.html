@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+  </head>
+
+  <body>
+    {{include_header}}
+
+    <main class="container">
+      <section class="create-incident">
+        <h1>Create Incident</h1>
+
+        <form id="create-incident-form" class="create-incident__form">
+          <div class="modal-form__group">
+            <label class="modal-form__label" for="incident-title">
+              Title
+            </label>
+
+            <input
+              class="modal-form__input"
+              id="incident-title"
+              type="text"
+              required
+            />
+          </div>
+
+          <div class="modal-form__group">
+            <label class="modal-form__label" for="incident-type">
+              Incident Type
+            </label>
+
+            <select class="modal-form__select" id="incident-type" required>
+              <option value="">Select Incident Type</option>
+            </select>
+          </div>
+
+          <div class="modal-form__group">
+            <label class="modal-form__label" for="incident-description">
+              Description
+            </label>
+
+            <textarea
+              class="modal-form__input"
+              id="incident-description"
+            ></textarea>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Create Incident</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>

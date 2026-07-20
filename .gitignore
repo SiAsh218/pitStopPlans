@@ -1,0 +1,4 @@
+
+node_modules
+api-test-script.http
+.env

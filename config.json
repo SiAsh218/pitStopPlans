@@ -1,0 +1,24 @@
+{
+  "dev": {
+    "ip": "0.0.0.0"
+  },
+  "prod": {
+    "ip": "0.0.0.0"
+  },
+  "port": 3000,
+  "paths": {
+    "views": "./frontend/src/html/",
+    "partials": "./frontend/src/html/partials/",
+    "static": "./frontend"
+  },
+  "mimeTypes": {
+    ".html": "text/html",
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon"
+  }
+}
