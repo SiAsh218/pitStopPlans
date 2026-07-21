@@ -1,136 +1,85 @@
-import { incidentState, clearIncidentState } from "../state/incidentState.js";
-import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
-import {
-  renderRoleOptions,
-  renderStageOptions,
-} from "../modals/modalAction.js";
+import { getTemplates } from "../services/planTemplateService.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  clearIncidentState();
-});
+export async function initTemplatesPage() {
+  const container = document.getElementById("template-list");
 
-export function initPlanTemplatePage() {
-  const grid = document.querySelector(".plan-builder__grid");
-  if (!grid) return;
+  if (!container) {
+    return;
+  }
 
-  const btnAddStage = document.getElementById("btn--add-stage");
-  const btnAddRole = document.getElementById("btn--add-role");
-  const btnAddAction = document.getElementById("btn--add-action");
+  try {
+    const templates = await getTemplates();
 
-  renderPlan(incidentData);
-
-  btnAddStage?.addEventListener("click", () => {
-    if (getRoles().length < 1) {
-      showWarning("Roles need adding before Stages");
-      return;
-    }
-
-    const modal = document.getElementById("modal-form-incident-stage");
-    modal.classList.remove("hidden");
-  });
-
-  btnAddRole?.addEventListener("click", () => {
-    const modal = document.getElementById("modal-form-incident-role");
-    modal.classList.remove("hidden");
-  });
-
-  btnAddAction?.addEventListener("click", () => {
-    if (getRoles().length < 1) {
-      showWarning("Roles and Stages need adding before Actions");
-      return;
-    }
-
-    if (getStages().length < 1) {
-      showWarning("Roles and Stages need adding before Actions");
-      return;
-    }
-
-    renderRoleOptions(getRoles());
-    renderStageOptions(getStages());
-
-    const modal = document.getElementById("modal-form-incident-action");
-    modal.classList.remove("hidden");
-  });
+    renderTemplates(templates);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-function getUniqueRoles(plan) {
-  const rolesMap = new Map();
+function renderTemplates(templates) {
+  const container = document.getElementById("template-list");
 
-  plan.stages.forEach((stage) => {
-    if (stage.actions && stage.actions.length > 0) {
-      stage.actions.forEach((action) => {
-        action.roles.forEach((role) => {
-          rolesMap.set(role.id, role);
-        });
-      });
-    }
-  });
+  console.log(templates);
 
-  return Array.from(rolesMap.values());
-}
+  container.innerHTML = templates
+    .map(
+      (template) => `
+          <div class="card">
 
-export function renderPlan(plan) {
-  const grid = document.querySelector(".plan-builder__grid");
-  if (!grid) return;
+            <h2>
+              ${template.title}
+            </h2>
 
-  // const roles = getUniqueRoles(plan);
-  renderRoles(grid, plan.incidentRoles);
+            <p>
+              Version:
+              ${template.version}
+            </p>
 
-  const stages = plan.stages;
-  renderStages(grid, stages, plan.incidentRoles);
-}
+            <p>
+              Status:
+              ${template.status}
+            </p>
 
-function renderStages(grid, stages, roles) {
-  stages.forEach((stage) => {
-    grid.insertAdjacentHTML(
-      "beforeend",
-      `<div class="plan-builder__stage">
-        <span>${stage.stageName}</span>
-        <span style="font-weight: normal; margin-top: 10px">${stage.minsFromIncStart} minutes</span>
-      </div>`,
-    );
+            <div
+              class="card-actions"
+            >
 
-    roles.forEach((role) => {
-      if (!stage.actions || stage.actions.length === 0) {
-        grid.insertAdjacentHTML(
-          "beforeend",
-          `
-      <div class="plan-builder__cell"> </div>`,
-        );
-        return;
-      }
+              <button
+                class="btn btn-secondary btn-view-template"
+                data-template-id="${template.id}"
+              >
+                View
+              </button>
 
-      const actions = stage.actions.filter((action) =>
-        action.roles.some((r) => r.id == role.id),
-      );
+              <button
+                class="btn btn-primary btn-clone-template"
+                data-template-id="${template.id}"
+              >
+                Clone
+              </button>
 
-      grid.insertAdjacentHTML(
-        "beforeend",
-        `
-      <div class="plan-builder__cell">
-        ${actions
-          .map(
-            (action) => `
-          <div class="action-card">
-            <span class="action-card--title">${action.title}</span>
-            <span class="action-card--description">${action.description}</span>
+            </div>
+
           </div>
         `,
-          )
-          .join("")}
-        
-      </div>
-      `,
-      );
-    });
-  });
+    )
+    .join("");
+
+  wireTemplateButtons();
 }
 
-function renderRoles(grid, roles) {
-  grid.style.gridTemplateColumns = `220px repeat(${roles.length}, minmax(220px, 1fr))`;
-  grid.innerHTML = `<div class='plan-builder__corner'>Stage</div>${roles
-    .map((role) => {
-      return `<div class="plan-builder__role">${role.name}</div>`;
-    })
-    .join("")}`;
+function wireTemplateButtons() {
+  document.querySelectorAll(".btn-clone-template").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.templateId;
+
+      try {
+        await cloneTemplate(id);
+
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
 }

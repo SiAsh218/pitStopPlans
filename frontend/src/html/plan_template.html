@@ -10,17 +10,13 @@
 
     <main class="container">
       <section>
-        <div>
-          <input class="incident-title__input" type="text" placeholder="Incident Name"></input>
-        </div>
-        {{include_modal-stage}} {{include_modal-role}} {{include_modal-action}}
+        <h1>Templates</h1>
 
-        <button class="btn btn-primary" id="btn--add-role">Add Role</button>
-        <button class="btn btn-primary" id="btn--add-stage">Add Stage</button>
-        <button class="btn btn-primary" id="btn--add-action">Add Action</button>
+        <button class="btn btn-primary" id="btn-create-template">
+          New Template
+        </button>
 
-        <div class="plan-builder__grid"></div>
-        <button class="btn btn-primary" id="btn--save-incident">Save</button>
+        <div id="template-list"></div>
       </section>
     </main>
 

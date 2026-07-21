@@ -66,3 +66,15 @@
 .action-card--description {
   font-style: italic;
 }
+
+#template-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}

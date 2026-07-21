@@ -85,3 +85,26 @@
 .matrix-action:hover {
   transform: translateY(-2px);
 }
+
+.action-updates {
+  margin-bottom: 1rem;
+}
+
+.action-update {
+  background: #f3f2f1;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.action-update p {
+  margin: 0.25rem 0;
+}
+
+.action-update small {
+  color: #666;
+}
+
+#action-update-note {
+  margin-bottom: 1rem;
+}

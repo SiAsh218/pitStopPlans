@@ -6,6 +6,11 @@ import {
   completeAction,
 } from "../services/incidentActionService.js";
 
+import {
+  getActionUpdates,
+  addActionUpdate,
+} from "../services/incidentActionUpdateService.js";
+
 export async function initIncidentPage() {
   const incidentMeta = document.querySelector(".incident-meta");
 
@@ -246,13 +251,15 @@ async function openActionPanel(actionId) {
   try {
     const action = await getAction(actionId);
 
-    renderActionPanel(action);
+    const updates = await getActionUpdates(actionId);
+
+    renderActionPanel(action, updates);
   } catch (err) {
     console.error(err);
   }
 }
 
-function renderActionPanel(action) {
+function renderActionPanel(action, updates = []) {
   const panel = document.getElementById("incident-action-panel");
 
   if (!panel) {
@@ -293,50 +300,91 @@ function renderActionPanel(action) {
     `;
   }
 
+  const updatesHtml =
+    updates.length === 0
+      ? `
+      <p>No updates yet.</p>
+    `
+      : updates
+          .map(
+            (update) => `
+            <div class="action-update">
+
+              <p>
+                <strong>
+                  ${update.user_email ?? "User"}
+                </strong>
+              </p>
+
+              <p>
+                ${update.note}
+              </p>
+
+              <small>
+                ${formatDateTime(update.created_at)}
+              </small>
+
+            </div>
+          `,
+          )
+          .join("");
+
   panel.innerHTML = `
     <div class="card">
-
       <h2>
         ${action.title}
       </h2>
-
       <p>
         ${action.description ?? ""}
       </p>
-
       <p>
         <strong>Status:</strong>
         ${action.status}
       </p>
-
       <p>
         <strong>Due From Incident Start:</strong>
         ${action.due_from_incident_start} mins
       </p>
-
       <p>
         <strong>Started:</strong>
-        ${action.started_at ?? "-"}
+        ${formatDateTime(action.started_at)}
       </p>
-
       <p>
         <strong>Completed:</strong>
-        ${action.completed_at ?? "-"}
+        ${formatDateTime(action.completed_at)}
       </p>
-
       <p>
         <strong>Assigned User:</strong>
         ${action.assigned_user_id ?? "-"}
       </p>
-
+      <h3>
+        Updates
+      </h3>
+      <div class="action-updates">
+        ${updatesHtml}
+      </div>
+      <h3>
+        Add Update
+      </h3>
+      <textarea
+        id="action-update-note"
+        class="modal-form__input"
+      ></textarea>
       <div class="action-panel__buttons">
+        <button
+          class="btn btn-primary"
+          id="btn-add-update"
+        >
+          Add Update
+        </button>
         ${buttons}
       </div>
-
     </div>
   `;
 
   wireActionButtons(action.id);
+
+  wireUpdateButton(action.id);
 }
 
 function wireActionButtons(actionId) {
@@ -369,6 +417,26 @@ function wireActionButtons(actionId) {
     });
 }
 
+function wireUpdateButton(actionId) {
+  document
+    .getElementById("btn-add-update")
+    ?.addEventListener("click", async () => {
+      const note = document.getElementById("action-update-note")?.value.trim();
+
+      if (!note) {
+        return;
+      }
+
+      try {
+        await addActionUpdate(actionId, note);
+
+        await openActionPanel(actionId);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+}
+
 function wireCloseIncidentButton(incidentId) {
   document
     .getElementById("btn-close-incident")
@@ -387,6 +455,18 @@ function wireCloseIncidentButton(incidentId) {
         console.error(err);
       }
     });
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) {
+    return "-";
+  }
+
+  const utcDate = new Date(dateString.replace(" ", "T") + "Z");
+
+  return utcDate.toLocaleString("en-GB", {
+    timeZone: "Europe/London",
+  });
 }
 
 async function refreshIncidentPage() {

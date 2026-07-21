@@ -20,7 +20,7 @@ import { initModal } from "./components/modal.js";
 
 // PAGES
 import { loadIncidents } from "./pages/dashboard.js";
-import { initPlanTemplatePage } from "./pages/planTemplate.js";
+import { initTemplatesPage } from "./pages/planTemplate.js";
 import { initIncidentPage } from "./pages/incident.js";
 import { initCreateIncidentPage } from "./pages/createIncident.js";
 
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   initHeader();
-  initPlanTemplatePage();
+  initTemplatesPage();
   loadIncidents();
   initModal();
   initIncidentPage();
