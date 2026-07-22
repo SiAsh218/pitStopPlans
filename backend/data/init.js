@@ -226,25 +226,27 @@ function initialiseDatabase() {
   `);
 
   db.exec(`
-  CREATE TABLE IF NOT EXISTS incident_actions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    incident_id INTEGER NOT NULL,
-    original_action_id INTEGER,
-    stage_number INTEGER NOT NULL,
-    action_number INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    due_from_stage_start INTEGER,
-    due_from_incident_start INTEGER,
-    status TEXT NOT NULL DEFAULT 'pending',
-    assigned_user_id INTEGER,
-    started_at DATETIME,
-    completed_at DATETIME,
-    FOREIGN KEY (incident_id)
-      REFERENCES incidents(id)
-      ON DELETE CASCADE,
-    FOREIGN KEY (assigned_user_id)
-      REFERENCES users(id)
+    CREATE TABLE IF NOT EXISTS incident_actions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      incident_id INTEGER NOT NULL,
+      original_action_id INTEGER,
+      stage_number INTEGER NOT NULL,
+      stage_name TEXT NOT NULL,
+      stage_due_from_incident_start INTEGER,
+      action_number INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      due_from_stage_start INTEGER,
+      due_from_incident_start INTEGER,
+      status TEXT NOT NULL DEFAULT 'pending',
+      assigned_user_id INTEGER,
+      started_at DATETIME,
+      completed_at DATETIME,
+      FOREIGN KEY (incident_id)
+        REFERENCES incidents(id)
+        ON DELETE CASCADE,
+      FOREIGN KEY (assigned_user_id)
+        REFERENCES users(id)
   );
 `);
 

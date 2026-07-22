@@ -51,6 +51,15 @@ class RoleController {
       success: true,
     });
   }
+
+  update(req, res) {
+    const role = roleService.updateRole(Number(req.params.id), req.body.name);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: role,
+    });
+  }
 }
 
 module.exports = new RoleController();

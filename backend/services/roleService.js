@@ -24,6 +24,30 @@ class RoleService {
 
     return roleRepository.findById(result.lastInsertRowid);
   }
+
+  updateRole(id, name) {
+    const existing = roleRepository.findByName(name);
+
+    if (existing && existing.id !== id) {
+      throw new AppError("Role already exists", 409);
+    }
+
+    roleRepository.updateById(id, {
+      name,
+    });
+
+    return roleRepository.findById(id);
+  }
+
+  deleteRole(id) {
+    const role = roleRepository.findById(id);
+
+    if (!role) {
+      throw new AppError("Role not found", 404);
+    }
+
+    roleRepository.deleteById(id);
+  }
 }
 
 module.exports = new RoleService();

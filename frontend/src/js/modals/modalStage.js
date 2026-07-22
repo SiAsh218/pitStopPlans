@@ -1,43 +1,66 @@
-// import { addStage } from "../state/incidentState.js";
-import { resetFormInputs, renderFullPlan } from "../components/modal.js";
-import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
+import { createStage, updateStage } from "../services/planStageService.js";
+import { resetFormInputs } from "../components/modal.js";
+import { showSuccess, showError } from "../utils/myAlert.js";
 
 export function initModalStage() {
   const modal = document.getElementById("modal-form-incident-stage");
+
   if (!modal) return;
+
   const form = modal.querySelector("form");
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const data = getData();
+    try {
+      const data = getData();
 
-    addStage(data);
+      const stageId = document.getElementById("modal-form-stage--id").value;
 
-    showSuccess("Stage created successfully");
+      if (stageId) {
+        await updateStage(stageId, {
+          stage_number: data.stage_number,
+          name: data.name,
+          due_from_incident_start: data.due_from_incident_start,
+        });
 
-    resetFormInputs(form);
+        showSuccess("Stage updated successfully");
+      } else {
+        await createStage(data);
 
-    renderFullPlan();
+        showSuccess("Stage created successfully");
+      }
+
+      resetFormInputs(form);
+
+      document.getElementById("modal-form-stage--id").value = "";
+
+      location.reload();
+    } catch (err) {
+      console.error(err);
+
+      showError("Failed to save stage");
+    }
   });
 }
 
 function getData() {
-  const inputStageNumber = document.getElementById(
-    "modal-form-incident--stage-number",
-  );
-  const inputStageName = document.getElementById(
-    "modal-form-incident--stage-name",
-  );
+  return {
+    plan_template_id: Number(
+      document.getElementById("modal-form-stage--template-id").value,
+    ),
 
-  const inputMinsFromIncStart = document.getElementById(
-    "modal-form-incident--mins-from-incident-start",
-  );
+    stage_number: Number(
+      document.getElementById("modal-form-incident--stage-number").value,
+    ),
 
-  const stageNumber = inputStageNumber.value.trim();
-  const stageName = inputStageName.value.trim();
-  const minsFromIncStart = inputMinsFromIncStart.value.trim();
-  const actions = [];
+    name: document
+      .getElementById("modal-form-incident--stage-name")
+      .value.trim(),
 
-  return { stageNumber, stageName, minsFromIncStart, actions };
+    due_from_incident_start: Number(
+      document.getElementById("modal-form-incident--mins-from-incident-start")
+        .value,
+    ),
+  };
 }

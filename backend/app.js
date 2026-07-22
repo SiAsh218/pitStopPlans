@@ -158,11 +158,15 @@ class App {
           }
 
           // Parse JSON body
-          try {
-            req.body = JSON.parse(body);
-          } catch (err) {
-            console.error("Invalid JSON:", err);
+          if (body.trim().length === 0) {
             req.body = {};
+          } else {
+            try {
+              req.body = JSON.parse(body);
+            } catch (err) {
+              console.error("Invalid JSON:", err);
+              req.body = {};
+            }
           }
         }
 

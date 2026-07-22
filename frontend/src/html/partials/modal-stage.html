@@ -4,11 +4,17 @@
   <div class="modal-form__container">
     <button class="modal-form__close" type="button">&times;</button>
 
-    <h2 class="modal-form__title">Stage</h2>
+    <h2 class="modal-form__title" id="modal-stage-title">Add Stage</h2>
 
     <form class="modal-form__form">
+      <input type="hidden" id="modal-form-stage--template-id" />
+      <input type="hidden" id="modal-form-stage--id" />
+
       <div class="modal-form__group">
-        <label class="modal-form__label" for="stage-number">Stage Number</label>
+        <label class="modal-form__label" for="stage-number">
+          Stage Number
+        </label>
+
         <input
           class="modal-form__input"
           type="number"
@@ -18,7 +24,8 @@
       </div>
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="stage-name">Stage Name</label>
+        <label class="modal-form__label" for="stage-name"> Stage Name </label>
+
         <input
           class="modal-form__input"
           type="text"
@@ -28,9 +35,10 @@
       </div>
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="mins-from-incident-start"
-          >Minutes From Incident Start</label
-        >
+        <label class="modal-form__label" for="mins-from-incident-start">
+          Minutes From Incident Start
+        </label>
+
         <input
           class="modal-form__input"
           type="number"
@@ -44,7 +52,7 @@
         id="modal-form__submit--stage"
         type="submit"
       >
-        Submit
+        Create Stage
       </button>
     </form>
   </div>

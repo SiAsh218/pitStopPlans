@@ -1,88 +1,72 @@
-<div class="modal-form hidden" id="modal-form-incident-action">
+<div class="modal-form hidden" id="modal-form-action">
   <div class="modal-form__overlay"></div>
 
   <div class="modal-form__container">
-    <button class="modal-form__close" type="button">&times;</button>
+    <button class="modal-form__close" type="button">×</button>
 
-    <h2 class="modal-form__title">Action</h2>
+    <h2 class="modal-form__title" id="modal-action-title">Add Action</h2>
 
     <form class="modal-form__form">
-      <div class="modal-form__group">
-        <label class="modal-form__label" for="action-name">Name</label>
-        <input
-          class="modal-form__input"
-          type="text"
-          id="modal-form-incident--action-name"
-          name="action-name"
-        />
-      </div>
+      <input type="hidden" id="modal-action-id" />
+
+      <input type="hidden" id="modal-action-stage-id" />
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="action-description"
-          >Description</label
-        >
-        <input
-          class="modal-form__input"
-          type="text"
-          id="modal-form-incident--action-description"
-          name="action-description"
-        />
-      </div>
+        <label>Action Number</label>
 
-      <div class="modal-form__group">
-        <label class="modal-form__label" for="due-from-stage-start"
-          >Due From Stage Start</label
-        >
         <input
           class="modal-form__input"
           type="number"
-          id="modal-form-incident--due-from-stage-start"
-          name="due-from-stage-start"
+          id="modal-action-number"
         />
       </div>
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="due-from-incident-start"
-          >Due From Incident Start</label
-        >
+        <label>Title</label>
+
+        <input
+          class="modal-form__input"
+          type="text"
+          id="modal-action-title-input"
+        />
+      </div>
+
+      <div class="modal-form__group">
+        <label>Description</label>
+
+        <textarea
+          class="modal-form__input"
+          id="modal-action-description"
+        ></textarea>
+      </div>
+
+      <div class="modal-form__group">
+        <label> Due From Stage Start </label>
+
         <input
           class="modal-form__input"
           type="number"
-          id="modal-form-incident--due-from-incident-start"
-          name="due-from-incident-start"
+          id="modal-action-stage-due"
         />
       </div>
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="action-role">Role</label>
-        <select
-          class="modal-form__select"
-          name="action-role"
-          id="modal-form-incident--action-role"
-        >
-          <option value=""></option>
-          <!-- Dynamically Added Roles -->
-        </select>
+        <label> Due From Incident Start </label>
+
+        <input
+          class="modal-form__input"
+          type="number"
+          id="modal-action-incident-due"
+        />
       </div>
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="action-stage">Stage</label>
-        <select
-          class="modal-form__select"
-          name="action-stage"
-          id="modal-form-incident--action-stage"
-        >
-          <option value=""></option>
-          <!-- Dynamically Added Stages -->
-        </select>
-      </div>
+        <label>Roles</label>
 
-      <button
-        class="btn btn-primary"
-        id="modal-form__submit--action"
-        type="submit"
-      >
-        Submit
+        <div id="modal-action-roles"></div>
+      </div>
+      <button class="btn btn-primary" id="modal-action-submit" type="submit">
+        Create Action
       </button>
     </form>
   </div>

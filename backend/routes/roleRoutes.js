@@ -44,4 +44,13 @@ module.exports = [
       roleController.delete.bind(roleController),
     ],
   },
+  {
+    method: "PUT",
+    path: "/api/roles/:id",
+    handler: [
+      auth,
+      requireRole("admin"),
+      roleController.update.bind(roleController),
+    ],
+  },
 ];

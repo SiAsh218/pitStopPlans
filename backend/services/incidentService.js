@@ -143,6 +143,8 @@ class IncidentService {
           incident_id: incidentId,
           original_action_id: action.id,
           stage_number: stage.stage_number,
+          stage_name: stage.name,
+          stage_due_from_incident_start: stage.due_from_incident_start,
           action_number: action.action_number,
           title: action.title,
           description: action.description,

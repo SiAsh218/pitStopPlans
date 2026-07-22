@@ -588,7 +588,9 @@ function seedDatabase() {
       psa.description,
       psa.due_from_stage_start,
       psa.due_from_incident_start,
-      ps.stage_number
+      ps.stage_number,
+      ps.name AS stage_name,
+      ps.due_from_incident_start AS stage_due_from_incident_start
     FROM plan_stage_actions psa
     INNER JOIN plan_stages ps
       ON ps.id = psa.plan_stage_id
@@ -600,21 +602,23 @@ function seedDatabase() {
       .all();
 
     const insertIncidentAction = db.prepare(`
-    INSERT INTO incident_actions
-    (
-      incident_id,
-      original_action_id,
-      stage_number,
-      action_number,
-      title,
-      description,
-      due_from_stage_start,
-      due_from_incident_start,
-      status,
-      assigned_user_id
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  INSERT INTO incident_actions
+  (
+    incident_id,
+    original_action_id,
+    stage_number,
+    stage_name,
+    stage_due_from_incident_start,
+    action_number,
+    title,
+    description,
+    due_from_stage_start,
+    due_from_incident_start,
+    status,
+    assigned_user_id
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
 
     const incidentActionIds = [];
 
@@ -623,6 +627,8 @@ function seedDatabase() {
         incidentId,
         action.id,
         action.stage_number,
+        action.stage_name,
+        action.stage_due_from_incident_start,
         action.action_number,
         action.title,
         action.description,

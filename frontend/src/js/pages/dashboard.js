@@ -1,4 +1,5 @@
 import { getIncidents } from "../services/incidentService.js";
+import { formatDateTime } from "../utils/dateHandler.js";
 
 export async function loadIncidents() {
   const incidentList = document.getElementById("incident-list");
@@ -66,7 +67,7 @@ function renderIncidents(incidents) {
 
       <p>
         <strong>Started:</strong>
-        ${new Date(incident.started_at).toLocaleString()}
+        ${formatDateTime(incident.started_at)}
       </p>
 
       <button

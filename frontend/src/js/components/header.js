@@ -6,7 +6,7 @@ export function initHeader() {
   const logoutBtn = document.getElementById("logout-btn");
 
   buttonCreateTemplate?.addEventListener("click", () => {
-    window.location.href = "/create-plan-template";
+    window.location.href = "/templates";
   });
 
   buttonCreateIncident?.addEventListener("click", () => {

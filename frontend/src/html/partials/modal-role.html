@@ -1,40 +1,26 @@
-<div class="modal-form hidden" id="modal-form-incident-role">
+<div class="modal-form hidden" id="modal-form-role">
   <div class="modal-form__overlay"></div>
 
   <div class="modal-form__container">
-    <button class="modal-form__close" type="button">&times;</button>
+    <button class="modal-form__close" type="button">×</button>
 
-    <h2 class="modal-form__title">Role</h2>
+    <h2 class="modal-form__title" id="modal-role-title">Add Role</h2>
 
     <form class="modal-form__form">
-      <!-- <div class="modal-form__group">
-        <label class="modal-form__label" for="role">Role Name</label>
-        <input
-          class="modal-form__input"
-          type="text"
-          id="modal-form-incident--role"
-          name="role"
-        />
-      </div> -->
+      <input type="hidden" id="modal-role-id" />
 
       <div class="modal-form__group">
-        <label class="modal-form__label" for="role">Role</label>
-        <select
-          class="modal-form__select"
-          name="role"
-          id="modal-form-incident--role"
-        >
+        <label class="modal-form__label" for="modal-form-incident--role">
+          Role
+        </label>
+
+        <select class="modal-form__input" id="modal-form-incident--role">
           <option value=""></option>
-          <!-- Dynamically Added Roles -->
         </select>
       </div>
 
-      <button
-        class="btn btn-primary"
-        id="modal-form__submit--role"
-        type="submit"
-      >
-        Submit
+      <button class="btn btn-primary" id="modal-role-submit" type="submit">
+        Create Role
       </button>
     </form>
   </div>

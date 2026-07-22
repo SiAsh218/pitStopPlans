@@ -144,7 +144,17 @@ class ViewController {
       formMode: "new",
     };
 
-    return this.render(res, "plan_template.html", data);
+    return this.render(res, "templates.html", data);
+  }
+
+  async planTemplate(req, res) {
+    const data = {
+      title: "Plan Template",
+      isLoggedIn: true,
+      formMode: "view",
+    };
+
+    return this.render(res, "plan-template.html", data);
   }
 
   async incident(req, res) {

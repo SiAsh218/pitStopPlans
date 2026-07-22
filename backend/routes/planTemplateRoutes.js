@@ -19,6 +19,16 @@ module.exports = [
     ],
   },
 
+  {
+    method: "GET",
+    path: "/api/plan_templates/current",
+    handler: [
+      auth,
+      requireRole("admin"),
+      planTemplateController.getCurrent.bind(planTemplateController),
+    ],
+  },
+
   /**
    * ============================================================
    * Get Template By ID

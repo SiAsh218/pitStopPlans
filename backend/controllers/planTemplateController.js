@@ -178,6 +178,15 @@ class PlanTemplateController {
       message: "Plan Template retired",
     });
   }
+
+  getCurrent(req, res) {
+    const templates = planTemplateService.getCurrentPlanTemplates();
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: templates,
+    });
+  }
 }
 
 module.exports = new PlanTemplateController();

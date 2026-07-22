@@ -1,95 +1,58 @@
-// import { addActionByStageName } from "../state/incidentState.js";
-import { resetFormInputs, renderFullPlan } from "../components/modal.js";
-import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
+import { createAction } from "../services/planStageActionService.js";
+import { showSuccess, showError } from "../utils/myAlert.js";
 
 export function initModalAction() {
-  const modal = document.getElementById("modal-form-incident-action");
+  const modal = document.getElementById("modal-form-action");
 
-  if (!modal) return;
+  if (!modal) {
+    return;
+  }
+
   const form = modal.querySelector("form");
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const data = getData();
+    try {
+      const role_ids = [
+        ...document.querySelectorAll(".action-role-checkbox:checked"),
+      ].map((checkbox) => Number(checkbox.value));
 
-    addActionByStageName(data.stage, data);
+      const payload = {
+        plan_stage_id: Number(
+          document.getElementById("modal-action-stage-id").value,
+        ),
 
-    resetFormInputs(form);
+        action_number: Number(
+          document.getElementById("modal-action-number").value,
+        ),
 
-    renderFullPlan();
-  });
-}
+        title: document.getElementById("modal-action-title-input").value,
 
-function getData() {
-  const inputTitle = document.getElementById(
-    "modal-form-incident--action-name",
-  );
-  const inputDescription = document.getElementById(
-    "modal-form-incident--action-description",
-  );
-  const inputDueFromStageStart = document.getElementById(
-    "modal-form-incident--due-from-stage-start",
-  );
-  const inputDueFromIncidentStart = document.getElementById(
-    "modal-form-incident--due-from-incident-start",
-  );
-  const roleSelector = document.getElementById(
-    "modal-form-incident--action-role",
-  );
-  const stageSelector = document.getElementById(
-    "modal-form-incident--action-stage",
-  );
+        description: document.getElementById("modal-action-description").value,
 
-  const title = inputTitle.value.trim();
-  const description = inputDescription.value.trim();
-  const dueFromStageStart = inputDueFromStageStart.value.trim();
-  const dueFromIncidentStart = inputDueFromIncidentStart.value.trim();
-  const role = {
-    id: roleSelector.value,
-    name: roleSelector.options[roleSelector.selectedIndex].text,
-  };
-  const stage = stageSelector.value;
+        due_from_stage_start: Number(
+          document.getElementById("modal-action-stage-due").value,
+        ),
 
-  const data = {
-    title,
-    description,
-    dueFromStageStart,
-    dueFromIncidentStart,
-    //   TODO: need a fix for multiples
-    roles: [role],
-    stage,
-  };
+        due_from_incident_start: Number(
+          document.getElementById("modal-action-incident-due").value,
+        ),
 
-  return data;
-}
+        role_ids,
+      };
 
-export function renderRoleOptions(roles) {
-  const roleSelector = document.getElementById(
-    "modal-form-incident--action-role",
-  );
+      console.log(payload);
 
-  roleSelector.innerHTML = `<option value=""></option>`;
+      await createAction(payload);
 
-  roles.forEach((role) => {
-    roleSelector.insertAdjacentHTML(
-      "beforeend",
-      `<option value="${role.id}">${role.name}</option>`,
-    );
-  });
-}
+      showSuccess("Action created successfully");
 
-export function renderStageOptions(stages) {
-  const stageSelector = document.getElementById(
-    "modal-form-incident--action-stage",
-  );
+      location.reload();
+    } catch (err) {
+      console.error(err);
 
-  stageSelector.innerHTML = `<option value=""></option>`;
-
-  stages.forEach((stage) => {
-    stageSelector.insertAdjacentHTML(
-      "beforeend",
-      `<option value="${stage.stageName}">${stage.stageName}</option>`,
-    );
+      showError("Failed to create action");
+    }
   });
 }

@@ -199,6 +199,44 @@ class PlanTemplateRepository extends BaseRepository {
       )
       .all();
   }
+
+  /**
+   * ============================================================
+   * Latest Template Per Incident Type
+   * ============================================================
+   */
+  findLatestWithIncidentType() {
+    return this.db
+      .prepare(
+        `
+      SELECT
+        pt.id,
+        pt.version,
+        pt.title,
+        pt.status,
+        pt.created_at,
+        pt.incident_type_id,
+
+        it.name AS incident_type_name
+
+      FROM plan_templates pt
+
+      INNER JOIN incident_types it
+        ON pt.incident_type_id = it.id
+
+      WHERE pt.version = (
+        SELECT MAX(version)
+        FROM plan_templates p2
+        WHERE p2.incident_type_id = pt.incident_type_id
+      )
+
+      AND pt.status != 'retired'
+
+      ORDER BY it.name
+    `,
+      )
+      .all();
+  }
 }
 
 module.exports = new PlanTemplateRepository();

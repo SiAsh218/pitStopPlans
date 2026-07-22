@@ -1,4 +1,5 @@
 import { getDashboard, closeIncident } from "../services/incidentService.js";
+import { formatDateTime } from "../utils/dateHandler.js";
 
 import {
   getAction,
@@ -179,12 +180,34 @@ function renderActions(actions) {
   `;
 
   stages.forEach((stageNumber) => {
+    const stageInfo = actions.find(
+      (action) => action.stage_number === stageNumber,
+    );
+
     html += `
-      <tr>
-        <td class="stage-label">
+    <tr>
+      <td class="stage-label">
+
+        <strong>
           Stage ${stageNumber}
-        </td>
-    `;
+        </strong>
+
+        <br>
+
+        <small>
+          ${stageInfo?.stage_name ?? ""}
+        </small>
+
+        <br>
+
+        <small>
+          Due:
+          ${stageInfo?.stage_due_from_incident_start ?? 0}
+          mins
+        </small>
+
+      </td>
+  `;
 
     roles.forEach((roleName) => {
       const matchingActions = actions.filter(
@@ -239,8 +262,6 @@ function wireActionCards() {
   document.querySelectorAll(".matrix-action").forEach((card) => {
     card.addEventListener("click", () => {
       const actionId = card.dataset.actionId;
-
-      console.log("Selected Action:", actionId);
 
       openActionPanel(actionId);
     });
@@ -457,17 +478,17 @@ function wireCloseIncidentButton(incidentId) {
     });
 }
 
-function formatDateTime(dateString) {
-  if (!dateString) {
-    return "-";
-  }
+// function formatDateTime(dateString) {
+//   if (!dateString) {
+//     return "-";
+//   }
 
-  const utcDate = new Date(dateString.replace(" ", "T") + "Z");
+//   const utcDate = new Date(dateString.replace(" ", "T") + "Z");
 
-  return utcDate.toLocaleString("en-GB", {
-    timeZone: "Europe/London",
-  });
-}
+//   return utcDate.toLocaleString("en-GB", {
+//     timeZone: "Europe/London",
+//   });
+// }
 
 async function refreshIncidentPage() {
   const incidentId = window.location.pathname.split("/").pop();

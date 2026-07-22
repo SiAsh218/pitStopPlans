@@ -13,7 +13,7 @@ module.exports = [
   },
   {
     method: "GET",
-    path: "/create-plan-template",
+    path: "/templates",
     handler: viewController.createPlanTemplate.bind(viewController),
   },
   {
@@ -25,5 +25,10 @@ module.exports = [
     method: "GET",
     path: "/incidents/:id",
     handler: viewController.incident.bind(viewController),
+  },
+  {
+    method: "GET",
+    path: "/templates/:id",
+    handler: viewController.planTemplate.bind(viewController),
   },
 ];

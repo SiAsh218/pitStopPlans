@@ -241,6 +241,12 @@ class PlanTemplateService {
 
     return true;
   }
+
+  getCurrentPlanTemplates() {
+    const rows = planTemplateRepository.findLatestWithIncidentType();
+
+    return rows.map((row) => this._toDTO(row));
+  }
 }
 
 module.exports = new PlanTemplateService();
