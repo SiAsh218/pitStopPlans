@@ -1,7 +1,9 @@
 import {
-  getCurrentTemplates,
+  getTemplateSummary,
   cloneTemplate,
 } from "../services/planTemplateService.js";
+
+import { showWarning } from "../utils/myAlert.js";
 
 export async function initTemplatesPage() {
   const container = document.getElementById("template-list");
@@ -11,7 +13,9 @@ export async function initTemplatesPage() {
   }
 
   try {
-    const templates = await getCurrentTemplates();
+    const templates = await getTemplateSummary();
+
+    renderTemplates(templates);
 
     renderTemplates(templates);
   } catch (err) {
@@ -22,47 +26,92 @@ export async function initTemplatesPage() {
 function renderTemplates(templates) {
   const container = document.getElementById("template-list");
 
-  container.innerHTML = templates
+  const grouped = groupTemplates(templates);
+
+  container.innerHTML = Object.entries(grouped)
     .map(
-      (template) => `
-          <div class="card">
+      ([name, versions]) => `
+      
+      <div class="card">
 
-            <h2>
-              ${template.title}
-            </h2>
+        <h2>
+          ${name}
+        </h2>
 
-            <p>
-              Version:
-              ${template.version}
-            </p>
+        <p>
 
-            <p>
-              Status:
-              ${template.status}
-            </p>
+          Active Version:
 
-            <div
-              class="card-actions"
-            >
+          ${
+            versions.approved
+              ? `
+                v${versions.approved.version}
+              `
+              : "None"
+          }
 
-              <button
-                class="btn btn-secondary btn-view-template"
-                data-template-id="${template.id}"
-              >
-                View
-              </button>
+        </p>
 
-              <button
-                class="btn btn-primary btn-clone-template"
-                data-template-id="${template.id}"
-              >
-                Clone
-              </button>
+        <p>
 
-            </div>
+          Draft Version:
 
-          </div>
-        `,
+          ${
+            versions.draft
+              ? `
+                v${versions.draft.version}
+              `
+              : "None"
+          }
+
+        </p>
+
+        <div class="card-actions">
+
+          ${
+            versions.approved
+              ? `
+                <button
+                  class="btn btn-secondary btn-view-template"
+                  data-template-id="${versions.approved.id}"
+                >
+                  View Active
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            versions.draft
+              ? `
+                <button
+                  class="btn btn-secondary btn-view-template"
+                  data-template-id="${versions.draft.id}"
+                >
+                  View Draft
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            versions.approved && !versions.draft
+              ? `
+                <button
+                  class="btn btn-primary btn-clone-template"
+                  data-template-id="${versions.approved.id}"
+                >
+                  Create New Version
+                </button>
+              `
+              : ""
+          }
+
+        </div>
+
+      </div>
+
+    `,
     )
     .join("");
 
@@ -87,8 +136,39 @@ function wireTemplateButtons() {
 
         window.location.href = `/templates/${template.id}`;
       } catch (err) {
-        console.error(err);
+        showWarning(err.message || "A draft already exists");
       }
     });
   });
+}
+
+function groupTemplates(templates) {
+  const grouped = {};
+
+  templates.forEach((template) => {
+    const typeName = template.incident_type.name;
+
+    if (!grouped[typeName]) {
+      grouped[typeName] = {
+        incidentType: template.incident_type,
+        approved: null,
+        draft: null,
+      };
+    }
+
+    if (template.status === "approved") {
+      if (
+        !grouped[typeName].approved ||
+        template.version > grouped[typeName].approved.version
+      ) {
+        grouped[typeName].approved = template;
+      }
+    }
+
+    if (template.status === "draft") {
+      grouped[typeName].draft = template;
+    }
+  });
+
+  return grouped;
 }

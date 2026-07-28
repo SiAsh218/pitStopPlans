@@ -1,4 +1,9 @@
-import { getTemplate } from "../services/planTemplateService.js";
+import {
+  getTemplate,
+  approveTemplate,
+  retireTemplate,
+  getTemplateHistory,
+} from "../services/planTemplateService.js";
 import { getPlan } from "../services/planService.js";
 import {
   updateStage,
@@ -28,9 +33,15 @@ export async function initPlanTemplatePage() {
 
     const plan = await getPlan(templateId);
 
+    const history = await getTemplateHistory(templateId);
+
+    console.log("History:", history);
+
     const isDraft = template.status === "draft";
 
     renderTemplateMeta(template, isDraft);
+
+    renderVersionHistory(history, template.id);
 
     await renderRoles(isDraft);
 
@@ -38,6 +49,12 @@ export async function initPlanTemplatePage() {
 
     if (isDraft) {
       wireAddStageButton(plan);
+
+      wireApproveTemplateButton(template.id);
+    }
+
+    if (template.status === "approved") {
+      wireRetireTemplateButton(template.id);
     }
   } catch (err) {
     console.error(err);
@@ -50,6 +67,8 @@ function renderTemplateMeta(template, isDraft) {
   if (!container) {
     return;
   }
+
+  const isApproved = template.status === "approved";
 
   container.innerHTML = `
     <div class="card">
@@ -71,18 +90,43 @@ function renderTemplateMeta(template, isDraft) {
       ${
         isDraft
           ? `
+      <div class="card-actions">
+
+        <button
+          id="btn-add-stage"
+          class="btn btn-primary"
+        >
+          Add Stage
+        </button>
+
+        <button
+          id="btn-approve-template"
+          class="btn btn-primary"
+        >
+          Approve Template
+        </button>
+
+      </div>
+    `
+          : ""
+      }
+
+      ${
+        isApproved
+          ? `
             <div class="card-actions">
+
               <button
-                id="btn-add-stage"
-                class="btn btn-primary"
+                id="btn-retire-template"
+                class="btn btn-danger"
               >
-                Add Stage
+                Retire Template
               </button>
+
             </div>
           `
           : ""
       }
-
     </div>
   `;
 }
@@ -327,6 +371,60 @@ function wireAddStageButton(plan) {
   });
 }
 
+function wireApproveTemplateButton(templateId) {
+  const button = document.getElementById("btn-approve-template");
+
+  button?.addEventListener("click", async () => {
+    const confirmed = await showConfirm(
+      "Approve Template",
+      "Are you sure you want to approve this template? Once approved it should no longer be edited.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await approveTemplate(templateId);
+
+      showSuccess("Template approved successfully");
+
+      location.reload();
+    } catch (err) {
+      console.error(err);
+
+      showError("Failed to approve template");
+    }
+  });
+}
+
+function wireRetireTemplateButton(templateId) {
+  const button = document.getElementById("btn-retire-template");
+
+  button?.addEventListener("click", async () => {
+    const confirmed = await showConfirm(
+      "Retire Template",
+      "Are you sure you want to retire this template?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await retireTemplate(templateId);
+
+      showSuccess("Template retired successfully");
+
+      location.reload();
+    } catch (err) {
+      console.error(err);
+
+      showError("Failed to retire template");
+    }
+  });
+}
+
 export function openEditStageModal(stage) {
   document.getElementById("modal-form-stage--id").value = stage.id;
 
@@ -342,6 +440,57 @@ export function openEditStageModal(stage) {
   document
     .getElementById("modal-form-incident-stage")
     .classList.remove("hidden");
+}
+
+function renderVersionHistory(history, currentTemplateId) {
+  const container = document.getElementById("template-history");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card">
+
+      <h2>
+        Version History
+      </h2>
+
+      ${history
+        .map(
+          (version) => `
+            <div class="role-row">
+
+              <span>
+
+                v${version.version}
+
+                (${version.status})
+
+                ${version.id === currentTemplateId ? " ← Current" : ""}
+
+              </span>
+
+              <button
+                class="btn btn-secondary btn-version-view"
+                data-template-id="${version.id}"
+              >
+                View
+              </button>
+
+            </div>
+          `,
+        )
+        .join("")}
+
+    </div>
+  `;
+
+  document.querySelectorAll(".btn-version-view").forEach((button) => {
+    button.addEventListener("click", () => {
+      window.location.href = `/templates/${button.dataset.templateId}`;
+    });
+  });
 }
 
 async function renderRoles(isDraft) {

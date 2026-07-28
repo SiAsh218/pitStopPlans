@@ -187,6 +187,30 @@ class PlanTemplateController {
       data: templates,
     });
   }
+
+  getSummary(req, res) {
+    const templates = planTemplateService.getTemplateSummary();
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: templates,
+    });
+  }
+
+  getHistory(req, res) {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      throw new AppError("Invalid ID", 400);
+    }
+
+    const history = planTemplateService.getTemplateHistory(id);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: history,
+    });
+  }
 }
 
 module.exports = new PlanTemplateController();

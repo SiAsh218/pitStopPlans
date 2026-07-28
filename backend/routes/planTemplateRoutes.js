@@ -29,6 +29,16 @@ module.exports = [
     ],
   },
 
+  {
+    method: "GET",
+    path: "/api/plan_templates/summary",
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      planTemplateController.getSummary.bind(planTemplateController),
+    ],
+  },
+
   /**
    * ============================================================
    * Get Template By ID
@@ -116,6 +126,20 @@ module.exports = [
       auth,
       requireRole("admin"),
       planTemplateController.retire.bind(planTemplateController),
+    ],
+  },
+  /**
+   * ============================================================
+   * History
+   * ============================================================
+   */
+  {
+    method: "GET",
+    path: "/api/plan_templates/:id/history",
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      planTemplateController.getHistory.bind(planTemplateController),
     ],
   },
 ];

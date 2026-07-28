@@ -42,3 +42,11 @@ export async function updateTemplate(id, data) {
 
   return result.data;
 }
+
+export function getTemplateHistory(id) {
+  return api.get(`/api/plan_templates/${id}/history`);
+}
+
+export function getTemplateSummary() {
+  return api.get("/api/plan_templates/summary");
+}

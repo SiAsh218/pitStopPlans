@@ -180,6 +180,18 @@ class PlanTemplateService {
       throw new AppError("Template not found", 404);
     }
 
+    const existingDrafts = planTemplateRepository.findByIncidentTypeAndStatus(
+      template.incident_type_id,
+      "draft",
+    );
+
+    if (existingDrafts.length > 0) {
+      throw new AppError(
+        "A draft version already exists for this incident type",
+        400,
+      );
+    }
+
     const latestVersion =
       planTemplateRepository.findLatestVersionByIncidentType(
         template.incident_type_id,
@@ -242,10 +254,28 @@ class PlanTemplateService {
     return true;
   }
 
+  getTemplateSummary() {
+    const rows = planTemplateRepository.findAllWithIncidentType();
+
+    return rows.map((row) => this._toDTO(row));
+  }
+
   getCurrentPlanTemplates() {
     const rows = planTemplateRepository.findLatestWithIncidentType();
 
     return rows.map((row) => this._toDTO(row));
+  }
+
+  getTemplateHistory(templateId) {
+    const template = planTemplateRepository.findById(templateId);
+
+    if (!template) {
+      return [];
+    }
+
+    return planTemplateRepository.findByIncidentTypeId(
+      template.incident_type_id,
+    );
   }
 }
 
