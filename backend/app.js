@@ -320,7 +320,7 @@ class App {
      * Default to home.html if directory requested
      */
     if (safePath.endsWith("/")) {
-      safePath += "home.html";
+      safePath += "src/html/home.html";
     }
 
     return path.join(this.staticFilePath, safePath);
@@ -349,8 +349,6 @@ class App {
       if (error.code !== "ENOENT") {
         console.error("Static file error:", error);
       }
-
-      console.error("File not found:", filePath);
 
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("File not found");

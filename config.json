@@ -9,7 +9,7 @@
   "paths": {
     "views": "./frontend/src/html/",
     "partials": "./frontend/src/html/partials/",
-    "static": "./frontend"
+    "static": "./frontend/"
   },
   "mimeTypes": {
     ".html": "text/html",
