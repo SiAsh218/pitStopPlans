@@ -1,4 +1,8 @@
-import { createAction } from "../services/planStageActionService.js";
+import {
+  createAction,
+  updateAction,
+} from "../services/planStageActionService.js";
+
 import { showSuccess, showError } from "../utils/myAlert.js";
 
 export function initModalAction() {
@@ -12,6 +16,8 @@ export function initModalAction() {
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    const actionId = document.getElementById("modal-action-id").value;
 
     try {
       const role_ids = [
@@ -44,15 +50,25 @@ export function initModalAction() {
 
       console.log(payload);
 
-      await createAction(payload);
+      if (actionId) {
+        await updateAction(Number(actionId), payload);
+      } else {
+        await createAction(payload);
+      }
 
-      showSuccess("Action created successfully");
+      showSuccess(
+        actionId
+          ? "Action updated successfully"
+          : "Action created successfully",
+      );
 
       location.reload();
     } catch (err) {
       console.error(err);
 
-      showError("Failed to create action");
+      showError(
+        actionId ? "Failed to update action" : "Failed to create action",
+      );
     }
   });
 }

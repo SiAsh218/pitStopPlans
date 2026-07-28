@@ -18,6 +18,11 @@ import {
   updateRole,
   deleteRole,
 } from "../services/roleService.js";
+import {
+  createAction,
+  updateAction,
+  deleteAction,
+} from "../services/planStageActionService.js";
 
 export async function initPlanTemplatePage() {
   const container = document.querySelector(".template-meta");
@@ -251,17 +256,51 @@ function renderTemplateMatrix(plan, isDraft) {
         html += `
           <div class="matrix-action">
 
-            <div class="matrix-action__title">
-              ${action.title}
-            </div>
-
-            <div class="matrix-action__status">
-              Due:
-              ${action.due_from_incident_start}
-              mins
-            </div>
-
+          <div class="matrix-action__title">
+            ${action.title}
           </div>
+
+          <div class="matrix-action__status">
+            Due:
+            ${action.due_from_incident_start}
+            mins
+          </div>
+
+          ${
+            isDraft
+              ? `
+                <div class="matrix-action__buttons">
+
+                  <button
+                    class="btn btn-secondary btn-edit-action"
+
+                    data-action-id="${action.id}"
+                    data-action-number="${action.action_number}"
+                    data-title="${action.title}"
+                    data-description="${action.description}"
+                    data-stage-id="${action.plan_stage_id}"
+                    data-due-stage="${action.due_from_stage_start}"
+                    data-due-incident="${action.due_from_incident_start}"
+                    data-role-ids='${JSON.stringify(
+                      action.roles.map((role) => role.id),
+                    )}'
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    class="btn btn-danger btn-delete-action"
+                    data-action-id="${action.id}"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+              `
+              : ""
+          }
+
+        </div>
         `;
       });
 
@@ -286,7 +325,77 @@ function renderTemplateMatrix(plan, isDraft) {
   if (isDraft) {
     wireStageButtons();
     wireActionButtons();
+
+    wireEditActionButtons();
+    wireDeleteActionButtons();
   }
+}
+
+function wireEditActionButtons() {
+  document.querySelectorAll(".btn-edit-action").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await renderActionRoleCheckboxes();
+
+      const selectedRoleIds = JSON.parse(button.dataset.roleIds || "[]");
+
+      document.querySelectorAll(".action-role-checkbox").forEach((checkbox) => {
+        checkbox.checked = selectedRoleIds.includes(Number(checkbox.value));
+      });
+
+      document.getElementById("modal-action-id").value =
+        button.dataset.actionId;
+
+      document.getElementById("modal-action-number").value =
+        button.dataset.actionNumber;
+
+      document.getElementById("modal-action-title-input").value =
+        button.dataset.title;
+
+      document.getElementById("modal-action-description").value =
+        button.dataset.description;
+
+      document.getElementById("modal-action-stage-id").value =
+        button.dataset.stageId;
+
+      document.getElementById("modal-action-stage-due").value =
+        button.dataset.dueStage;
+
+      document.getElementById("modal-action-incident-due").value =
+        button.dataset.dueIncident;
+
+      document.getElementById("modal-action-title").textContent = "Edit Action";
+
+      document.getElementById("modal-action-submit").textContent =
+        "Update Action";
+
+      document.getElementById("modal-form-action").classList.remove("hidden");
+    });
+  });
+}
+
+function wireDeleteActionButtons() {
+  document.querySelectorAll(".btn-delete-action").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const confirmed = await showConfirm(
+        "Delete Action",
+        "Are you sure you want to delete this action?",
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await deleteAction(button.dataset.actionId);
+
+        showSuccess("Action deleted successfully");
+
+        location.reload();
+      } catch (err) {
+        showError("Failed to delete action");
+      }
+    });
+  });
 }
 
 function wireStageButtons() {
