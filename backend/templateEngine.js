@@ -280,7 +280,7 @@ class TemplateEngine {
 
     const path = `${this.partialsPath}/${name}.html`;
 
-    console.log(path);
+    console.log("Loading partial:", path);
 
     try {
       const content = await fs.readFile(path, "utf8");
@@ -292,7 +292,8 @@ class TemplateEngine {
 
       return content;
     } catch (err) {
-      console.error(`Error loading partial: ${name}`, err);
+      console.error(`Error loading partial: ${name}`);
+      console.error(err);
       return "";
     }
   }
