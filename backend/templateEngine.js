@@ -280,6 +280,8 @@ class TemplateEngine {
 
     const path = `${this.partialsPath}/${name}.html`;
 
+    console.log(path);
+
     try {
       const content = await fs.readFile(path, "utf8");
 
