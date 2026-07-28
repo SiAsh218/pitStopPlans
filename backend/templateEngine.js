@@ -72,7 +72,6 @@ class TemplateEngine {
    */
   async getFinalHTML(templateName, data) {
     try {
-      console.log("Running getFinalHTML");
       if (!this.viewPath) {
         throw new Error("viewPath is not set");
       }
@@ -280,8 +279,6 @@ class TemplateEngine {
     }
 
     const path = `${this.partialsPath}/${name}.html`;
-
-    console.log("Loading partial:", path);
 
     try {
       const content = await fs.readFile(path, "utf8");

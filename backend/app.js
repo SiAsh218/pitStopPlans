@@ -278,8 +278,6 @@ class App {
   async _serveStaticFiles(req, res) {
     if (!req.url) return false;
 
-    console.log("Static URL:", req.url);
-
     /**
      * Block certain system paths (security precaution)
      */
@@ -292,25 +290,16 @@ class App {
     // Resolve safe file path
     const filePath = this._getSafePath(req.url);
 
-    console.log("Static file path:", filePath);
-
     const ext = path.extname(filePath);
 
-    console.log("Extension:", ext);
-
     const contentType = MIME_TYPES[ext];
-
-    console.log("Content type:", contentType);
 
     /**
      * Only serve GET requests for known file types
      */
     if (!contentType || req.method !== "GET") {
-      console.log("Not serving as static");
       return false;
     }
-
-    console.log("Serving as static");
 
     return this._serveStatic(res, filePath, contentType);
   }
@@ -346,7 +335,6 @@ class App {
    */
   async _serveStatic(res, filePath, contentType) {
     try {
-      console.log("Running serve static");
       const data = await fs.readFile(filePath);
 
       res.writeHead(200, { "Content-Type": contentType });
