@@ -335,6 +335,7 @@ class App {
    */
   async _serveStatic(res, filePath, contentType) {
     try {
+      console.log("Running serve static");
       const data = await fs.readFile(filePath);
 
       res.writeHead(200, { "Content-Type": contentType });

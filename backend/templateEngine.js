@@ -72,6 +72,7 @@ class TemplateEngine {
    */
   async getFinalHTML(templateName, data) {
     try {
+      console.log("Running getFinalHTML");
       if (!this.viewPath) {
         throw new Error("viewPath is not set");
       }
