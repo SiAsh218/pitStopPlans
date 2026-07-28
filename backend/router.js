@@ -107,6 +107,10 @@ class Router {
        */
       const middlewareResult = await this._runMiddlewares(req, res);
 
+      if (middlewareResult === false) {
+        return false;
+      }
+
       if (middlewareResult !== true) {
         return this._handleError(middlewareResult, req, res);
       }
@@ -208,14 +212,20 @@ class Router {
   _handleError(err, req, res) {
     console.error("💥 Error:", err);
 
-    const status = err.statusCode || 500;
+    if (res.headersSent) {
+      return true;
+    }
+
+    const status =
+      err && typeof err.statusCode === "number" ? err.statusCode : 500;
+    const message = err && err.message ? err.message : "Internal Server Error";
 
     res.writeHead(status, { "Content-Type": "application/json" });
 
     res.end(
       JSON.stringify({
         success: false,
-        error: err.message || "Internal Server Error",
+        error: message,
       }),
     );
 

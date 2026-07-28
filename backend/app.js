@@ -27,6 +27,7 @@ const fs = require("fs").promises;
 
 // Custom router (handles routes and middleware chain)
 const router = require("./router.js");
+const AppError = require("./utils/AppError.js");
 
 // =========================
 // Middleware Registration
@@ -91,8 +92,12 @@ class App {
     this.host = null;
 
     // Initialise DB on startup
-    initialiseDatabase();
-    seedDatabase();
+    try {
+      initialiseDatabase();
+      seedDatabase();
+    } catch (error) {
+      console.error("Database startup failed:", error.message || error);
+    }
   }
 
   /**
@@ -110,14 +115,52 @@ class App {
         this.runHTTP("development");
       }
 
-      this.server.listen(this.port, this.host, () => {
-        console.log(
-          `Server running (${this.mode}) on http://${this.host}:${this.port}`,
-        );
-      });
+      await this._listenWithRetry(this.port, this.host);
     } catch (error) {
       console.error("Application startup failed:", error);
       process.exit(1);
+    }
+  }
+
+  async _listenWithRetry(port, host) {
+    const maxAttempts = 10;
+    let currentPort = port;
+    let attempt = 0;
+
+    while (attempt < maxAttempts) {
+      try {
+        await new Promise((resolve, reject) => {
+          const onError = (error) => {
+            this.server.off("error", onError);
+            reject(error);
+          };
+
+          this.server.once("error", onError);
+          this.server.listen(currentPort, host, () => {
+            this.server.off("error", onError);
+            this.port = currentPort;
+            resolve();
+          });
+        });
+
+        console.log(
+          `Server running (${this.mode}) on http://${host}:${this.port}`,
+        );
+        return;
+      } catch (error) {
+        if (error.code !== "EADDRINUSE") {
+          throw error;
+        }
+
+        attempt += 1;
+
+        if (attempt >= maxAttempts) {
+          throw error;
+        }
+
+        currentPort += 1;
+        console.warn(`Port ${port} is in use, trying ${currentPort}...`);
+      }
     }
   }
 
@@ -164,8 +207,7 @@ class App {
             try {
               req.body = JSON.parse(body);
             } catch (err) {
-              console.error("Invalid JSON:", err);
-              req.body = {};
+              throw new AppError("Invalid JSON payload", 400);
             }
           }
         }
@@ -190,18 +232,39 @@ class App {
         // 5. FALLBACK (404)
         // ====================================================
         if (!handled) {
-          res.writeHead(404, { "Content-Type": "text/plain" });
-          res.end("Not Found");
+          this._sendJson(res, 404, { success: false, error: "Not Found" });
         }
       } catch (err) {
         // ====================================================
         // GLOBAL REQUEST ERROR HANDLER
         // ====================================================
         console.error("Server Error:", err);
-
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal Server Error");
+        this._sendError(res, err);
       }
+    });
+  }
+
+  _sendJson(res, statusCode, payload) {
+    if (res.headersSent) {
+      return;
+    }
+
+    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(payload));
+  }
+
+  _sendError(res, err) {
+    if (res.headersSent) {
+      return;
+    }
+
+    const statusCode =
+      err && typeof err.statusCode === "number" ? err.statusCode : 500;
+    const message = err && err.message ? err.message : "Internal Server Error";
+
+    this._sendJson(res, statusCode, {
+      success: false,
+      error: message,
     });
   }
 

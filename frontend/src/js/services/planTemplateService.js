@@ -50,3 +50,7 @@ export function getTemplateHistory(id) {
 export function getTemplateSummary() {
   return api.get("/api/plan_templates/summary");
 }
+
+export function createTemplateTemplate(data) {
+  return api.post("/api/plan_templates", data);
+}

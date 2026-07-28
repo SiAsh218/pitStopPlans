@@ -1,0 +1,62 @@
+<div class="modal-form hidden" id="modal-form-template-create">
+  <div class="modal-form__overlay"></div>
+
+  <div class="modal-form__container">
+    <button class="modal-form__close" type="button">×</button>
+
+    <div class="modal-form__container-body">
+      <h2 class="modal-form__title">Create New Template</h2>
+      <p class="modal-form__subtitle">
+        Create a new incident type and a draft template together.
+      </p>
+
+      <form class="modal-form__form" id="form-create-template">
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="modal-template-incident-name">
+            Incident Type Name
+          </label>
+
+          <input
+            class="modal-form__input"
+            type="text"
+            id="modal-template-incident-name"
+            name="incidentTypeName"
+            required
+          />
+        </div>
+
+        <div class="modal-form__group">
+          <label
+            class="modal-form__label"
+            for="modal-template-incident-description"
+          >
+            Incident Type Description
+          </label>
+
+          <textarea
+            class="modal-form__input"
+            id="modal-template-incident-description"
+            name="incidentTypeDescription"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="modal-template-title">
+            Template Title
+          </label>
+
+          <input
+            class="modal-form__input"
+            type="text"
+            id="modal-template-title"
+            name="templateTitle"
+            required
+          />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Create Template</button>
+      </form>
+    </div>
+  </div>
+</div>

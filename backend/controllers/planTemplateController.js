@@ -57,9 +57,20 @@ class PlanTemplateController {
    * ============================================================
    */
   create(req, res) {
-    const { incident_type_id, title } = req.body;
+    const { incident_type_id, incidentType, title } = req.body;
 
-    if (!incident_type_id) {
+    let incidentTypeId = Number(incident_type_id);
+
+    if (!incidentTypeId && incidentType?.name) {
+      const createdIncidentType = incidentTypeService.createIncidentType({
+        name: incidentType.name,
+        description: incidentType.description || "",
+      });
+
+      incidentTypeId = createdIncidentType.id;
+    }
+
+    if (!incidentTypeId) {
       throw new AppError("Missing incident type ID", 400);
     }
 
@@ -67,19 +78,19 @@ class PlanTemplateController {
       throw new AppError("Template title is required", 400);
     }
 
-    const incidentType =
-      incidentTypeService.getIncidentTypeById(incident_type_id);
+    const incidentTypeRecord =
+      incidentTypeService.getIncidentTypeById(incidentTypeId);
 
-    if (!incidentType) {
+    if (!incidentTypeRecord) {
       throw new AppError(
-        `Incident type with ID ${incident_type_id} not found`,
+        `Incident type with ID ${incidentTypeId} not found`,
         404,
       );
     }
 
     const template = planTemplateService.createPlanTemplate(
       {
-        incident_type_id,
+        incident_type_id: incidentTypeId,
         title,
       },
       req.user.id,

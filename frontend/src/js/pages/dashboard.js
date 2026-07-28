@@ -1,6 +1,12 @@
 import { getIncidents } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
 
+let allIncidents = [];
+let filters = {
+  search: "",
+  status: "active",
+};
+
 export async function loadIncidents() {
   const incidentList = document.getElementById("incident-list");
 
@@ -9,13 +15,17 @@ export async function loadIncidents() {
   }
 
   try {
+    incidentList.innerHTML = "<p>Loading incidents...</p>";
+
     const incidents = await getIncidents();
 
-    incidents.sort((a, b) => new Date(b.started_at) - new Date(a.started_at));
+    allIncidents = incidents.sort(
+      (a, b) => new Date(b.started_at) - new Date(a.started_at),
+    );
 
-    updateStatistics(incidents);
-
-    renderIncidents(incidents);
+    bindDashboardControls();
+    updateStatistics(allIncidents);
+    renderIncidents(getFilteredIncidents());
   } catch (err) {
     console.error(err);
 
@@ -25,14 +35,63 @@ export async function loadIncidents() {
   }
 }
 
+function bindDashboardControls() {
+  const searchInput = document.getElementById("incident-search");
+  const statusFilter = document.getElementById("incident-status-filter");
+  const refreshButton = document.getElementById("btn-refresh-incidents");
+
+  if (!searchInput || !statusFilter || !refreshButton) {
+    return;
+  }
+
+  searchInput.value = filters.search;
+  statusFilter.value = filters.status;
+
+  searchInput.oninput = (event) => {
+    filters.search = event.target.value.trim().toLowerCase();
+    renderIncidents(getFilteredIncidents());
+  };
+
+  statusFilter.onchange = (event) => {
+    filters.status = event.target.value;
+    renderIncidents(getFilteredIncidents());
+  };
+
+  refreshButton.onclick = () => {
+    loadIncidents();
+  };
+}
+
+function getFilteredIncidents() {
+  return allIncidents.filter((incident) => {
+    const matchesStatus =
+      filters.status === "all" || incident.status === filters.status;
+
+    const searchTerm = filters.search;
+    const matchesSearch =
+      searchTerm.length === 0 ||
+      [incident.title, incident.incident_type?.name]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(searchTerm));
+
+    return matchesStatus && matchesSearch;
+  });
+}
+
 function renderIncidents(incidents) {
   const container = document.getElementById("incident-list");
+
+  if (!container) {
+    return;
+  }
 
   container.innerHTML = "";
 
   if (incidents.length === 0) {
     container.innerHTML = `
-      <p>No incidents found.</p>
+      <div class="card empty-state">
+        <p>No incidents match your current filters.</p>
+      </div>
     `;
 
     return;
@@ -94,6 +153,21 @@ function updateStatistics(incidents) {
     (incident) => incident.status === "closed",
   ).length;
 
+  const today = new Date();
+  const resolvedToday = incidents.filter((incident) => {
+    if (incident.status !== "closed" || !incident.closed_at) {
+      return false;
+    }
+
+    const closedDate = new Date(incident.closed_at);
+
+    return (
+      closedDate.getFullYear() === today.getFullYear() &&
+      closedDate.getMonth() === today.getMonth() &&
+      closedDate.getDate() === today.getDate()
+    );
+  }).length;
+
   const activeIncidentCount = document.getElementById("active-incident-count");
 
   if (activeIncidentCount) {
@@ -103,12 +177,12 @@ function updateStatistics(incidents) {
   const resolvedCount = document.getElementById("resolved-count");
 
   if (resolvedCount) {
-    resolvedCount.textContent = closed;
+    resolvedCount.textContent = resolvedToday;
   }
 
   const openActionCount = document.getElementById("open-action-count");
 
   if (openActionCount) {
-    openActionCount.textContent = "-";
+    openActionCount.textContent = active;
   }
 }

@@ -19,7 +19,7 @@
         <div class="stat-card">
           <span id="open-action-count" class="stat-number"> - </span>
 
-          <span class="stat-label"> Open Actions </span>
+          <span class="stat-label"> Open Workload </span>
         </div>
 
         <div class="stat-card">
@@ -27,6 +27,32 @@
 
           <span class="stat-label"> Resolved Today </span>
         </div>
+      </section>
+
+      <section class="dashboard-toolbar">
+        <div class="dashboard-toolbar__controls">
+          <label class="dashboard-filter">
+            <span>Search</span>
+            <input
+              id="incident-search"
+              type="search"
+              placeholder="Search by title or type"
+            />
+          </label>
+
+          <label class="dashboard-filter">
+            <span>Status</span>
+            <select id="incident-status-filter">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="btn-refresh-incidents" class="btn btn-secondary">
+          Refresh
+        </button>
       </section>
 
       <h2>Active Incidents</h2>

@@ -9,16 +9,23 @@
     {{include_header}}
 
     <main class="container">
-      <section>
-        <h1>Templates</h1>
+      <section class="templates-page">
+        <div class="templates-page__header">
+          <div>
+            <h1>Plan Templates</h1>
+            <p>Review approved and draft versions for each incident type.</p>
+          </div>
 
-        <button class="btn btn-primary" id="btn-create-template">
-          New Template
-        </button>
+          <button class="btn btn-primary" id="btn-create-template">
+            New Template
+          </button>
+        </div>
 
         <div id="template-list"></div>
       </section>
     </main>
+
+    {{include_modal-template-create}}
 
     <!-- Webpack bundle (JS + CSS) -->
     <script src="/dist/bundle.js"></script>

@@ -76,64 +76,94 @@ function renderTemplateMeta(template, isDraft) {
   const isApproved = template.status === "approved";
 
   container.innerHTML = `
-    <div class="card">
+    <div class="card template-page__hero">
+      <div class="template-page__hero-main">
+        <div>
+          <p class="template-page__eyebrow">Template overview</p>
+          <h1>${template.title}</h1>
+        </div>
 
-      <h1>
-        ${template.title}
-      </h1>
-
-      <p>
-        <strong>Status:</strong>
-        ${template.status}
-      </p>
-
-      <p>
-        <strong>Version:</strong>
-        ${template.version}
-      </p>
-
-      ${
-        isDraft
-          ? `
-      <div class="card-actions">
-
-        <button
-          id="btn-add-stage"
-          class="btn btn-primary"
-        >
-          Add Stage
-        </button>
-
-        <button
-          id="btn-approve-template"
-          class="btn btn-primary"
-        >
-          Approve Template
-        </button>
-
+        <div class="template-page__badges">
+          <span class="template-page__badge template-page__badge--${template.status}">
+            ${template.status}
+          </span>
+          <span class="template-page__badge">
+            Version ${template.version}
+          </span>
+        </div>
       </div>
-    `
-          : ""
-      }
 
-      ${
-        isApproved
-          ? `
-            <div class="card-actions">
-
-              <button
-                id="btn-retire-template"
-                class="btn btn-danger"
-              >
-                Retire Template
+      <div class="template-page__hero-actions">
+        ${
+          isDraft
+            ? `
+              <button id="btn-add-stage" class="btn btn-primary">
+                Add Stage
               </button>
 
-            </div>
-          `
-          : ""
-      }
+              <button id="btn-approve-template" class="btn btn-primary">
+                Approve Template
+              </button>
+            `
+            : ""
+        }
+
+        ${
+          isApproved
+            ? `
+              <button id="btn-retire-template" class="btn btn-danger">
+                Retire Template
+              </button>
+            `
+            : ""
+        }
+      </div>
     </div>
   `;
+}
+
+function getNextActionNumber(actions = []) {
+  const highest = actions.reduce((max, action) => {
+    const value = Number(action.action_number || 0);
+    return value > max ? value : max;
+  }, 0);
+
+  return highest + 1;
+}
+
+function getNextStageDue(stageDueFromIncidentStart) {
+  return Number(stageDueFromIncidentStart || 0);
+}
+
+function getNextIncidentDue(stageDueFromIncidentStart) {
+  return Number(stageDueFromIncidentStart || 0);
+}
+
+function getNextStageNumber(stages = []) {
+  const highest = stages.reduce((max, stage) => {
+    const value = Number(stage.stage_number || 0);
+    return value > max ? value : max;
+  }, 0);
+
+  return highest + 1;
+}
+
+function getNextStageTime(stages = []) {
+  if (!stages.length) {
+    return 0;
+  }
+
+  const sorted = [...stages].sort(
+    (a, b) =>
+      Number(a.due_from_incident_start || 0) -
+      Number(b.due_from_incident_start || 0),
+  );
+
+  const lastTime = Number(
+    sorted[sorted.length - 1]?.due_from_incident_start || 0,
+  );
+
+  return lastTime + 5;
 }
 
 function renderTemplateMatrix(plan, isDraft) {
@@ -143,7 +173,18 @@ function renderTemplateMatrix(plan, isDraft) {
     return;
   }
 
-  container.innerHTML = "";
+  container.innerHTML = `
+    <div class="card template-page__section-card">
+      <div class="template-page__section-header">
+        <div>
+          <h2>Template Matrix</h2>
+          <p>Stages and actions that make up this plan template.</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const sectionCard = container.querySelector(".template-page__section-card");
 
   const actions = plan.stages.flatMap((stage) =>
     stage.actions.map((action) => ({
@@ -164,7 +205,7 @@ function renderTemplateMatrix(plan, isDraft) {
 
   const table = document.createElement("table");
 
-  table.className = "incident-matrix";
+  table.className = "incident-matrix template-matrix";
 
   let html = `
     <thead>
@@ -209,32 +250,36 @@ function renderTemplateMatrix(plan, isDraft) {
             isDraft
               ? `
                 <div class="stage-actions">
-
                   <button
                     class="btn btn-secondary btn-add-action"
                     data-stage-id="${stage.id}"
-                    data-next-action-number="${stage.actions.length + 1}"
+                    data-next-action-number="${getNextActionNumber(stage.actions)}"
+                    data-next-stage-due="${getNextStageDue(stage.due_from_incident_start)}"
+                    data-next-incident-due="${getNextIncidentDue(
+                      stage.due_from_incident_start,
+                    )}"
                   >
-                    Add Action
+                    + Action
                   </button>
 
-                  <button
-                    class="btn btn-secondary btn-edit-stage"
-                    data-stage-id="${stage.id}"
-                    data-stage-number="${stage.stage_number}"
-                    data-stage-name="${stage.name}"
-                    data-stage-due="${stage.due_from_incident_start}"
-                  >
-                    Edit
-                  </button>
+                  <div class="stage-actions__secondary">
+                    <button
+                      class="btn btn-secondary btn-edit-stage"
+                      data-stage-id="${stage.id}"
+                      data-stage-number="${stage.stage_number}"
+                      data-stage-name="${stage.name}"
+                      data-stage-due="${stage.due_from_incident_start}"
+                    >
+                      Edit
+                    </button>
 
-                  <button
-                    class="btn btn-danger btn-delete-stage"
-                    data-stage-id="${stage.id}"
-                  >
-                    Delete
-                  </button>
-
+                    <button
+                      class="btn btn-danger btn-delete-stage"
+                      data-stage-id="${stage.id}"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               `
               : ""
@@ -320,7 +365,7 @@ function renderTemplateMatrix(plan, isDraft) {
 
   table.innerHTML = html;
 
-  container.appendChild(table);
+  sectionCard.appendChild(table);
 
   if (isDraft) {
     wireStageButtons();
@@ -466,13 +511,14 @@ function wireAddStageButton(plan) {
 
     document.getElementById("modal-form-stage--template-id").value = plan.id;
 
-    document.getElementById("modal-form-incident--stage-number").value = "";
+    document.getElementById("modal-form-incident--stage-number").value =
+      getNextStageNumber(plan.stages);
 
     document.getElementById("modal-form-incident--stage-name").value = "";
 
     document.getElementById(
       "modal-form-incident--mins-from-incident-start",
-    ).value = "";
+    ).value = getNextStageTime(plan.stages);
 
     document
       .getElementById("modal-form-incident-stage")
@@ -559,39 +605,43 @@ function renderVersionHistory(history, currentTemplateId) {
   }
 
   container.innerHTML = `
-    <div class="card">
+    <div class="card template-page__section-card">
+      <div class="template-page__section-header">
+        <div>
+          <h2>Version History</h2>
+          <p>Review earlier versions and jump to any previous release.</p>
+        </div>
+      </div>
 
-      <h2>
-        Version History
-      </h2>
+      <div class="template-page__history-list">
+        ${history
+          .map(
+            (version) => `
+              <div class="template-page__history-row">
+                <div>
+                  <strong>v${version.version}</strong>
+                  <span>${version.status}</span>
+                </div>
 
-      ${history
-        .map(
-          (version) => `
-            <div class="role-row">
+                <div class="template-page__history-actions">
+                  ${
+                    version.id === currentTemplateId
+                      ? '<span class="template-page__pill">Current</span>'
+                      : ""
+                  }
 
-              <span>
-
-                v${version.version}
-
-                (${version.status})
-
-                ${version.id === currentTemplateId ? " ← Current" : ""}
-
-              </span>
-
-              <button
-                class="btn btn-secondary btn-version-view"
-                data-template-id="${version.id}"
-              >
-                View
-              </button>
-
-            </div>
-          `,
-        )
-        .join("")}
-
+                  <button
+                    class="btn btn-secondary btn-version-view"
+                    data-template-id="${version.id}"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
     </div>
   `;
 
@@ -703,10 +753,20 @@ function wireActionButtons() {
     button.addEventListener("click", async () => {
       await renderActionRoleCheckboxes();
 
+      document.getElementById("modal-action-id").value = "";
       document.getElementById("modal-action-stage-id").value =
         button.dataset.stageId;
       document.getElementById("modal-action-number").value =
         button.dataset.nextActionNumber;
+      document.getElementById("modal-action-title-input").value = "";
+      document.getElementById("modal-action-description").value = "";
+      document.getElementById("modal-action-stage-due").value =
+        button.dataset.nextStageDue;
+      document.getElementById("modal-action-incident-due").value =
+        button.dataset.nextIncidentDue;
+      document.getElementById("modal-action-title").textContent = "Add Action";
+      document.getElementById("modal-action-submit").textContent =
+        "Create Action";
 
       document.getElementById("modal-form-action").classList.remove("hidden");
     });

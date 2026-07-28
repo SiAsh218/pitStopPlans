@@ -1,9 +1,10 @@
 import {
   getTemplateSummary,
   cloneTemplate,
+  createTemplateTemplate,
 } from "../services/planTemplateService.js";
 
-import { showWarning } from "../utils/myAlert.js";
+import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
 
 export async function initTemplatesPage() {
   const container = document.getElementById("template-list");
@@ -16,8 +17,7 @@ export async function initTemplatesPage() {
     const templates = await getTemplateSummary();
 
     renderTemplates(templates);
-
-    renderTemplates(templates);
+    wireCreateTemplateButton();
   } catch (err) {
     console.error(err);
   }
@@ -26,48 +26,43 @@ export async function initTemplatesPage() {
 function renderTemplates(templates) {
   const container = document.getElementById("template-list");
 
+  if (!container) {
+    return;
+  }
+
   const grouped = groupTemplates(templates);
+
+  if (!Object.keys(grouped).length) {
+    container.innerHTML = `
+      <div class="card empty-state">
+        <p>No templates found yet.</p>
+      </div>
+    `;
+
+    return;
+  }
 
   container.innerHTML = Object.entries(grouped)
     .map(
       ([name, versions]) => `
-      
-      <div class="card">
+      <article class="template-card">
+        <div class="template-card__header">
+          <div>
+            <h2>${name}</h2>
+            <p>${versions.incidentType?.name || name}</p>
+          </div>
 
-        <h2>
-          ${name}
-        </h2>
+          <div class="template-card__badges">
+            <span class="template-card__badge ${versions.approved ? "template-card__badge--approved" : ""}">
+              Active: ${versions.approved ? `v${versions.approved.version}` : "None"}
+            </span>
+            <span class="template-card__badge ${versions.draft ? "template-card__badge--draft" : ""}">
+              Draft: ${versions.draft ? `v${versions.draft.version}` : "None"}
+            </span>
+          </div>
+        </div>
 
-        <p>
-
-          Active Version:
-
-          ${
-            versions.approved
-              ? `
-                v${versions.approved.version}
-              `
-              : "None"
-          }
-
-        </p>
-
-        <p>
-
-          Draft Version:
-
-          ${
-            versions.draft
-              ? `
-                v${versions.draft.version}
-              `
-              : "None"
-          }
-
-        </p>
-
-        <div class="card-actions">
-
+        <div class="template-card__actions">
           ${
             versions.approved
               ? `
@@ -106,11 +101,8 @@ function renderTemplates(templates) {
               `
               : ""
           }
-
         </div>
-
-      </div>
-
+      </article>
     `,
     )
     .join("");
@@ -139,6 +131,51 @@ function wireTemplateButtons() {
         showWarning(err.message || "A draft already exists");
       }
     });
+  });
+}
+
+function wireCreateTemplateButton() {
+  const button = document.getElementById("btn-create-template");
+  const modal = document.getElementById("modal-form-template-create");
+  const form = document.getElementById("form-create-template");
+
+  if (!button || !modal || !form) {
+    return;
+  }
+
+  button.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      incidentType: {
+        name: document
+          .getElementById("modal-template-incident-name")
+          .value.trim(),
+        description: document
+          .getElementById("modal-template-incident-description")
+          .value.trim(),
+      },
+      title: document.getElementById("modal-template-title").value.trim(),
+    };
+
+    if (!payload.incidentType.name || !payload.title) {
+      showError("Please complete the incident type and template title.");
+      return;
+    }
+
+    try {
+      const template = await createTemplateTemplate(payload);
+      modal.classList.add("hidden");
+      form.reset();
+      showSuccess("Template created successfully.");
+      window.location.href = `/templates/${template.id}`;
+    } catch (err) {
+      showError(err.message || "Unable to create template.");
+    }
   });
 }
 

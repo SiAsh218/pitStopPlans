@@ -14,7 +14,12 @@
 
       <div id="incident-actions"></div>
 
-      <div id="incident-action-panel" class="hidden"></div>
+      <div id="incident-action-overlay" class="hidden" aria-hidden="true">
+        <div class="incident-action-modal" role="dialog" aria-modal="true">
+          <button class="incident-action-modal__close" type="button">×</button>
+          <section id="incident-action-panel" aria-live="polite"></section>
+        </div>
+      </div>
     </main>
     <script src="/dist/bundle.js"></script>
   </body>

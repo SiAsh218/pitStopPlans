@@ -60,29 +60,36 @@ function renderIncidentMeta(dashboard) {
       `;
 
   container.innerHTML = `
-    <h1>
-      ${incident.title}
-    </h1>
+    <div class="incident-meta__summary">
+      <h1>${incident.title}</h1>
 
-    <p>
-      <strong>Status:</strong>
-      ${incident.status}
-    </p>
+      <div class="incident-meta__meta">
+        <span class="incident-meta__chip">Status: ${incident.status}</span>
+        <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
+        <span class="incident-meta__chip">Template: v${incident.template.version}</span>
+      </div>
+    </div>
 
-    <p>
-      <strong>Type:</strong>
-      ${incident.incident_type.name}
-    </p>
-
-    <p>
-      <strong>Template Version:</strong>
-      ${incident.template.version}
-    </p>
-
-    ${closeButton}
+    <div class="incident-meta__actions">
+      ${closeButton}
+    </div>
   `;
 
   wireCloseIncidentButton(incident.id);
+  wireDashboardBackButton();
+}
+
+function wireDashboardBackButton() {
+  const button = document.getElementById("dashboard-nav-btn");
+
+  if (!button) {
+    return;
+  }
+
+  button.classList.add("is-visible");
+  button.addEventListener("click", () => {
+    window.location.assign("/");
+  });
 }
 
 function renderSummary(summary) {
@@ -94,7 +101,12 @@ function renderSummary(summary) {
 
   container.innerHTML = `
     <div class="card">
-      <h3>Progress</h3>
+      <div class="incident-progress-header">
+        <h3>Progress</h3>
+        <span class="incident-progress-badge">
+          ${summary.completion_percentage}% complete
+        </span>
+      </div>
 
       <div class="progress-bar">
         <div
@@ -106,30 +118,24 @@ function renderSummary(summary) {
         ></div>
       </div>
 
-      <p>
-        Completion:
-        ${summary.completion_percentage}%
-      </p>
-
-      <p>
-        Total Actions:
-        ${summary.total_actions}
-      </p>
-
-      <p>
-        Completed:
-        ${summary.completed_actions}
-      </p>
-
-      <p>
-        In Progress:
-        ${summary.in_progress_actions}
-      </p>
-
-      <p>
-        Pending:
-        ${summary.pending_actions}
-      </p>
+      <div class="incident-progress-metrics">
+        <div class="incident-progress-metric">
+          <strong>Total</strong>
+          <span>${summary.total_actions}</span>
+        </div>
+        <div class="incident-progress-metric">
+          <strong>Completed</strong>
+          <span>${summary.completed_actions}</span>
+        </div>
+        <div class="incident-progress-metric">
+          <strong>In Progress</strong>
+          <span>${summary.in_progress_actions}</span>
+        </div>
+        <div class="incident-progress-metric">
+          <strong>Pending</strong>
+          <span>${summary.pending_actions}</span>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -221,6 +227,12 @@ function renderActions(actions) {
       `;
 
       matchingActions.forEach((action) => {
+        const roleNames = action.roles.map((role) => role.name).join(", ");
+        const dueLabel =
+          action.due_from_stage_start != null
+            ? `${action.due_from_stage_start} mins from stage start`
+            : `${action.due_from_incident_start} mins from incident start`;
+
         html += `
             <div
               class="matrix-action matrix-action--${action.status}"
@@ -230,8 +242,13 @@ function renderActions(actions) {
                 ${action.title}
               </div>
 
-              <div class="matrix-action__status">
-                ${action.status}
+              <div class="matrix-action__meta">
+                <span class="matrix-action__status">${action.status}</span>
+                <span class="matrix-action__due">${dueLabel}</span>
+              </div>
+
+              <div class="matrix-action__roles">
+                ${roleNames}
               </div>
             </div>
           `;
@@ -281,35 +298,54 @@ async function openActionPanel(actionId) {
 }
 
 function renderActionPanel(action, updates = []) {
+  const overlay = document.getElementById("incident-action-overlay");
   const panel = document.getElementById("incident-action-panel");
 
-  if (!panel) {
+  if (!overlay || !panel) {
     return;
   }
 
-  panel.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+  panel.innerHTML = "";
 
   let buttons = "";
 
   if (action.status === "pending") {
     buttons = `
-      <button
-        class="btn btn-primary"
-        id="btn-start-action"
-      >
-        Start Action
-      </button>
+      <div class="action-panel__buttons">
+        <button
+          class="btn btn-primary"
+          id="btn-start-action"
+        >
+          Start Action
+        </button>
+        <button
+          class="btn btn-secondary"
+          id="btn-add-update-inline"
+        >
+          Add Update
+        </button>
+      </div>
     `;
   }
 
   if (action.status === "in_progress") {
     buttons = `
-      <button
-        class="btn btn-primary"
-        id="btn-complete-action"
-      >
-        Complete Action
-      </button>
+      <div class="action-panel__buttons">
+        <button
+          class="btn btn-primary"
+          id="btn-complete-action"
+        >
+          Complete Action
+        </button>
+        <button
+          class="btn btn-secondary"
+          id="btn-add-update-inline"
+        >
+          Add Update
+        </button>
+      </div>
     `;
   }
 
@@ -385,18 +421,19 @@ function renderActionPanel(action, updates = []) {
         ${updatesHtml}
       </div>
       <h3>
-        Add Update
+        Quick Update
       </h3>
       <textarea
         id="action-update-note"
         class="modal-form__input"
+        placeholder="Add a progress update..."
       ></textarea>
       <div class="action-panel__buttons">
         <button
           class="btn btn-primary"
           id="btn-add-update"
         >
-          Add Update
+          Save Update
         </button>
         ${buttons}
       </div>
@@ -409,6 +446,19 @@ function renderActionPanel(action, updates = []) {
 }
 
 function wireActionButtons(actionId) {
+  document
+    .querySelector(".incident-action-modal__close")
+    ?.addEventListener("click", () => {
+      closeActionModal();
+    });
+
+  document
+    .getElementById("incident-action-overlay")
+    ?.addEventListener("click", (event) => {
+      if (event.target.id === "incident-action-overlay") {
+        closeActionModal();
+      }
+    });
   document
     .getElementById("btn-start-action")
     ?.addEventListener("click", async () => {
@@ -436,26 +486,62 @@ function wireActionButtons(actionId) {
         console.error(err);
       }
     });
+
+  document
+    .getElementById("btn-add-update-inline")
+    ?.addEventListener("click", () => {
+      const textarea = document.getElementById("action-update-note");
+
+      if (textarea) {
+        textarea.focus();
+        textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+}
+
+function closeActionModal() {
+  const overlay = document.getElementById("incident-action-overlay");
+
+  if (!overlay) {
+    return;
+  }
+
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden", "true");
+  document.getElementById("incident-action-panel").innerHTML = "";
 }
 
 function wireUpdateButton(actionId) {
-  document
-    .getElementById("btn-add-update")
-    ?.addEventListener("click", async () => {
-      const note = document.getElementById("action-update-note")?.value.trim();
+  const button = document.getElementById("btn-add-update");
+  const textarea = document.getElementById("action-update-note");
 
-      if (!note) {
-        return;
+  button?.addEventListener("click", async () => {
+    const note = textarea?.value.trim();
+
+    if (!note) {
+      textarea?.focus();
+      return;
+    }
+
+    try {
+      await addActionUpdate(actionId, note);
+
+      if (textarea) {
+        textarea.value = "";
       }
 
-      try {
-        await addActionUpdate(actionId, note);
+      await openActionPanel(actionId);
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
-        await openActionPanel(actionId);
-      } catch (err) {
-        console.error(err);
-      }
-    });
+  textarea?.addEventListener("keydown", async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      button?.click();
+    }
+  });
 }
 
 function wireCloseIncidentButton(incidentId) {

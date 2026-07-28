@@ -17,6 +17,13 @@ const bcrypt = require("bcrypt");
 function seedDatabase() {
   console.log("Checking if seeding is required...");
 
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@test.com";
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.warn("ADMIN_PASSWORD not set. Skipping admin user seed.");
+  }
+
   /**
    * ============================================================
    * Seed Admin User
@@ -24,12 +31,12 @@ function seedDatabase() {
    */
   const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 
-  if (userCount.count === 0) {
+  if (userCount.count === 0 && adminPassword) {
     console.log("🌱 Seeding users...");
 
     const passwordHash = bcrypt.hashSync(
-      "admin123",
-      Number(process.env.BCRYPT_SALT_ROUNDS),
+      adminPassword,
+      Number(process.env.BCRYPT_SALT || 10),
     );
 
     db.prepare(
@@ -42,7 +49,7 @@ function seedDatabase() {
       )
       VALUES (?, ?, ?)
     `,
-    ).run("admin@test.com", passwordHash, "admin");
+    ).run(adminEmail, passwordHash, "admin");
 
     console.log("✅ Admin user seeded");
   }
@@ -54,7 +61,7 @@ function seedDatabase() {
    */
   const adminUser = db
     .prepare("SELECT id FROM users WHERE email = ?")
-    .get("admin@test.com");
+    .get(adminEmail);
 
   /**
    * ============================================================

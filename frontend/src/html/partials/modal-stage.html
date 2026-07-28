@@ -4,56 +4,58 @@
   <div class="modal-form__container">
     <button class="modal-form__close" type="button">&times;</button>
 
-    <h2 class="modal-form__title" id="modal-stage-title">Add Stage</h2>
+    <div class="modal-form__container-body">
+      <h2 class="modal-form__title" id="modal-stage-title">Add Stage</h2>
 
-    <form class="modal-form__form">
-      <input type="hidden" id="modal-form-stage--template-id" />
-      <input type="hidden" id="modal-form-stage--id" />
+      <form class="modal-form__form">
+        <input type="hidden" id="modal-form-stage--template-id" />
+        <input type="hidden" id="modal-form-stage--id" />
 
-      <div class="modal-form__group">
-        <label class="modal-form__label" for="stage-number">
-          Stage Number
-        </label>
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="stage-number">
+            Stage Number
+          </label>
 
-        <input
-          class="modal-form__input"
-          type="number"
-          id="modal-form-incident--stage-number"
-          name="stage-number"
-        />
-      </div>
+          <input
+            class="modal-form__input"
+            type="number"
+            id="modal-form-incident--stage-number"
+            name="stage-number"
+          />
+        </div>
 
-      <div class="modal-form__group">
-        <label class="modal-form__label" for="stage-name"> Stage Name </label>
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="stage-name"> Stage Name </label>
 
-        <input
-          class="modal-form__input"
-          type="text"
-          id="modal-form-incident--stage-name"
-          name="stage-name"
-        />
-      </div>
+          <input
+            class="modal-form__input"
+            type="text"
+            id="modal-form-incident--stage-name"
+            name="stage-name"
+          />
+        </div>
 
-      <div class="modal-form__group">
-        <label class="modal-form__label" for="mins-from-incident-start">
-          Minutes From Incident Start
-        </label>
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="mins-from-incident-start">
+            Minutes From Incident Start
+          </label>
 
-        <input
-          class="modal-form__input"
-          type="number"
-          id="modal-form-incident--mins-from-incident-start"
-          name="mins-from-incident-start"
-        />
-      </div>
+          <input
+            class="modal-form__input"
+            type="number"
+            id="modal-form-incident--mins-from-incident-start"
+            name="mins-from-incident-start"
+          />
+        </div>
 
-      <button
-        class="btn btn-primary"
-        id="modal-form__submit--stage"
-        type="submit"
-      >
-        Create Stage
-      </button>
-    </form>
+        <button
+          class="btn btn-primary"
+          id="modal-form__submit--stage"
+          type="submit"
+        >
+          Create Stage
+        </button>
+      </form>
+    </div>
   </div>
 </div>
