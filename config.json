@@ -7,9 +7,9 @@
   },
   "port": 3000,
   "paths": {
-    "views": "./frontend/src/html/",
-    "partials": "./frontend/src/html/partials/",
-    "static": "./frontend/"
+    "views": "./frontend/src/html",
+    "partials": "./frontend/src/html/partials",
+    "static": "./frontend"
   },
   "mimeTypes": {
     ".html": "text/html",
