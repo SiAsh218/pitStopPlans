@@ -1,14 +1,14 @@
-import "../css/variables.css";
-import "../css/base.css";
-import "../css/layout.css";
-import "../css/components/header.css";
-import "../css/components/buttons.css";
-import "../css/components/cards.css";
-import "../css/pages/incidents.css";
-import "../css/components/modal.css";
-import "../css/components/myAlert.css";
-import "../css/components/statusBadge.css";
-import "../css/pages/createIncident.css";
+// import "../css/variables.css";
+// import "../css/base.css";
+// import "../css/layout.css";
+// import "../css/components/header.css";
+// import "../css/components/buttons.css";
+// import "../css/components/cards.css";
+// import "../css/pages/incidents.css";
+// import "../css/components/modal.css";
+// import "../css/components/myAlert.css";
+// import "../css/components/statusBadge.css";
+// import "../css/pages/createIncident.css";
 
 // AUTH
 import login from "./login.js";
