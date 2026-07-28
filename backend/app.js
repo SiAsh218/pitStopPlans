@@ -350,6 +350,8 @@ class App {
         console.error("Static file error:", error);
       }
 
+      console.error("File not found:", filePath);
+
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("File not found");
 
