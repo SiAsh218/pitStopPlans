@@ -317,10 +317,10 @@ class App {
     let safePath = path.normalize(requestUrl).replace(/^(\.\.[\/\\])+/, "");
 
     /**
-     * Default to index.html if directory requested
+     * Default to home.html if directory requested
      */
     if (safePath.endsWith("/")) {
-      safePath += "index.html";
+      safePath += "home.html";
     }
 
     return path.join(this.staticFilePath, safePath);
