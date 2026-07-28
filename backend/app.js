@@ -330,9 +330,9 @@ class App {
     /**
      * Default to home.html if directory requested
      */
-    if (safePath.endsWith("/")) {
-      safePath += "home.html";
-    }
+    // if (safePath.endsWith("/")) {
+    //   safePath += "home.html";
+    // }
 
     return path.join(this.staticFilePath, safePath);
   }
