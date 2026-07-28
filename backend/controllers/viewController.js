@@ -102,6 +102,9 @@ class ViewController {
      * NOTE:
      * These values are safe to expose publicly
      */
+
+    console.log("HOME CONTROLLER HIT");
+
     const data = {
       title: "Home",
 
