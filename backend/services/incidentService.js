@@ -49,7 +49,17 @@ class IncidentService {
   getAllIncidents() {
     const incidents = incidentRepository.findAllWithDetails();
 
-    return incidents.map((incident) => this._toDTO(incident));
+    return incidents.map((incident) => {
+      const dto = this._toDTO(incident);
+
+      const actions = incidentActionRepository.findByIncidentIdWithRoles(
+        incident.id,
+      );
+
+      dto.summary = this._getActionSummary(actions);
+
+      return dto;
+    });
   }
 
   /**
@@ -187,6 +197,14 @@ class IncidentService {
 
     const actions = incidentActionRepository.findByIncidentIdWithRoles(id);
 
+    return {
+      incident,
+      summary: this._getActionSummary(actions),
+      actions,
+    };
+  }
+
+  _getActionSummary(actions) {
     const completed = actions.filter((a) => a.status === "completed").length;
 
     const inProgress = actions.filter((a) => a.status === "in_progress").length;
@@ -194,21 +212,15 @@ class IncidentService {
     const pending = actions.filter((a) => a.status === "pending").length;
 
     return {
-      incident,
+      total_actions: actions.length,
+      completed_actions: completed,
+      in_progress_actions: inProgress,
+      pending_actions: pending,
 
-      summary: {
-        total_actions: actions.length,
-        completed_actions: completed,
-        in_progress_actions: inProgress,
-        pending_actions: pending,
-
-        completion_percentage:
-          actions.length === 0
-            ? 0
-            : Math.round((completed / actions.length) * 100),
-      },
-
-      actions,
+      completion_percentage:
+        actions.length === 0
+          ? 0
+          : Math.round((completed / actions.length) * 100),
     };
   }
 }

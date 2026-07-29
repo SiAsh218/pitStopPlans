@@ -17,6 +17,12 @@
   color: var(--color-text-secondary);
 }
 
+.incident-card__actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 1rem;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

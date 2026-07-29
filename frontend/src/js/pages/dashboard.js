@@ -19,6 +19,8 @@ export async function loadIncidents() {
 
     const incidents = await getIncidents();
 
+    console.log(incidents);
+
     allIncidents = incidents.sort(
       (a, b) => new Date(b.started_at) - new Date(a.started_at),
     );
@@ -129,11 +131,30 @@ function renderIncidents(incidents) {
         ${formatDateTime(incident.started_at)}
       </p>
 
-      <button
-        class="btn btn-primary btn--view-incident"
-      >
-        View Incident
-      </button>
+      <div class="progress-bar">
+        <div
+          class="progress-bar__fill"
+          style="
+            width:
+            ${incident.summary.completion_percentage}%;
+          "
+        ></div>
+      </div>
+
+      <small>
+        ${incident.summary.completed_actions}
+        /
+        ${incident.summary.total_actions}
+        actions completed
+      </small>
+
+      <div class="incident-card__actions">
+        <button
+          class="btn btn-primary btn--view-incident"
+        >
+          View Incident
+        </button>
+      </div>
     `;
 
     card.addEventListener("click", () => {
