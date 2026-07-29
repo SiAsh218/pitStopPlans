@@ -9,6 +9,7 @@ import "../css/components/modal.css";
 import "../css/components/myAlert.css";
 import "../css/components/statusBadge.css";
 import "../css/pages/createIncident.css";
+import "../css/pages/login.css";
 
 // AUTH
 import login from "./login.js";

@@ -8,27 +8,40 @@
 
   <body>
     <div class="container">
-      <h1>{{title}}</h1>
-
-      <!-- ===== AUTH SECTION ===== -->
-      <div class="auth-container" id="auth-container">
-        <h2>Login</h2>
+      <div class="card auth-card">
+        <div class="template-page__section-header">
+          <div>
+            <h1>{{title}}</h1>
+            <p>Sign in to continue.</p>
+          </div>
+        </div>
 
         <form id="login-form">
-          <input type="text" name="email" placeholder="Email" required />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-          />
-          <button type="submit">Login</button>
-        </form>
+          <div class="modal-form__group">
+            <label>Email</label>
+            <input
+              class="modal-form__input"
+              type="text"
+              name="email"
+              required
+            />
+          </div>
 
-      
+          <div class="modal-form__group">
+            <label>Password</label>
+            <input
+              class="modal-form__input"
+              type="password"
+              name="password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+      </div>
     </div>
 
-    <!-- Webpack bundle (JS + CSS) -->
     <script src="/dist/bundle.js"></script>
   </body>
 </html>

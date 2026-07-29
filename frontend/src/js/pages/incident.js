@@ -1,5 +1,6 @@
 import { getDashboard, closeIncident } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
+import { showConfirm } from "../modals/modalConfirm.js";
 
 import {
   getAction,
@@ -352,12 +353,6 @@ function renderActionPanel(action, updates = []) {
         >
           Start Action
         </button>
-        <button
-          class="btn btn-secondary"
-          id="btn-add-update-inline"
-        >
-          Add Update
-        </button>
       </div>
     `;
   }
@@ -370,12 +365,6 @@ function renderActionPanel(action, updates = []) {
           id="btn-complete-action"
         >
           Complete Action
-        </button>
-        <button
-          class="btn btn-secondary"
-          id="btn-add-update-inline"
-        >
-          Add Update
         </button>
       </div>
     `;
@@ -518,17 +507,6 @@ function wireActionButtons(actionId) {
         console.error(err);
       }
     });
-
-  document
-    .getElementById("btn-add-update-inline")
-    ?.addEventListener("click", () => {
-      const textarea = document.getElementById("action-update-note");
-
-      if (textarea) {
-        textarea.focus();
-        textarea.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    });
 }
 
 function closeActionModal() {
@@ -580,7 +558,10 @@ function wireCloseIncidentButton(incidentId) {
   document
     .getElementById("btn-close-incident")
     ?.addEventListener("click", async () => {
-      const confirmed = window.confirm("Close this incident?");
+      const confirmed = await showConfirm(
+        "Close Incident",
+        "Are you sure you want to close this incident?",
+      );
 
       if (!confirmed) {
         return;

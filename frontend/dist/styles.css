@@ -1204,3 +1204,11 @@ textarea.modal-form__input {
   box-shadow: var(--shadow-lg);
 }
 
+/*!************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./frontend/src/css/pages/login.css ***!
+  \************************************************************************************/
+.auth-card {
+  max-width: 480px;
+  margin: 10vh auto;
+}
+
