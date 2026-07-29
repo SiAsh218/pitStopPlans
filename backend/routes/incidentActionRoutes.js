@@ -55,6 +55,18 @@ module.exports = [
       controller.complete.bind(controller),
     ],
   },
+  /**
+   * Reopen
+   */
+  {
+    method: "POST",
+    path: "/api/incident_actions/:id/reopen",
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      controller.reopen.bind(controller),
+    ],
+  },
 
   /**
    * Assign action

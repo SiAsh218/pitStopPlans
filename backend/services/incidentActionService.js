@@ -109,6 +109,39 @@ class IncidentActionService {
 
   /**
    * ============================================================
+   * Reopen Action
+   * ============================================================
+   */
+  reopenAction(id, userId) {
+    const action = incidentActionRepository.findById(id);
+
+    if (!action) {
+      throw new AppError("Action not found", 404);
+    }
+
+    if (action.status !== "completed") {
+      throw new AppError("Only completed actions can be reopened", 400);
+    }
+
+    incidentActionRepository.updateById(id, {
+      status: "in_progress",
+      assigned_user_id: userId,
+      completed_at: null,
+    });
+
+    incidentActionUpdateService.addStatusUpdate(
+      id,
+      userId,
+      "Action reopened",
+      "completed",
+      "in_progress",
+    );
+
+    return this.getById(id);
+  }
+
+  /**
+   * ============================================================
    * Assign Action
    * ============================================================
    */

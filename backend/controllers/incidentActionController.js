@@ -73,6 +73,21 @@ class IncidentActionController {
 
   /**
    * ============================================================
+   * Reopen Action
+   * ============================================================
+   */
+  reopen(req, res) {
+    this._sendJSON(res, 200, {
+      success: true,
+      data: incidentActionService.reopenAction(
+        Number(req.params.id),
+        req.user.id,
+      ),
+    });
+  }
+
+  /**
+   * ============================================================
    * Assign Action
    * ============================================================
    */

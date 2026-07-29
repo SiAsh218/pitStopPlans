@@ -6,6 +6,7 @@ import {
   getAction,
   startAction,
   completeAction,
+  reopenAction,
 } from "../services/incidentActionService.js";
 
 import {
@@ -372,10 +373,19 @@ function renderActionPanel(action, updates = []) {
 
   if (action.status === "completed") {
     buttons = `
+    <div class="action-panel__buttons">
       <p>
         ✅ Action Completed
       </p>
-    `;
+
+      <button
+        class="btn btn-secondary"
+        id="btn-reopen-action"
+      >
+        Reopen Action
+      </button>
+    </div>
+  `;
   }
 
   const updatesHtml =
@@ -499,6 +509,20 @@ function wireActionButtons(actionId) {
     ?.addEventListener("click", async () => {
       try {
         await completeAction(actionId);
+
+        await refreshIncidentPage();
+
+        await openActionPanel(actionId);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+  document
+    .getElementById("btn-reopen-action")
+    ?.addEventListener("click", async () => {
+      try {
+        await reopenAction(actionId);
 
         await refreshIncidentPage();
 
