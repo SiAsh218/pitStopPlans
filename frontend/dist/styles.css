@@ -710,7 +710,7 @@ h1 {
 .matrix-action__status {
   font-size: 0.85rem;
   text-transform: capitalize;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .matrix-action__due,
