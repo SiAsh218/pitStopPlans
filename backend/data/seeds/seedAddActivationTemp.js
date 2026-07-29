@@ -1242,7 +1242,7 @@ function seedAddActivationTemplate(adminUser) {
       1,
       "Service Recovery",
       "Oversee progress with service recovery and escalate as necessary",
-      60,
+      30,
       90,
     );
 
@@ -1268,7 +1268,7 @@ function seedAddActivationTemplate(adminUser) {
         VALUES (?, ?, ?, ?, ?, ?)
       `,
     )
-    .run(stage4Id, 2, "TOC Recovery Plan", "Oversee TOC Recovery Plan", 60, 90);
+    .run(stage4Id, 2, "TOC Recovery Plan", "Oversee TOC Recovery Plan", 30, 90);
 
   const action72Id = action72Result.lastInsertRowid;
 
@@ -1297,7 +1297,7 @@ function seedAddActivationTemplate(adminUser) {
       3,
       "Service Recovered",
       "Declare service recovery complete",
-      60,
+      30,
       90,
     );
 
@@ -1328,7 +1328,7 @@ function seedAddActivationTemplate(adminUser) {
       4,
       "Support Effected TOCs/FOCs",
       "On the resumption of the train service following disruption",
-      60,
+      30,
       90,
     );
 

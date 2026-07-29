@@ -239,7 +239,7 @@ function renderActions(actions) {
               data-action-id="${action.id}"
             >
               <div class="matrix-action__title">
-                ${action.title.toUpperCase()}
+                ${action.title}
               </div>
 
               <div class="matrix-action__meta">

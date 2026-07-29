@@ -299,7 +299,10 @@ function renderTemplateMatrix(plan, isDraft) {
 
       matchingActions.forEach((action) => {
         html += `
-          <div class="matrix-action">
+          <div
+            class="matrix-action"
+            data-action-id="${action.id}"
+          >
 
           <div class="matrix-action__title">
             ${action.title}
@@ -374,53 +377,134 @@ function renderTemplateMatrix(plan, isDraft) {
     wireEditActionButtons();
     wireDeleteActionButtons();
   }
+  wireViewActionCards();
 }
 
 function wireEditActionButtons() {
   document.querySelectorAll(".btn-edit-action").forEach((button) => {
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", async (e) => {
+      e.stopPropagation();
       await renderActionRoleCheckboxes();
+
+      document.getElementById("modal-action-number").disabled = false;
+      document.getElementById("modal-action-title-input").disabled = false;
+      document.getElementById("modal-action-description").disabled = false;
+      document.getElementById("modal-action-stage-due").disabled = false;
+      document.getElementById("modal-action-incident-due").disabled = false;
+
+      document.getElementById("modal-action-submit").style.display = "";
+      document
+        .getElementById("modal-action-roles")
+        .closest(".modal-form__group").style.display = "";
 
       const selectedRoleIds = JSON.parse(button.dataset.roleIds || "[]");
 
       document.querySelectorAll(".action-role-checkbox").forEach((checkbox) => {
+        checkbox.disabled = false;
         checkbox.checked = selectedRoleIds.includes(Number(checkbox.value));
       });
-
       document.getElementById("modal-action-id").value =
         button.dataset.actionId;
-
       document.getElementById("modal-action-number").value =
         button.dataset.actionNumber;
-
       document.getElementById("modal-action-title-input").value =
         button.dataset.title;
-
       document.getElementById("modal-action-description").value =
         button.dataset.description;
-
       document.getElementById("modal-action-stage-id").value =
         button.dataset.stageId;
-
       document.getElementById("modal-action-stage-due").value =
         button.dataset.dueStage;
-
       document.getElementById("modal-action-incident-due").value =
         button.dataset.dueIncident;
-
       document.getElementById("modal-action-title").textContent = "Edit Action";
-
       document.getElementById("modal-action-submit").textContent =
         "Update Action";
+
+      document.getElementById("modal-action-number").disabled = false;
+      document.getElementById("modal-action-title-input").disabled = false;
+      document.getElementById("modal-action-description").disabled = false;
+      document.getElementById("modal-action-stage-due").disabled = false;
+      document.getElementById("modal-action-incident-due").disabled = false;
+
+      document.getElementById("modal-action-submit").style.display = "";
+
+      document
+        .getElementById("modal-action-roles")
+        .closest(".modal-form__group").style.display = "";
 
       document.getElementById("modal-form-action").classList.remove("hidden");
     });
   });
 }
 
+function wireViewActionCards() {
+  document.querySelectorAll(".matrix-action").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (
+        event.target.closest(".btn-edit-action") ||
+        event.target.closest(".btn-delete-action")
+      ) {
+        return;
+      }
+
+      const actionId = card.dataset.actionId;
+
+      openTemplateActionModal(actionId);
+    });
+  });
+}
+
+async function openTemplateActionModal(actionId) {
+  const templateId = window.location.pathname.split("/").pop();
+
+  const plan = await getPlan(templateId);
+
+  const action = plan.stages
+    .flatMap((stage) => stage.actions)
+    .find((action) => action.id === Number(actionId));
+
+  if (!action) {
+    return;
+  }
+
+  const modal = document.getElementById("modal-form-action");
+
+  if (!modal) {
+    return;
+  }
+
+  document.getElementById("modal-action-id").value = action.id ?? "";
+  document.getElementById("modal-action-number").value =
+    action.action_number ?? "";
+  document.getElementById("modal-action-title-input").value =
+    action.title ?? "";
+  document.getElementById("modal-action-description").value =
+    action.description ?? "";
+  document.getElementById("modal-action-stage-due").value =
+    action.due_from_stage_start ?? "";
+  document.getElementById("modal-action-incident-due").value =
+    action.due_from_incident_start ?? "";
+  document.getElementById("modal-action-title").textContent = "View Action";
+
+  document.getElementById("modal-action-number").disabled = true;
+  document.getElementById("modal-action-title-input").disabled = true;
+  document.getElementById("modal-action-description").disabled = true;
+  document.getElementById("modal-action-stage-due").disabled = true;
+  document.getElementById("modal-action-incident-due").disabled = true;
+
+  document.getElementById("modal-action-submit").style.display = "none";
+  document
+    .getElementById("modal-action-roles")
+    .closest(".modal-form__group").style.display = "none";
+
+  modal.classList.remove("hidden");
+}
+
 function wireDeleteActionButtons() {
   document.querySelectorAll(".btn-delete-action").forEach((button) => {
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", async (e) => {
+      e.stopPropagation();
       const confirmed = await showConfirm(
         "Delete Action",
         "Are you sure you want to delete this action?",
