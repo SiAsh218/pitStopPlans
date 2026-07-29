@@ -234,7 +234,7 @@ function renderActions(actions) {
             : `${action.due_from_incident_start} mins from incident start`;
 
         html += `
-            <div
+           <div
               class="matrix-action matrix-action--${action.status}"
               data-action-id="${action.id}"
             >
@@ -250,6 +250,21 @@ function renderActions(actions) {
               <div class="matrix-action__roles">
                 ${roleNames}
               </div>
+
+              ${
+                action.status === "pending"
+                  ? `
+                    <div class="matrix-action__buttons">
+                      <button
+                        class="btn btn-secondary btn-start-action-card"
+                        data-action-id="${action.id}"
+                      >
+                        Start
+                      </button>
+                    </div>
+                  `
+                  : ""
+              }
             </div>
           `;
       });
@@ -273,6 +288,7 @@ function renderActions(actions) {
   container.appendChild(table);
 
   wireActionCards();
+  wireStartActionButtons();
 }
 
 function wireActionCards() {
@@ -281,6 +297,22 @@ function wireActionCards() {
       const actionId = card.dataset.actionId;
 
       openActionPanel(actionId);
+    });
+  });
+}
+
+function wireStartActionButtons() {
+  document.querySelectorAll(".btn-start-action-card").forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+
+      try {
+        await startAction(button.dataset.actionId);
+
+        await refreshIncidentPage();
+      } catch (err) {
+        console.error(err);
+      }
     });
   });
 }

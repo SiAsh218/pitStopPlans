@@ -128,6 +128,18 @@
   font-size: 0.78rem;
 }
 
+.incident-matrix .matrix-action__buttons {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.incident-matrix .matrix-action__buttons .btn {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+}
+
 .stage-actions {
   display: flex;
   flex-direction: column;
