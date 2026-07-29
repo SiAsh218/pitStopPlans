@@ -191,7 +191,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       1,
-      "Network Rail Senior Leader Advised",
+      "NR Senior Leader Advised",
       "On-Call Network Rail senior leader is advised of the incident and its potential impact.",
       10,
       10,
@@ -253,7 +253,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       3,
-      "Correct Responders have been sent to site",
+      "Responders to site",
       "The correct responders have been sent to site to assess the incident and its potential impact.",
       10,
       10,
