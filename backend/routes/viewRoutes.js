@@ -31,4 +31,9 @@ module.exports = [
     path: "/templates/:id",
     handler: viewController.planTemplate.bind(viewController),
   },
+  {
+    method: "GET",
+    path: "/users",
+    handler: viewController.users.bind(viewController),
+  },
 ];

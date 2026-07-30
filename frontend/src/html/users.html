@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="../../dist/styles.css" />
+  </head>
+
+  <body>
+    {{include_header}}
+
+    <main class="container">
+      <section class="dashboard-toolbar">
+        <div class="dashboard-toolbar__controls">
+          <label class="dashboard-filter">
+            <span>Search</span>
+
+            <input
+              id="user-search"
+              type="search"
+              placeholder="Search by email"
+            />
+          </label>
+        </div>
+
+        <button id="btn-refresh-users" class="btn btn-secondary">
+          Refresh
+        </button>
+      </section>
+
+      <h2>Users</h2>
+
+      <div id="users-list">
+        <p>Loading users...</p>
+      </div>
+
+      <div id="user-role-modal" class="hidden"></div>
+    </main>
+
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>

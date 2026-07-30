@@ -148,6 +148,15 @@ class ViewController {
     return this.render(res, "templates.html", data);
   }
 
+  async users(req, res) {
+    const data = {
+      title: "User Management",
+      isLoggedIn: true,
+    };
+
+    return this.render(res, "users.html", data);
+  }
+
   async planTemplate(req, res) {
     const data = {
       title: "Plan Template",

@@ -13,7 +13,7 @@ import {
 import { showConfirm } from "../modals/modalConfirm.js";
 import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
 import {
-  getRolesFromDB,
+  getRoles,
   createRole,
   updateRole,
   deleteRole,
@@ -743,7 +743,7 @@ async function renderRoles(isDraft) {
     return;
   }
 
-  const roles = await getRolesFromDB();
+  const roles = await getRoles();
 
   let html = `
     <div class="card">
@@ -806,7 +806,7 @@ function wireAddRoleButton() {
 }
 
 async function renderActionRoleCheckboxes() {
-  const roles = await getRolesFromDB();
+  const roles = await getRoles();
 
   const container = document.getElementById("modal-action-roles");
 

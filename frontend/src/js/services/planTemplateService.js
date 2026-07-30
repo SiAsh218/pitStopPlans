@@ -25,23 +25,27 @@ export async function getCurrentTemplates() {
 }
 
 export async function updateTemplate(id, data) {
-  const response = await fetch(`/api/plan_templates/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "Failed to update template");
-  }
-
-  return result.data;
+  return api.put(`/api/plan_templates/${id}`, data);
 }
+
+// export async function updateTemplate(id, data) {
+//   const response = await fetch(`/api/plan_templates/${id}`, {
+//     method: "PUT",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     credentials: "include",
+//     body: JSON.stringify(data),
+//   });
+
+//   const result = await response.json();
+
+//   if (!response.ok) {
+//     throw new Error(result.message || "Failed to update template");
+//   }
+
+//   return result.data;
+// }
 
 export function getTemplateHistory(id) {
   return api.get(`/api/plan_templates/${id}/history`);

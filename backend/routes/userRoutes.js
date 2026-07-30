@@ -35,7 +35,6 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin"),
-
       userController.updateRoles.bind(userController),
     ],
   },

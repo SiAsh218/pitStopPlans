@@ -604,18 +604,6 @@ function wireCloseIncidentButton(incidentId) {
     });
 }
 
-// function formatDateTime(dateString) {
-//   if (!dateString) {
-//     return "-";
-//   }
-
-//   const utcDate = new Date(dateString.replace(" ", "T") + "Z");
-
-//   return utcDate.toLocaleString("en-GB", {
-//     timeZone: "Europe/London",
-//   });
-// }
-
 async function refreshIncidentPage() {
   const incidentId = window.location.pathname.split("/").pop();
 

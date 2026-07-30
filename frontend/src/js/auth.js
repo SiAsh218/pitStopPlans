@@ -36,6 +36,7 @@ export async function requireAuth() {
 
 export function logout() {
   localStorage.removeItem("token");
+  localStorage.removeItem("user");
 
   window.location.href = "/login";
 }
@@ -75,4 +76,14 @@ export async function isAuthenticated() {
 
     return false;
   }
+}
+
+export function getCurrentUser() {
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    return null;
+  }
+
+  return JSON.parse(user);
 }

@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("token", result.token);
 
+      localStorage.setItem("user", JSON.stringify(result.user));
+
       window.location.href = "/";
     } catch (err) {
       alert(err.message);

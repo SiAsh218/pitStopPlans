@@ -1,6 +1,6 @@
 import { api } from "./api.js";
 
-export function getRolesFromDB() {
+export function getRoles() {
   return api.get("/api/roles");
 }
 
