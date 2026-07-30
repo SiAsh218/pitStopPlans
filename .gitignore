@@ -2,5 +2,6 @@
 node_modules
 api-test-script.http
 .env
-database.sqlite
+backend/data/database.sqlite
 frontend/dist/bundle.js
+frontend/dist/styles.css
