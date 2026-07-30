@@ -253,6 +253,7 @@ function renderUsers(users) {
               ? `
                 <button
                   class="btn btn-secondary btn-disable-user"
+                  style="margin-left: 8px"
                   data-user-id="${user.id}"
                 >
                   Disable User

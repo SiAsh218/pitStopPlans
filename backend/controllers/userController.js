@@ -48,6 +48,7 @@ class UserController {
       req.body.password,
       req.body.role,
       req.body.role_ids || [],
+      req.user.id,
     );
 
     this._sendJSON(res, 201, {
@@ -57,7 +58,11 @@ class UserController {
   }
 
   update(req, res) {
-    const user = userService.updateUser(Number(req.params.id), req.body);
+    const user = userService.updateUser(
+      Number(req.params.id),
+      req.body,
+      req.user.id,
+    );
 
     this._sendJSON(res, 200, {
       success: true,
@@ -75,7 +80,7 @@ class UserController {
   }
 
   enable(req, res) {
-    const user = userService.enableUser(Number(req.params.id));
+    const user = userService.enableUser(Number(req.params.id), req.user.id);
 
     this._sendJSON(res, 200, {
       success: true,

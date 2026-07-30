@@ -1,6 +1,7 @@
 const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
 const roleRepository = require("../data/repositories/roleRepository");
+const auditService = require("../services/auditLogService.js");
 
 const bcrypt = require("bcrypt");
 
@@ -55,7 +56,7 @@ class UserService {
     return this.getUserById(userId);
   }
 
-  createUser(email, password, role = "user", roleIds = []) {
+  createUser(email, password, role = "user", roleIds = [], actorUserId) {
     const existingUser = userRepository.findByEmail(email);
 
     if (existingUser) {
@@ -73,10 +74,16 @@ class UserService {
       userRoleRepository.setRoles(user.id, roleIds);
     }
 
+    auditService.log(actorUserId, "CREATE_USER", "user", user.id, {
+      email: user.email,
+      role,
+      roleIds,
+    });
+
     return this.getUserById(user.id);
   }
 
-  updateUser(userId, data) {
+  updateUser(userId, data, actorUserId) {
     const user = userRepository.findById(userId);
 
     if (!user) {
@@ -97,6 +104,12 @@ class UserService {
     userRepository.updateUser(userId, updates);
 
     userRoleRepository.setRoles(userId, data.role_ids || []);
+
+    auditService.log(actorUserId, "UPDATE_USER", "user", userId, {
+      role: data.role,
+      roleIds: data.role_ids || [],
+      passwordReset: Boolean(data.password),
+    });
 
     return this.getUserById(userId);
   }
@@ -122,10 +135,14 @@ class UserService {
 
     userRepository.setActive(userId, false);
 
+    auditService.log(currentUserId, "DISABLE_USER", "user", userId, {
+      email: user.email,
+    });
+
     return this.getUserById(userId);
   }
 
-  enableUser(userId) {
+  enableUser(userId, currentUserId) {
     const user = userRepository.findById(userId);
 
     if (!user) {
@@ -133,6 +150,10 @@ class UserService {
     }
 
     userRepository.setActive(userId, true);
+
+    auditService.log(currentUserId, "ENABLE_USER", "user", userId, {
+      email: user.email,
+    });
 
     return this.getUserById(userId);
   }

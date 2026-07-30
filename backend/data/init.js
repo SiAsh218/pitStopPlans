@@ -281,6 +281,20 @@ function initialiseDatabase() {
     );
   `);
 
+  db.exec(`
+    CREATE TABLE audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id INTEGER,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id)
+        REFERENCES users(id)
+    );
+  `);
+
   console.log("Database initialised");
 }
 
