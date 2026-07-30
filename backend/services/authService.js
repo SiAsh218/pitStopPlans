@@ -26,6 +26,7 @@
  */
 
 const userRepository = require("../data/repositories/userRepository");
+const userRoleRepository = require("../data/repositories/userRoleRepository");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/AppError");
@@ -125,6 +126,8 @@ class AuthService {
       throw new AppError("Invalid credentials", 401);
     }
 
+    const jobRoles = userRoleRepository.findByUserId(user.id);
+
     /**
      * Generate JWT token
      *
@@ -135,11 +138,14 @@ class AuthService {
     const token = jwt.sign(
       {
         id: user.id,
+
         role: user.role,
+
+        jobRoles: jobRoles.map((role) => role.id),
       },
       SECRET,
       {
-        expiresIn: "1h", // token expiry
+        expiresIn: "1h",
       },
     );
 
@@ -152,6 +158,7 @@ class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        jobRoles,
       },
     };
   }

@@ -39,11 +39,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCreateIncidentPage();
   initPlanTemplatePage();
 });
-
-import { incidentState } from "./state/incidentState.js";
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    console.log("incidentState", incidentState);
-  }
-});

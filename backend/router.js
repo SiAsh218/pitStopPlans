@@ -31,6 +31,7 @@ const planStageActionRoutes = require("./routes/planStageActionRoutes.js");
 const incidentRoutes = require("./routes/incidentRoutes.js");
 const incidentActionRoutes = require("./routes/incidentActionRoutes.js");
 const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes.js");
+const userRoutes = require("./routes/userRoutes");
 
 /**
  * Router class
@@ -64,6 +65,7 @@ class Router {
       ...incidentRoutes,
       ...incidentActionRoutes,
       ...incidentActionUpdateRoutes,
+      ...userRoutes,
     ];
 
     /**

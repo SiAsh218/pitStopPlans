@@ -2,7 +2,7 @@ import { initModalStage } from "../modals/modalStage.js";
 import { initModalRole } from "../modals/modalRole.js";
 import { initModalAction } from "../modals/modalAction.js";
 import { initModalIncident } from "../modals/modalIncident.js";
-import { incidentState } from "../state/incidentState.js";
+
 // import { renderPlan } from "../pages/planTemplate.js";
 
 export function initModal() {
@@ -33,7 +33,7 @@ export function resetFormInputs(form) {
 }
 
 export function renderFullPlan() {
-  renderPlan(incidentState);
+  // renderPlan(incidentState);
 }
 
 function closeAllModals(modals) {
