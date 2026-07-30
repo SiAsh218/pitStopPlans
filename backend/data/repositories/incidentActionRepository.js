@@ -165,35 +165,6 @@ class IncidentActionRepository extends BaseRepository {
       roles: this.getRoles(action.id),
     }));
   }
-
-  getRoles(actionId) {
-    return this.db
-      .prepare(
-        `
-      SELECT
-        r.id,
-        r.name
-      FROM roles r
-      INNER JOIN plan_stage_action_roles psar
-        ON r.id = psar.role_id
-      INNER JOIN incident_actions ia
-        ON ia.original_action_id =
-           psar.plan_stage_action_id
-      WHERE ia.id = ?
-      ORDER BY r.name
-    `,
-      )
-      .all(actionId);
-  }
-
-  findByIncidentIdWithRoles(incidentId) {
-    const actions = this.findByIncidentId(incidentId);
-
-    return actions.map((action) => ({
-      ...action,
-      roles: this.getRoles(action.id),
-    }));
-  }
 }
 
 module.exports = new IncidentActionRepository();

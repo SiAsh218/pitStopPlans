@@ -22,6 +22,8 @@ function seedDatabase() {
 
   const adminEmail = process.env.ADMIN_EMAIL || "admin@test.com";
   const adminPassword = process.env.ADMIN_PASSWORD;
+  const sndmEmail = process.env.TEST_USER_EMAIL || "sndm@test.com";
+  const sndmPassword = process.env.TEST_USER_PASSWORD;
 
   if (!adminPassword) {
     console.warn("ADMIN_PASSWORD not set. Skipping admin user seed.");
@@ -55,6 +57,25 @@ function seedDatabase() {
     ).run(adminEmail, passwordHash, "admin");
 
     console.log("✅ Admin user seeded");
+
+    const sndmPasswordHash = bcrypt.hashSync(
+      sndmPassword,
+      Number(process.env.BCRYPT_SALT || 10),
+    );
+
+    db.prepare(
+      `
+    INSERT INTO users
+    (
+      email,
+      password,
+      role
+    )
+    VALUES (?, ?, ?)
+  `,
+    ).run(sndmEmail, sndmPasswordHash, "user");
+
+    console.log("✅ Test user seeded");
   }
 
   /**
@@ -88,6 +109,46 @@ function seedDatabase() {
     insertRole.run("Train Running Controller");
 
     console.log("✅ Roles seeded");
+  }
+
+  /**
+   * ============================================================
+   * Assign Test User Role
+   * ============================================================
+   */
+  const sndmUser = db
+    .prepare(
+      `
+    SELECT id
+    FROM users
+    WHERE email = ?
+  `,
+    )
+    .get(sndmEmail);
+
+  const sndmRole = db
+    .prepare(
+      `
+    SELECT id
+    FROM roles
+    WHERE name = ?
+  `,
+    )
+    .get("SNDM");
+
+  if (sndmUser && sndmRole) {
+    db.prepare(
+      `
+    INSERT OR IGNORE INTO user_roles
+    (
+      user_id,
+      role_id
+    )
+    VALUES (?, ?)
+  `,
+    ).run(sndmUser.id, sndmRole.id);
+
+    console.log("✅ SNDM role assigned to test user");
   }
 
   const templateCount = db

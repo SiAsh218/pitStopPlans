@@ -49,10 +49,7 @@ class IncidentActionController {
   start(req, res) {
     this._sendJSON(res, 200, {
       success: true,
-      data: incidentActionService.startAction(
-        Number(req.params.id),
-        req.user.id,
-      ),
+      data: incidentActionService.startAction(Number(req.params.id), req.user),
     });
   }
 
@@ -66,7 +63,7 @@ class IncidentActionController {
       success: true,
       data: incidentActionService.completeAction(
         Number(req.params.id),
-        req.user.id,
+        req.user,
       ),
     });
   }
@@ -79,10 +76,7 @@ class IncidentActionController {
   reopen(req, res) {
     this._sendJSON(res, 200, {
       success: true,
-      data: incidentActionService.reopenAction(
-        Number(req.params.id),
-        req.user.id,
-      ),
+      data: incidentActionService.reopenAction(Number(req.params.id), req.user),
     });
   }
 

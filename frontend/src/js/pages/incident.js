@@ -1,5 +1,6 @@
 import { getDashboard, closeIncident } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
+import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 
 import {
@@ -33,6 +34,7 @@ export async function initIncidentPage() {
     renderSummary(dashboard.summary);
   } catch (err) {
     console.error(err);
+    showError(err?.message || "An unexpected error occurred.");
 
     incidentMeta.innerHTML = `
       <p>Failed to load incident.</p>
@@ -313,7 +315,8 @@ function wireStartActionButtons() {
 
         await refreshIncidentPage();
       } catch (err) {
-        console.error(err);
+        showError(err?.message || "An unexpected error occurred.");
+        return;
       }
     });
   });
@@ -327,7 +330,7 @@ async function openActionPanel(actionId) {
 
     renderActionPanel(action, updates);
   } catch (err) {
-    console.error(err);
+    showError(err?.message || "An unexpected error occurred.");
   }
 }
 
@@ -500,7 +503,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        console.error(err);
+        showError(err?.message || "An unexpected error occurred.");
       }
     });
 
@@ -514,7 +517,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        console.error(err);
+        showError(err?.message || "An unexpected error occurred.");
       }
     });
 
@@ -528,7 +531,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        console.error(err);
+        showError(err?.message || "An unexpected error occurred.");
       }
     });
 }
@@ -566,7 +569,7 @@ function wireUpdateButton(actionId) {
 
       await openActionPanel(actionId);
     } catch (err) {
-      console.error(err);
+      showError(err?.message || "An unexpected error occurred.");
     }
   });
 
@@ -596,7 +599,7 @@ function wireCloseIncidentButton(incidentId) {
 
         window.location.reload();
       } catch (err) {
-        console.error(err);
+        showError(err?.message || "An unexpected error occurred.");
       }
     });
 }
