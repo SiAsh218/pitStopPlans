@@ -11,6 +11,7 @@ import "../css/components/statusBadge.css";
 import "../css/pages/createIncident.css";
 import "../css/pages/login.css";
 import "../css/pages/users.css";
+import "../css/pages/auditLog.css";
 
 // AUTH
 import login from "./login.js";

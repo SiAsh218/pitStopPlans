@@ -1,4 +1,5 @@
 import { getAuditLogs } from "../services/auditLogService.js";
+import { formatDateTime } from "../utils/dateHandler.js";
 
 export async function initAuditLogsPage() {
   const container = document.getElementById("audit-log-list");
@@ -24,67 +25,101 @@ function renderAuditLogs(logs) {
       const details = JSON.parse(log.details || "{}");
 
       return `
-        <article class="audit-card">
-          <div class="audit-card__header">
-            <h3>
-              ${formatAction(log.action)}
-            </h3>
-            <span class="audit-card__date">
-              ${log.created_at}
-            </span>
-          </div>
-          <div class="audit-card__body">
-            <p>
-              <strong>Actor:</strong>
-              User #${log.user_id}
-            </p>
-            <p>
-              <strong>Target:</strong>
-              ${log.entity_type} #${log.entity_id}
-            </p>
-            ${
-              details.email
-                ? `
-                  <p>
-                    <strong>Email:</strong>
-                    ${details.email}
-                  </p>
-                `
-                : ""
-            }
-            ${
-              details.role
-                ? `
-                  <p>
-                    <strong>Role:</strong>
-                    ${details.role}
-                  </p>
-                `
-                : ""
-            }
-            ${
-              details.roleIds?.length
-                ? `
-                  <p>
-                    <strong>Roles:</strong>
-                    ${details.roleIds.join(", ")}
-                  </p>
-                `
-                : ""
-            }
-            ${
-              details.passwordReset
-                ? `
-                  <p>
-                    <strong>Password Reset:</strong>
-                    Yes
-                  </p>
-                `
-                : ""
-            }
-          </div>
-        </article>
-      `;
+                <article class="audit-card">
+
+                  <div class="audit-card__header">
+
+                    <div>
+                      <h2>
+                        ${formatAction(log.action)}
+                      </h2>
+
+                      <p>
+                        ${formatDateTime(log.created_at)}
+                      </p>
+                    </div>
+
+                    <div class="audit-card__badges">
+
+                      <span class="audit-card__badge">
+                        ${log.entity_type}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  <div class="audit-card__details">
+
+                    <p>
+                      <strong>Actor:</strong>
+                      ${log.actor_email || `User #${log.user_id}`}
+                    </p>
+
+                    <p>
+                      <strong>Target:</strong>
+                      ${log.target_email || `${log.entity_type} #${log.entity_id}`}
+                    </p>
+
+                  </div>
+
+                  <div class="audit-card__roles">
+
+                    ${
+                      details.roleNames?.length
+                        ? details.roleNames
+                            .map(
+                              (role) => `
+                                <span class="audit-card__badge">
+                                  ${role}
+                                </span>
+                              `,
+                            )
+                            .join("")
+                        : ""
+                    }
+
+                  </div>
+
+                  <div class="audit-card__meta">
+
+                    ${
+                      details.role
+                        ? `
+                          <p>
+                            <strong>Application Role:</strong>
+                            ${details.role}
+                          </p>
+                        `
+                        : ""
+                    }
+
+                    ${
+                      details.passwordReset
+                        ? `
+                          <p>
+                            <strong>Password Reset:</strong>
+                            Yes
+                          </p>
+                        `
+                        : ""
+                    }
+
+                    ${
+                      details.email
+                        ? `
+                          <p>
+                            <strong>Email:</strong>
+                            ${details.email}
+                          </p>
+                        `
+                        : ""
+                    }
+
+                  </div>
+
+                </article>
+              `;
     })
     .join("");
 }

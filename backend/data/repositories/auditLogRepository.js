@@ -13,9 +13,16 @@ class AuditLogRepository extends BaseRepository {
     return this.db
       .prepare(
         `
-      SELECT *
+      SELECT
+        audit_logs.*,
+        actor.email AS actor_email,
+        target.email AS target_email
       FROM audit_logs
-      ORDER BY created_at DESC
+      LEFT JOIN users actor
+        ON actor.id = audit_logs.user_id
+      LEFT JOIN users target
+        ON target.id = audit_logs.entity_id
+      ORDER BY audit_logs.created_at DESC
       LIMIT ?
     `,
       )

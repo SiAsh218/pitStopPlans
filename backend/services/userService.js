@@ -74,10 +74,15 @@ class UserService {
       userRoleRepository.setRoles(user.id, roleIds);
     }
 
+    const roleNames = roleIds
+      .map((id) => roleRepository.findById(id))
+      .filter(Boolean)
+      .map((role) => role.name);
+
     auditService.log(actorUserId, "CREATE_USER", "user", user.id, {
       email: user.email,
       role,
-      roleIds,
+      roleNames,
     });
 
     return this.getUserById(user.id);
@@ -105,9 +110,14 @@ class UserService {
 
     userRoleRepository.setRoles(userId, data.role_ids || []);
 
+    const roleNames = (data.role_ids || [])
+      .map((id) => roleRepository.findById(id))
+      .filter(Boolean)
+      .map((role) => role.name);
+
     auditService.log(actorUserId, "UPDATE_USER", "user", userId, {
       role: data.role,
-      roleIds: data.role_ids || [],
+      roleNames,
       passwordReset: Boolean(data.password),
     });
 
