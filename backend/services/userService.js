@@ -95,6 +95,8 @@ class UserService {
       throw new AppError("User not found", 404);
     }
 
+    const beforeUser = this.getUserById(userId);
+
     const updates = {
       role: data.role,
     };
@@ -110,14 +112,21 @@ class UserService {
 
     userRoleRepository.setRoles(userId, data.role_ids || []);
 
-    const roleNames = (data.role_ids || [])
-      .map((id) => roleRepository.findById(id))
-      .filter(Boolean)
-      .map((role) => role.name);
+    const afterUser = this.getUserById(userId);
 
     auditService.log(actorUserId, "UPDATE_USER", "user", userId, {
-      role: data.role,
-      roleNames,
+      before: {
+        role: beforeUser.role,
+
+        roleNames: beforeUser.job_roles.map((role) => role.name),
+      },
+
+      after: {
+        role: afterUser.role,
+
+        roleNames: afterUser.job_roles.map((role) => role.name),
+      },
+
       passwordReset: Boolean(data.password),
     });
 

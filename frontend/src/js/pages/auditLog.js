@@ -23,6 +23,8 @@ function renderAuditLogs(logs) {
   container.innerHTML = logs
     .map((log) => {
       const details = JSON.parse(log.details || "{}");
+      const before = details.before || {};
+      const after = details.after || {};
 
       return `
                 <article class="audit-card">
@@ -66,16 +68,24 @@ function renderAuditLogs(logs) {
                   <div class="audit-card__roles">
 
                     ${
-                      details.roleNames?.length
-                        ? details.roleNames
-                            .map(
-                              (role) => `
-                                <span class="audit-card__badge">
-                                  ${role}
-                                </span>
-                              `,
-                            )
-                            .join("")
+                      before.roleNames?.length
+                        ? `
+                          <p>
+                            <strong>Roles Before:</strong>
+                            ${before.roleNames.join(", ")}
+                          </p>
+                        `
+                        : ""
+                    }
+
+                    ${
+                      after.roleNames?.length
+                        ? `
+                          <p>
+                            <strong>Roles After:</strong>
+                            ${after.roleNames.join(", ")}
+                          </p>
+                        `
                         : ""
                     }
 
@@ -84,16 +94,17 @@ function renderAuditLogs(logs) {
                   <div class="audit-card__meta">
 
                     ${
-                      details.role
+                      before.role && after.role
                         ? `
                           <p>
                             <strong>Application Role:</strong>
-                            ${details.role}
+                            ${before.role}
+                            →
+                            ${after.role}
                           </p>
                         `
                         : ""
                     }
-
                     ${
                       details.passwordReset
                         ? `
