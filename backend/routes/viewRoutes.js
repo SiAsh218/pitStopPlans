@@ -36,4 +36,9 @@ module.exports = [
     path: "/users",
     handler: viewController.users.bind(viewController),
   },
+  {
+    method: "GET",
+    path: "/audit-log",
+    handler: viewController.auditLog.bind(viewController),
+  },
 ];

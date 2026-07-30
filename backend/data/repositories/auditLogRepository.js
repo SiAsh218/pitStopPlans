@@ -8,6 +8,19 @@ class AuditLogRepository extends BaseRepository {
   create(entry) {
     return this.insert(entry);
   }
+
+  getRecent(limit = 100) {
+    return this.db
+      .prepare(
+        `
+      SELECT *
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT ?
+    `,
+      )
+      .all(limit);
+  }
 }
 
 module.exports = new AuditLogRepository();

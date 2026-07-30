@@ -27,6 +27,7 @@ import { initIncidentPage } from "./pages/incident.js";
 import { initCreateIncidentPage } from "./pages/createIncident.js";
 import { initPlanTemplatePage } from "./pages/planTemplate.js";
 import { initUsersPage } from "./pages/users.js";
+import { initAuditLogsPage } from "./pages/auditLog.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!(await requireAuth())) {
@@ -41,4 +42,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCreateIncidentPage();
   initPlanTemplatePage();
   initUsersPage();
+  initAuditLogsPage();
 });

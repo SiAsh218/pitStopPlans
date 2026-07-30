@@ -157,6 +157,15 @@ class ViewController {
     return this.render(res, "users.html", data);
   }
 
+  async auditLog(req, res) {
+    const data = {
+      title: "Audit Log",
+      isLoggedIn: true,
+    };
+
+    return this.render(res, "audit.html", data);
+  }
+
   async planTemplate(req, res) {
     const data = {
       title: "Plan Template",

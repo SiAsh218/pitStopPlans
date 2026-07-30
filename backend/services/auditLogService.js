@@ -10,6 +10,10 @@ class AuditService {
       details: JSON.stringify(details),
     });
   }
+
+  getRecent(limit = 100) {
+    return auditLogRepository.getRecent(limit);
+  }
 }
 
 module.exports = new AuditService();

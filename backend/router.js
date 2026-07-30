@@ -32,6 +32,7 @@ const incidentRoutes = require("./routes/incidentRoutes.js");
 const incidentActionRoutes = require("./routes/incidentActionRoutes.js");
 const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes.js");
 const userRoutes = require("./routes/userRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes.js");
 
 /**
  * Router class
@@ -66,6 +67,7 @@ class Router {
       ...incidentActionRoutes,
       ...incidentActionUpdateRoutes,
       ...userRoutes,
+      ...auditLogRoutes,
     ];
 
     /**
