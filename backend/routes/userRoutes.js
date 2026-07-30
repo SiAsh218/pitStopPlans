@@ -49,6 +49,26 @@ module.exports = [
 
   {
     method: "PUT",
+    path: "/api/users/:id/disable",
+    handler: [
+      auth,
+      requireRole("admin"),
+      userController.disable.bind(userController),
+    ],
+  },
+
+  {
+    method: "PUT",
+    path: "/api/users/:id/enable",
+    handler: [
+      auth,
+      requireRole("admin"),
+      userController.enable.bind(userController),
+    ],
+  },
+
+  {
+    method: "PUT",
     path: "/api/users/:id/roles",
 
     handler: [

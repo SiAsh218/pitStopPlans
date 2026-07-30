@@ -1270,3 +1270,16 @@ textarea.modal-form__input {
   margin: 10vh auto;
 }
 
+/*!************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./frontend/src/css/pages/users.css ***!
+  \************************************************************************************/
+.user-card__badge--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.user-card__badge--disabled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+

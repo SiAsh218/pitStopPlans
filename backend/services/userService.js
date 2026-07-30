@@ -100,6 +100,42 @@ class UserService {
 
     return this.getUserById(userId);
   }
+
+  disableUser(userId, currentUserId) {
+    const user = userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    if (userId === currentUserId) {
+      throw new AppError("You cannot disable your own account", 400);
+    }
+
+    const activeAdmins = userRepository
+      .findAll()
+      .filter((u) => u.role === "admin" && u.active);
+
+    if (user.role === "admin" && user.active && activeAdmins.length === 1) {
+      throw new AppError("At least one active administrator must remain", 400);
+    }
+
+    userRepository.setActive(userId, false);
+
+    return this.getUserById(userId);
+  }
+
+  enableUser(userId) {
+    const user = userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    userRepository.setActive(userId, true);
+
+    return this.getUserById(userId);
+  }
 }
 
 module.exports = new UserService();

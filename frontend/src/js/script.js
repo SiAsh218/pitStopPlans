@@ -10,6 +10,7 @@ import "../css/components/myAlert.css";
 import "../css/components/statusBadge.css";
 import "../css/pages/createIncident.css";
 import "../css/pages/login.css";
+import "../css/pages/users.css";
 
 // AUTH
 import login from "./login.js";

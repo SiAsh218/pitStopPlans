@@ -64,6 +64,24 @@ class UserController {
       data: user,
     });
   }
+
+  disable(req, res) {
+    const user = userService.disableUser(Number(req.params.id), req.user.id);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: user,
+    });
+  }
+
+  enable(req, res) {
+    const user = userService.enableUser(Number(req.params.id));
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: user,
+    });
+  }
 }
 
 module.exports = new UserController();

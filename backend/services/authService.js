@@ -117,6 +117,10 @@ class AuthService {
       throw new AppError("Invalid credentials", 401);
     }
 
+    if (!user.active) {
+      throw new AppError("User account is disabled", 403);
+    }
+
     /**
      * Compare password with hashed version
      */

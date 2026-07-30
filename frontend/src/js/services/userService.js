@@ -26,3 +26,10 @@ export async function createUser(email, password, role, roleIds = []) {
 export async function updateUser(userId, data) {
   return api.put(`/api/users/${userId}`, data);
 }
+export async function disableUser(userId) {
+  return api.put(`/api/users/${userId}/disable`, {});
+}
+
+export async function enableUser(userId) {
+  return api.put(`/api/users/${userId}/enable`, {});
+}

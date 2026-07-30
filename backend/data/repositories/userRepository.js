@@ -107,6 +107,20 @@ class UserRepository extends BaseRepository {
 
     return this.findById(userId);
   }
+
+  setActive(userId, active) {
+    this.db
+      .prepare(
+        `
+      UPDATE users
+      SET active = ?
+      WHERE id = ?
+    `,
+      )
+      .run(active ? 1 : 0, userId);
+
+    return this.findById(userId);
+  }
 }
 
 module.exports = new UserRepository();

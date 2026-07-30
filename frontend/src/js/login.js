@@ -1,4 +1,5 @@
 import { login, isAuthenticated } from "./auth.js";
+import { showWarning, showSuccess, showError } from "./utils/myAlert.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
@@ -31,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       window.location.href = "/";
     } catch (err) {
-      alert(err.message);
+      showError(err?.message || "Error Logging In!");
     }
   });
 });

@@ -1,4 +1,10 @@
-import { getUsers, createUser, updateUser } from "../services/userService.js";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  disableUser,
+  enableUser,
+} from "../services/userService.js";
 import { getRoles } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
 
@@ -194,6 +200,19 @@ function renderUsers(users) {
               ${user.role}
             </span>
 
+            <span
+              class="
+                user-card__badge
+                ${
+                  user.active
+                    ? "user-card__badge--active"
+                    : "user-card__badge--disabled"
+                }
+              "
+            >
+              ${user.active ? "Active" : "Disabled"}
+            </span>
+
           </div>
 
         </div>
@@ -229,6 +248,26 @@ function renderUsers(users) {
             Edit User
           </button>
 
+          ${
+            user.active
+              ? `
+                <button
+                  class="btn btn-secondary btn-disable-user"
+                  data-user-id="${user.id}"
+                >
+                  Disable User
+                </button>
+              `
+              : `
+                <button
+                  class="btn btn-secondary btn-enable-user"
+                  data-user-id="${user.id}"
+                >
+                  Enable User
+                </button>
+              `
+          }
+
         </div>
 
       </article>
@@ -237,6 +276,8 @@ function renderUsers(users) {
     .join("");
 
   wireEditButtons();
+  wireDisableButtons();
+  wireEnableButtons();
 }
 
 function wireEditButtons() {
@@ -245,6 +286,38 @@ function wireEditButtons() {
       const userId = Number(button.dataset.userId);
 
       await openEditUserModal(userId);
+    });
+  });
+}
+
+function wireDisableButtons() {
+  document.querySelectorAll(".btn-disable-user").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        await disableUser(Number(button.dataset.userId));
+
+        showSuccess("User disabled successfully");
+
+        await loadUsers();
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+  });
+}
+
+function wireEnableButtons() {
+  document.querySelectorAll(".btn-enable-user").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        await enableUser(Number(button.dataset.userId));
+
+        showSuccess("User enabled successfully");
+
+        await loadUsers();
+      } catch (err) {
+        showError(err.message);
+      }
     });
   });
 }
