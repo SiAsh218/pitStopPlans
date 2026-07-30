@@ -57,21 +57,56 @@ class UserRepository extends BaseRepository {
     return this.db.prepare("SELECT * FROM users WHERE email = ?").get(email);
   }
 
-  /**
-   * ============================================================
-   * Future Extension Point
-   * ============================================================
-   *
-   * You can add user-specific queries here, for example:
-   *
-   * findByRole(role) {
-   *   return this.findWhere({ role });
-   * }
-   *
-   * getAdmins() {
-   *   return this.findWhere({ role: "admin" });
-   * }
-   */
+  createUser(email, passwordHash, role) {
+    const result = this.db
+      .prepare(
+        `
+      INSERT INTO users
+      (
+        email,
+        password,
+        role
+      )
+      VALUES (?, ?, ?)
+    `,
+      )
+      .run(email, passwordHash, role);
+
+    return this.findById(result.lastInsertRowid);
+  }
+
+  updateUser(userId, updates) {
+    const fields = [];
+    const values = [];
+
+    if (updates.role !== undefined) {
+      fields.push("role = ?");
+      values.push(updates.role);
+    }
+
+    if (updates.password !== undefined) {
+      fields.push("password = ?");
+      values.push(updates.password);
+    }
+
+    if (!fields.length) {
+      return this.findById(userId);
+    }
+
+    values.push(userId);
+
+    this.db
+      .prepare(
+        `
+      UPDATE users
+      SET ${fields.join(", ")}
+      WHERE id = ?
+    `,
+      )
+      .run(...values);
+
+    return this.findById(userId);
+  }
 }
 
 module.exports = new UserRepository();

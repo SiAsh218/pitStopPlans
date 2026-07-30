@@ -27,6 +27,25 @@ module.exports = [
       userController.getById.bind(userController),
     ],
   },
+  {
+    method: "POST",
+    path: "/api/users",
+    handler: [
+      auth,
+      requireRole("admin"),
+      userController.create.bind(userController),
+    ],
+  },
+
+  {
+    method: "PUT",
+    path: "/api/users/:id",
+    handler: [
+      auth,
+      requireRole("admin"),
+      userController.update.bind(userController),
+    ],
+  },
 
   {
     method: "PUT",

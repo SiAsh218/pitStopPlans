@@ -1,0 +1,60 @@
+<div class="modal-form hidden" id="modal-form-edit-user">
+  <div class="modal-form__overlay"></div>
+
+  <div class="modal-form__container">
+    <button class="modal-form__close" id="btn-close-edit-user" type="button">
+      ×
+    </button>
+
+    <div class="modal-form__container-body">
+      <h2 class="modal-form__title">Edit User</h2>
+
+      <form class="modal-form__form" id="edit-user-form">
+        <input type="hidden" id="edit-user-id" />
+
+        <div class="modal-form__group">
+          <label>Email</label>
+
+          <input id="edit-user-email" class="modal-form__input" readonly />
+        </div>
+
+        <div class="modal-form__group">
+          <label>Application Role</label>
+
+          <select id="edit-user-role" class="modal-form__input">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="modal-form__group">
+          <label>Operational Roles</label>
+
+          <div id="edit-user-roles"></div>
+        </div>
+
+        <div class="modal-form__group">
+          <label>New Password</label>
+
+          <input
+            id="edit-user-password"
+            class="modal-form__input"
+            type="password"
+          />
+        </div>
+
+        <div class="modal-form__group">
+          <label>Confirm Password</label>
+
+          <input
+            id="edit-user-password-confirm"
+            class="modal-form__input"
+            type="password"
+          />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>

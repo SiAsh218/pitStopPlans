@@ -1,0 +1,55 @@
+<div class="modal-form hidden" id="modal-form-create-user">
+  <div class="modal-form__overlay"></div>
+
+  <div class="modal-form__container">
+    <button class="modal-form__close" id="btn-close-create-user" type="button">
+      ×
+    </button>
+
+    <div class="modal-form__container-body">
+      <h2 class="modal-form__title">Create User</h2>
+
+      <form class="modal-form__form" id="create-user-form">
+        <div class="modal-form__group">
+          <label>Email</label>
+
+          <input
+            class="modal-form__input"
+            type="email"
+            id="new-user-email"
+            required
+          />
+        </div>
+
+        <div class="modal-form__group">
+          <label>Password</label>
+
+          <input
+            class="modal-form__input"
+            type="password"
+            id="new-user-password"
+            required
+          />
+        </div>
+
+        <div class="modal-form__group">
+          <label>Application Role</label>
+
+          <select class="modal-form__input" id="new-user-role">
+            <option value="user">User</option>
+            <option value="editor">Editor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="modal-form__group">
+          <label>Operational Roles</label>
+
+          <div id="new-user-roles"></div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Create User</button>
+      </form>
+    </div>
+  </div>
+</div>

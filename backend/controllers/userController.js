@@ -41,6 +41,29 @@ class UserController {
       data: user,
     });
   }
+
+  create(req, res) {
+    const user = userService.createUser(
+      req.body.email,
+      req.body.password,
+      req.body.role,
+      req.body.role_ids || [],
+    );
+
+    this._sendJSON(res, 201, {
+      success: true,
+      data: user,
+    });
+  }
+
+  update(req, res) {
+    const user = userService.updateUser(Number(req.params.id), req.body);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: user,
+    });
+  }
 }
 
 module.exports = new UserController();
