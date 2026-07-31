@@ -24,6 +24,7 @@ let currentPreferences = {};
 let selectedRoles = [];
 let currentActions = [];
 let saveTimeout;
+let incidentTimerInterval;
 
 export async function initIncidentPage() {
   const incidentMeta = document.querySelector(".incident-meta");
@@ -61,6 +62,8 @@ export async function initIncidentPage() {
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
 
+  console.log("Incident:", incident);
+
   const container = document.querySelector(".incident-meta");
 
   if (!container) {
@@ -87,7 +90,7 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
-      </div>
+        <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span></div>
     </div>
 
     <div class="incident-meta__actions">
@@ -97,6 +100,7 @@ function renderIncidentMeta(dashboard) {
 
   wireCloseIncidentButton(incident.id);
   wireDashboardBackButton();
+  startIncidentTimer(formatDateTime(incident.started_at));
 }
 
 function wireDashboardBackButton() {
@@ -755,6 +759,53 @@ function queuePreferenceSave() {
   saveTimeout = setTimeout(() => {
     saveLayoutPreferences();
   }, 500);
+}
+
+function startIncidentTimer(startedAt) {
+  console.log(startedAt);
+  clearInterval(incidentTimerInterval);
+
+  const element = document.getElementById("incident-duration");
+
+  if (!element || !startedAt) {
+    return;
+  }
+
+  const update = () => {
+    const [datePart, timePart] = startedAt.split(", ");
+
+    const [day, month, year] = datePart.split("/");
+
+    const started = new Date(`${year}-${month}-${day}T${timePart}`);
+
+    const diffMs = Date.now() - started.getTime();
+
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+
+    const days = Math.floor(totalMinutes / (60 * 24));
+
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) {
+      element.textContent = `🕒 Open ${days}d ${hours}h`;
+    } else if (hours > 0) {
+      element.textContent = `🕒 Open ${hours}h ${minutes}m`;
+    } else {
+      element.textContent = `🕒 Open ${minutes}m`;
+    }
+  };
+
+  update();
+
+  const msUntilNextMinute = 60000 - (Date.now() % 60000);
+
+  setTimeout(() => {
+    update();
+
+    incidentTimerInterval = setInterval(update, 60000);
+  }, msUntilNextMinute);
 }
 
 async function saveLayoutPreferences() {
