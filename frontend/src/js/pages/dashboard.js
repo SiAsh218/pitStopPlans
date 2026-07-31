@@ -28,9 +28,7 @@ export async function loadIncidents() {
 
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
-
     const incidents = await getIncidents();
-
     allIncidents = incidents.sort(
       (a, b) => new Date(b.started_at) - new Date(a.started_at),
     );
@@ -58,7 +56,6 @@ function bindDashboardControls() {
 
   searchInput.value = filters.search;
   statusFilter.value = filters.status;
-
   searchInput.oninput = (event) => {
     filters.search = event.target.value.trim().toLowerCase();
     renderIncidents(getFilteredIncidents());
@@ -82,7 +79,6 @@ function getFilteredIncidents() {
   return allIncidents.filter((incident) => {
     const matchesStatus =
       filters.status === "all" || incident.status === filters.status;
-
     const searchTerm = filters.search;
     const matchesSearch =
       searchTerm.length === 0 ||
@@ -100,7 +96,6 @@ function renderIncidents(incidents) {
   if (!container) {
     return;
   }
-
   container.innerHTML = "";
 
   if (incidents.length === 0) {
@@ -117,13 +112,10 @@ function renderIncidents(incidents) {
     const card = document.createElement("div");
 
     card.className = "incident-card";
-
     card.innerHTML = buildIncidentCard(incident);
-
     card.addEventListener("click", () => {
       openIncident(incident.id);
     });
-
     container.appendChild(card);
   });
 }
@@ -138,9 +130,7 @@ function updateStatistics(incidents) {
   ).length;
 
   const resolvedToday = getResolvedTodayCount(incidents);
-
   const openWorkload = getOpenWorkload(incidents);
-
   const activeIncidentCount = document.getElementById("active-incident-count");
 
   if (activeIncidentCount) {
@@ -218,17 +208,14 @@ function buildIncidentCard(incident) {
           ${incident.status}
         </span>
       </div>
-
       <p>
         <strong>Type:</strong>
         ${incident.incident_type.name}
       </p>
-
       <p>
         <strong>Started:</strong>
         ${formatDateTime(incident.started_at)}
       </p>
-
       <div class="progress-bar">
         <div
           class="progress-bar__fill"
@@ -238,14 +225,12 @@ function buildIncidentCard(incident) {
           "
         ></div>
       </div>
-
       <small>
         ${incident.summary.completed_actions}
         /
         ${incident.summary.total_actions}
         actions completed
       </small>
-
       <div class="incident-card__actions">
         <button
           class="btn btn-primary btn--view-incident"

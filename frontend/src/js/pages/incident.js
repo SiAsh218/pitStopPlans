@@ -40,11 +40,9 @@ let incidentTimerTimeout;
 
 export async function initIncidentPage() {
   const incidentMeta = document.querySelector(".incident-meta");
-
   const preferences = await getPreferences();
 
   currentPreferences = preferences;
-
   selectedRoles = currentPreferences?.incidentMatrix?.visibleRoles ?? [];
 
   if (!incidentMeta) {
@@ -53,13 +51,10 @@ export async function initIncidentPage() {
 
   try {
     const incidentId = window.location.pathname.split("/").pop();
-
     const dashboard = await getDashboard(incidentId);
 
     renderIncidentMeta(dashboard);
-
     renderActions(dashboard.actions);
-
     renderSummary(dashboard.summary);
   } catch (err) {
     showUnexpectedError(err);
@@ -72,13 +67,10 @@ export async function initIncidentPage() {
 
 async function refreshIncidentPage() {
   const incidentId = window.location.pathname.split("/").pop();
-
   const dashboard = await getDashboard(incidentId);
 
   renderIncidentMeta(dashboard);
-
   renderSummary(dashboard.summary);
-
   renderActions(dashboard.actions);
 }
 
@@ -88,7 +80,6 @@ async function refreshIncidentPage() {
 
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
-
   const container = document.querySelector(".incident-meta");
 
   if (!container) {
@@ -205,29 +196,22 @@ function renderActions(actions) {
   }
 
   currentActions = actions;
-
   const allRoles = getAllRoles(actions);
 
   renderRolePicker(allRoles);
 
   if (!actions.length) {
     container.innerHTML = "<p>No actions found.</p>";
-
     return;
   }
 
   const roles = getVisibleRoles(allRoles);
-
   const stages = getStages(actions);
-
   const table = document.createElement("table");
 
   table.className = "incident-matrix";
-
   table.innerHTML = buildMatrixTable(actions, roles, stages);
-
   container.innerHTML = "";
-
   container.appendChild(table);
 
   wireActionCards();
@@ -252,7 +236,6 @@ function wireStartActionButtons() {
 
       try {
         await startAction(button.dataset.actionId);
-
         await refreshIncidentPage();
       } catch (err) {
         showUnexpectedError(err);
@@ -269,7 +252,6 @@ function wireCompleteActionButtons() {
 
       try {
         await completeAction(button.dataset.actionId);
-
         await refreshIncidentPage();
       } catch (err) {
         showUnexpectedError(err);
@@ -285,7 +267,6 @@ function wireCompleteActionButtons() {
 async function openActionPanel(actionId) {
   try {
     const action = await getAction(actionId);
-
     const updates = await getActionUpdates(actionId);
 
     renderActionPanel(action, updates);
@@ -360,21 +341,17 @@ function renderActionPanel(action, updates = []) {
           .map(
             (update) => `
             <div class="action-update">
-
               <p>
                 <strong>
                   ${update.user_email ?? "User"}
                 </strong>
               </p>
-
               <p>
                 ${update.note}
               </p>
-
               <small>
                 ${formatDateTime(update.created_at)}
               </small>
-
             </div>
           `,
           )
@@ -435,7 +412,6 @@ function renderActionPanel(action, updates = []) {
   `;
 
   wireActionButtons(action.id);
-
   wireUpdateButton(action.id);
 }
 
@@ -458,9 +434,7 @@ function wireActionButtons(actionId) {
     ?.addEventListener("click", async () => {
       try {
         await startAction(actionId);
-
         await refreshIncidentPage();
-
         await openActionPanel(actionId);
       } catch (err) {
         showUnexpectedError(err);
@@ -472,9 +446,7 @@ function wireActionButtons(actionId) {
     ?.addEventListener("click", async () => {
       try {
         await completeAction(actionId);
-
         await refreshIncidentPage();
-
         await openActionPanel(actionId);
       } catch (err) {
         showUnexpectedError(err);
@@ -486,9 +458,7 @@ function wireActionButtons(actionId) {
     ?.addEventListener("click", async () => {
       try {
         await reopenAction(actionId);
-
         await refreshIncidentPage();
-
         await openActionPanel(actionId);
       } catch (err) {
         showUnexpectedError(err);
@@ -581,7 +551,6 @@ function renderRolePicker(allRoles) {
       <h3>Visible Roles</h3>
       <small>Select which roles appear in the matrix</small>
     </div>
-
     <div class="role-picker__roles">
       ${allRoles
         .map(
@@ -592,7 +561,6 @@ function renderRolePicker(allRoles) {
                 value="${role}"
                 ${selectedRoles.includes(role) ? "checked" : ""}
               />
-
               <span class="role-picker__pill">
                 ${role}
               </span>
@@ -618,17 +586,13 @@ function wireRolePicker() {
 
         if (checked.length === 0) {
           checkbox.checked = true;
-
           showWarning("At least one role must remain visible.");
-
           return;
         }
 
         selectedRoles = checked.map((input) => input.value);
-
         currentPreferences = {
           ...currentPreferences,
-
           incidentMatrix: {
             ...(currentPreferences.incidentMatrix || {}),
             visibleRoles: selectedRoles,
@@ -636,7 +600,6 @@ function wireRolePicker() {
         };
 
         queuePreferenceSave();
-
         renderActions(currentActions);
       });
     });
@@ -670,15 +633,10 @@ function startIncidentTimer(startedAt) {
 
   const update = () => {
     const started = parseUkDateTime(startedAt);
-
     const diffMs = Date.now() - started.getTime();
-
     const totalMinutes = Math.floor(diffMs / (1000 * 60));
-
     const days = Math.floor(totalMinutes / (60 * 24));
-
     const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-
     const minutes = totalMinutes % 60;
 
     if (days > 0) {
@@ -696,7 +654,6 @@ function startIncidentTimer(startedAt) {
 
   incidentTimerTimeout = setTimeout(() => {
     update();
-
     incidentTimerInterval = setInterval(update, 60000);
   }, msUntilNextMinute);
 }
@@ -711,7 +668,6 @@ async function saveLayoutPreferences() {
 
     currentPreferences = {
       ...currentPreferences,
-
       incidentMatrix: {
         ...(currentPreferences.incidentMatrix || {}),
         visibleRoles: selectedRoles,
@@ -734,9 +690,7 @@ function showUnexpectedError(err) {
 
 function parseUkDateTime(value) {
   const [datePart, timePart] = value.split(", ");
-
   const [day, month, year] = datePart.split("/");
-
   return new Date(`${year}-${month}-${day}T${timePart}`);
 }
 
@@ -756,7 +710,6 @@ function getVisibleRoles(allRoles) {
   if (!selectedRoles.length) {
     return allRoles;
   }
-
   return allRoles.filter((role) => selectedRoles.includes(role));
 }
 
@@ -838,15 +791,11 @@ function buildStageRow(stageNumber, actions, roles) {
         <strong>
           Stage ${stageNumber}
         </strong>
-
         <br>
-
         <small>
           ${stageInfo?.stage_name ?? ""}
         </small>
-
         <br>
-
         <small>
           Due:
           ${stageInfo?.stage_due_from_incident_start ?? 0}
@@ -863,14 +812,11 @@ function buildStageRow(stageNumber, actions, roles) {
     );
 
     html += "<td>";
-
     matchingActions.forEach((action) => {
       html += buildActionCard(action);
     });
-
     html += "</td>";
   });
-
   html += "</tr>";
 
   return html;
@@ -890,7 +836,6 @@ function buildMatrixTable(actions, roles, stages) {
   html += `
       </tr>
     </thead>
-
     <tbody>
   `;
 
