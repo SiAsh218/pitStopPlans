@@ -295,6 +295,19 @@ function initialiseDatabase() {
     );
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_preferences (
+      user_id INTEGER PRIMARY KEY,
+      preferences TEXT NOT NULL DEFAULT '{}',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+    );
+  `);
+
   console.log("Database initialised");
 }
 

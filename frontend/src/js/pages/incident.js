@@ -4,6 +4,11 @@ import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 
 import {
+  getPreferences,
+  savePreferences,
+} from "../services/userPreferenceService.js";
+
+import {
   getAction,
   startAction,
   completeAction,
@@ -15,8 +20,19 @@ import {
   addActionUpdate,
 } from "../services/incidentActionUpdateService.js";
 
+let currentPreferences = {};
+let selectedRoles = [];
+let currentActions = [];
+let saveTimeout;
+
 export async function initIncidentPage() {
   const incidentMeta = document.querySelector(".incident-meta");
+
+  const preferences = await getPreferences();
+
+  currentPreferences = preferences;
+
+  selectedRoles = currentPreferences?.incidentMatrix?.visibleRoles ?? [];
 
   if (!incidentMeta) {
     return;
@@ -151,6 +167,16 @@ function renderActions(actions) {
     return;
   }
 
+  currentActions = actions;
+
+  const allRoles = [
+    ...new Set(
+      actions.flatMap((action) => action.roles.map((role) => role.name)),
+    ),
+  ];
+
+  renderRolePicker(allRoles);
+
   container.innerHTML = "";
 
   if (!actions.length) {
@@ -159,11 +185,12 @@ function renderActions(actions) {
     return;
   }
 
-  const roles = [
-    ...new Set(
-      actions.flatMap((action) => action.roles.map((role) => role.name)),
-    ),
-  ];
+  const visibleRoles = selectedRoles.length > 0 ? selectedRoles : allRoles;
+
+  const roles =
+    visibleRoles.length > 0
+      ? allRoles.filter((role) => visibleRoles.includes(role))
+      : allRoles;
 
   const stages = [
     ...new Set(actions.map((action) => action.stage_number)),
@@ -642,4 +669,111 @@ async function refreshIncidentPage() {
   renderSummary(dashboard.summary);
 
   renderActions(dashboard.actions);
+}
+
+function renderRolePicker(allRoles) {
+  const container = document.getElementById("role-picker");
+
+  if (!container) {
+    return;
+  }
+
+  if (selectedRoles.length === 0) {
+    selectedRoles = [...allRoles];
+  }
+
+  container.innerHTML = `
+  <div class="role-picker">
+    <div class="role-picker__header">
+      <h3>Visible Roles</h3>
+      <small>Select which roles appear in the matrix</small>
+    </div>
+
+    <div class="role-picker__roles">
+      ${allRoles
+        .map(
+          (role) => `
+            <label class="role-picker__item">
+              <input
+                type="checkbox"
+                value="${role}"
+                ${selectedRoles.includes(role) ? "checked" : ""}
+              />
+
+              <span class="role-picker__pill">
+                ${role}
+              </span>
+            </label>
+          `,
+        )
+        .join("")}
+    </div>
+  </div>
+`;
+
+  wireRolePicker(allRoles);
+}
+
+function wireRolePicker() {
+  document
+    .querySelectorAll("#role-picker input[type='checkbox']")
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        const checked = [
+          ...document.querySelectorAll("#role-picker input:checked"),
+        ];
+
+        if (checked.length === 0) {
+          checkbox.checked = true;
+
+          showWarning("At least one role must remain visible.");
+
+          return;
+        }
+
+        selectedRoles = checked.map((input) => input.value);
+
+        currentPreferences = {
+          ...currentPreferences,
+
+          incidentMatrix: {
+            ...(currentPreferences.incidentMatrix || {}),
+            visibleRoles: selectedRoles,
+          },
+        };
+
+        queuePreferenceSave();
+
+        renderActions(currentActions);
+      });
+    });
+}
+
+function queuePreferenceSave() {
+  clearTimeout(saveTimeout);
+
+  saveTimeout = setTimeout(() => {
+    saveLayoutPreferences();
+  }, 500);
+}
+
+async function saveLayoutPreferences() {
+  try {
+    await savePreferences({
+      incidentMatrix: {
+        visibleRoles: selectedRoles,
+      },
+    });
+
+    currentPreferences = {
+      ...currentPreferences,
+
+      incidentMatrix: {
+        ...(currentPreferences.incidentMatrix || {}),
+        visibleRoles: selectedRoles,
+      },
+    };
+  } catch (err) {
+    showError(err?.message || "Failed to save preferences.");
+  }
 }

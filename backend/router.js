@@ -33,6 +33,7 @@ const incidentActionRoutes = require("./routes/incidentActionRoutes.js");
 const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes.js");
 const userRoutes = require("./routes/userRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes.js");
+const userPreferenceRoutes = require("./routes/userPreferenceRoutes.js");
 
 /**
  * Router class
@@ -68,6 +69,7 @@ class Router {
       ...incidentActionUpdateRoutes,
       ...userRoutes,
       ...auditLogRoutes,
+      ...userPreferenceRoutes,
     ];
 
     /**
