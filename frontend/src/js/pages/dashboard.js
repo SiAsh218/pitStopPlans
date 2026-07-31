@@ -1,11 +1,23 @@
+// -----------------------------------------------------------------------------
+// Dependencies
+// -----------------------------------------------------------------------------
+
 import { getIncidents } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
+
+// -----------------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------------
 
 let allIncidents = [];
 let filters = {
   search: "",
   status: "active",
 };
+
+// -----------------------------------------------------------------------------
+// Initialisation
+// -----------------------------------------------------------------------------
 
 export async function loadIncidents() {
   const incidentList = document.getElementById("incident-list");
@@ -27,13 +39,13 @@ export async function loadIncidents() {
     updateStatistics(allIncidents);
     renderIncidents(getFilteredIncidents());
   } catch (err) {
-    console.error(err);
-
-    incidentList.innerHTML = `
-      <p>Failed to load incidents.</p>
-    `;
+    showDashboardError(incidentList, err);
   }
 }
+
+// -----------------------------------------------------------------------------
+// Dashboard Controls
+// -----------------------------------------------------------------------------
 
 function bindDashboardControls() {
   const searchInput = document.getElementById("incident-search");
@@ -61,6 +73,10 @@ function bindDashboardControls() {
     loadIncidents();
   };
 }
+
+// -----------------------------------------------------------------------------
+// Incident List
+// -----------------------------------------------------------------------------
 
 function getFilteredIncidents() {
   return allIncidents.filter((incident) => {
@@ -102,10 +118,94 @@ function renderIncidents(incidents) {
 
     card.className = "incident-card";
 
-    const statusClass =
-      incident.status === "active" ? "status--active" : "status--closed";
+    card.innerHTML = buildIncidentCard(incident);
 
-    card.innerHTML = `
+    card.addEventListener("click", () => {
+      openIncident(incident.id);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Dashboard Statistics
+// -----------------------------------------------------------------------------
+
+function updateStatistics(incidents) {
+  const active = incidents.filter(
+    (incident) => incident.status === "active",
+  ).length;
+
+  const resolvedToday = getResolvedTodayCount(incidents);
+
+  const openWorkload = getOpenWorkload(incidents);
+
+  const activeIncidentCount = document.getElementById("active-incident-count");
+
+  if (activeIncidentCount) {
+    activeIncidentCount.textContent = active;
+  }
+
+  const resolvedCount = document.getElementById("resolved-count");
+
+  if (resolvedCount) {
+    resolvedCount.textContent = resolvedToday;
+  }
+
+  const openActionCount = document.getElementById("open-action-count");
+
+  if (openActionCount) {
+    openActionCount.textContent = openWorkload;
+  }
+}
+
+function getResolvedTodayCount(incidents) {
+  const today = new Date();
+
+  return incidents.filter((incident) => {
+    if (incident.status !== "closed" || !incident.closed_at) {
+      return false;
+    }
+
+    const closedDate = new Date(incident.closed_at);
+
+    return (
+      closedDate.getFullYear() === today.getFullYear() &&
+      closedDate.getMonth() === today.getMonth() &&
+      closedDate.getDate() === today.getDate()
+    );
+  }).length;
+}
+
+function getOpenWorkload(incidents) {
+  return incidents
+    .filter((incident) => incident.status === "active")
+    .reduce((total, incident) => {
+      const remaining =
+        incident.summary.total_actions - incident.summary.completed_actions;
+
+      return total + remaining;
+    }, 0);
+}
+
+// -----------------------------------------------------------------------------
+// Utilities
+// -----------------------------------------------------------------------------
+
+function showDashboardError(container, err) {
+  console.error(err);
+
+  container.innerHTML = `
+    <p>Failed to load incidents.</p>
+  `;
+}
+
+function buildIncidentCard(incident) {
+  const statusClass =
+    incident.status === "active" ? "status--active" : "status--closed";
+
+  return `
       <div class="incident-card__header">
         <h3>
           #${incident.id}
@@ -154,63 +254,8 @@ function renderIncidents(incidents) {
         </button>
       </div>
     `;
-
-    card.addEventListener("click", () => {
-      window.location.href = `/incidents/${incident.id}`;
-    });
-
-    container.appendChild(card);
-  });
 }
 
-function updateStatistics(incidents) {
-  const active = incidents.filter(
-    (incident) => incident.status === "active",
-  ).length;
-
-  const closed = incidents.filter(
-    (incident) => incident.status === "closed",
-  ).length;
-
-  const today = new Date();
-  const resolvedToday = incidents.filter((incident) => {
-    if (incident.status !== "closed" || !incident.closed_at) {
-      return false;
-    }
-
-    const closedDate = new Date(incident.closed_at);
-
-    return (
-      closedDate.getFullYear() === today.getFullYear() &&
-      closedDate.getMonth() === today.getMonth() &&
-      closedDate.getDate() === today.getDate()
-    );
-  }).length;
-
-  const openWorkload = incidents
-    .filter((incident) => incident.status === "active")
-    .reduce((total, incident) => {
-      const remainingActions =
-        incident.summary.total_actions - incident.summary.completed_actions;
-
-      return total + remainingActions;
-    }, 0);
-
-  const activeIncidentCount = document.getElementById("active-incident-count");
-
-  if (activeIncidentCount) {
-    activeIncidentCount.textContent = active;
-  }
-
-  const resolvedCount = document.getElementById("resolved-count");
-
-  if (resolvedCount) {
-    resolvedCount.textContent = resolvedToday;
-  }
-
-  const openActionCount = document.getElementById("open-action-count");
-
-  if (openActionCount) {
-    openActionCount.textContent = openWorkload;
-  }
+function openIncident(incidentId) {
+  window.location.href = `/incidents/${incidentId}`;
 }
