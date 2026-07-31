@@ -1,6 +1,9 @@
+// -----------------------------------------------------------------------------
+// Dependencies
+// -----------------------------------------------------------------------------
 import { getDashboard, closeIncident } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
-import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
+import { showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 
 import {
@@ -20,11 +23,20 @@ import {
   addActionUpdate,
 } from "../services/incidentActionUpdateService.js";
 
+// -----------------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------------
+
 let currentPreferences = {};
 let selectedRoles = [];
 let currentActions = [];
 let saveTimeout;
 let incidentTimerInterval;
+let incidentTimerTimeout;
+
+// -----------------------------------------------------------------------------
+// Initialisation
+// -----------------------------------------------------------------------------
 
 export async function initIncidentPage() {
   const incidentMeta = document.querySelector(".incident-meta");
@@ -50,14 +62,29 @@ export async function initIncidentPage() {
 
     renderSummary(dashboard.summary);
   } catch (err) {
-    console.error(err);
-    showError(err?.message || "An unexpected error occurred.");
+    showUnexpectedError(err);
 
     incidentMeta.innerHTML = `
       <p>Failed to load incident.</p>
     `;
   }
 }
+
+async function refreshIncidentPage() {
+  const incidentId = window.location.pathname.split("/").pop();
+
+  const dashboard = await getDashboard(incidentId);
+
+  renderIncidentMeta(dashboard);
+
+  renderSummary(dashboard.summary);
+
+  renderActions(dashboard.actions);
+}
+
+// -----------------------------------------------------------------------------
+// Incident Header
+// -----------------------------------------------------------------------------
 
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
@@ -114,6 +141,10 @@ function wireDashboardBackButton() {
   });
 }
 
+// -----------------------------------------------------------------------------
+// Summary
+// -----------------------------------------------------------------------------
+
 function renderSummary(summary) {
   const container = document.getElementById("incident-summary");
 
@@ -162,6 +193,10 @@ function renderSummary(summary) {
   `;
 }
 
+// -----------------------------------------------------------------------------
+// Incident Matrix
+// -----------------------------------------------------------------------------
+
 function renderActions(actions) {
   const container = document.getElementById("incident-actions");
 
@@ -171,15 +206,9 @@ function renderActions(actions) {
 
   currentActions = actions;
 
-  const allRoles = [
-    ...new Set(
-      actions.flatMap((action) => action.roles.map((role) => role.name)),
-    ),
-  ];
+  const allRoles = getAllRoles(actions);
 
   renderRolePicker(allRoles);
-
-  container.innerHTML = "";
 
   if (!actions.length) {
     container.innerHTML = "<p>No actions found.</p>";
@@ -187,147 +216,17 @@ function renderActions(actions) {
     return;
   }
 
-  const visibleRoles = selectedRoles.length > 0 ? selectedRoles : allRoles;
+  const roles = getVisibleRoles(allRoles);
 
-  const roles =
-    visibleRoles.length > 0
-      ? allRoles.filter((role) => visibleRoles.includes(role))
-      : allRoles;
-
-  const stages = [
-    ...new Set(actions.map((action) => action.stage_number)),
-  ].sort((a, b) => a - b);
+  const stages = getStages(actions);
 
   const table = document.createElement("table");
 
   table.className = "incident-matrix";
 
-  let html = `
-    <thead>
-      <tr>
-        <th>Stage</th>
-  `;
+  table.innerHTML = buildMatrixTable(actions, roles, stages);
 
-  roles.forEach((role) => {
-    html += `<th>${role}</th>`;
-  });
-
-  html += `
-      </tr>
-    </thead>
-    <tbody>
-  `;
-
-  stages.forEach((stageNumber) => {
-    const stageInfo = actions.find(
-      (action) => action.stage_number === stageNumber,
-    );
-
-    html += `
-    <tr>
-      <td class="stage-label">
-
-        <strong>
-          Stage ${stageNumber}
-        </strong>
-
-        <br>
-
-        <small>
-          ${stageInfo?.stage_name ?? ""}
-        </small>
-
-        <br>
-
-        <small>
-          Due:
-          ${stageInfo?.stage_due_from_incident_start ?? 0}
-          mins
-        </small>
-
-      </td>
-  `;
-
-    roles.forEach((roleName) => {
-      const matchingActions = actions.filter(
-        (action) =>
-          action.stage_number === stageNumber &&
-          action.roles.some((role) => role.name === roleName),
-      );
-
-      html += `
-        <td>
-      `;
-
-      matchingActions.forEach((action) => {
-        const roleNames = action.roles.map((role) => role.name).join(", ");
-        const dueLabel =
-          action.due_from_stage_start != null
-            ? `${action.due_from_stage_start} mins from stage start`
-            : `${action.due_from_incident_start} mins from incident start`;
-
-        html += `
-           <div
-              class="matrix-action matrix-action--${action.status}"
-              data-action-id="${action.id}"
-            >
-              <div class="matrix-action__title">
-                ${action.title}
-              </div>
-
-              <div class="matrix-action__meta">
-                <span class="matrix-action__status">${action.status}</span>
-                <span class="matrix-action__due">${dueLabel}</span>
-              </div>
-
-              <div class="matrix-action__roles">
-                ${roleNames}
-              </div>
-
-              ${
-                action.status === "pending"
-                  ? `
-                        <div class="matrix-action__buttons">
-                          <button
-                            class="btn btn-secondary btn-start-action-card"
-                            data-action-id="${action.id}"
-                          >
-                            Start
-                          </button>
-                        </div>
-                      `
-                  : action.status === "in_progress"
-                    ? `
-                          <div class="matrix-action__buttons">
-                            <button
-                              class="btn btn-secondary btn-complete-action-card"
-                              data-action-id="${action.id}"
-                            >
-                              Complete
-                            </button>
-                          </div>
-                        `
-                    : ""
-              }
-            </div>
-          `;
-      });
-
-      html += `
-        </td>
-      `;
-    });
-
-    html += `
-      </tr>
-    `;
-  });
-
-  html += `
-    </tbody>
-  `;
-
-  table.innerHTML = html;
+  container.innerHTML = "";
 
   container.appendChild(table);
 
@@ -356,7 +255,7 @@ function wireStartActionButtons() {
 
         await refreshIncidentPage();
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
         return;
       }
     });
@@ -373,11 +272,15 @@ function wireCompleteActionButtons() {
 
         await refreshIncidentPage();
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
       }
     });
   });
 }
+
+// -----------------------------------------------------------------------------
+// Action Panel
+// -----------------------------------------------------------------------------
 
 async function openActionPanel(actionId) {
   try {
@@ -387,7 +290,7 @@ async function openActionPanel(actionId) {
 
     renderActionPanel(action, updates);
   } catch (err) {
-    showError(err?.message || "An unexpected error occurred.");
+    showUnexpectedError(err);
   }
 }
 
@@ -560,7 +463,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
       }
     });
 
@@ -574,7 +477,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
       }
     });
 
@@ -588,7 +491,7 @@ function wireActionButtons(actionId) {
 
         await openActionPanel(actionId);
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
       }
     });
 }
@@ -626,7 +529,7 @@ function wireUpdateButton(actionId) {
 
       await openActionPanel(actionId);
     } catch (err) {
-      showError(err?.message || "An unexpected error occurred.");
+      showUnexpectedError(err);
     }
   });
 
@@ -656,21 +559,9 @@ function wireCloseIncidentButton(incidentId) {
 
         window.location.reload();
       } catch (err) {
-        showError(err?.message || "An unexpected error occurred.");
+        showUnexpectedError(err);
       }
     });
-}
-
-async function refreshIncidentPage() {
-  const incidentId = window.location.pathname.split("/").pop();
-
-  const dashboard = await getDashboard(incidentId);
-
-  renderIncidentMeta(dashboard);
-
-  renderSummary(dashboard.summary);
-
-  renderActions(dashboard.actions);
 }
 
 function renderRolePicker(allRoles) {
@@ -751,6 +642,10 @@ function wireRolePicker() {
     });
 }
 
+// -----------------------------------------------------------------------------
+// Preferences
+// -----------------------------------------------------------------------------
+
 function queuePreferenceSave() {
   clearTimeout(saveTimeout);
 
@@ -759,8 +654,13 @@ function queuePreferenceSave() {
   }, 500);
 }
 
+// -----------------------------------------------------------------------------
+// Incident Timer
+// -----------------------------------------------------------------------------
+
 function startIncidentTimer(startedAt) {
   clearInterval(incidentTimerInterval);
+  clearTimeout(incidentTimerTimeout);
 
   const element = document.getElementById("incident-duration");
 
@@ -769,11 +669,7 @@ function startIncidentTimer(startedAt) {
   }
 
   const update = () => {
-    const [datePart, timePart] = startedAt.split(", ");
-
-    const [day, month, year] = datePart.split("/");
-
-    const started = new Date(`${year}-${month}-${day}T${timePart}`);
+    const started = parseUkDateTime(startedAt);
 
     const diffMs = Date.now() - started.getTime();
 
@@ -798,7 +694,7 @@ function startIncidentTimer(startedAt) {
 
   const msUntilNextMinute = 60000 - (Date.now() % 60000);
 
-  setTimeout(() => {
+  incidentTimerTimeout = setTimeout(() => {
     update();
 
     incidentTimerInterval = setInterval(update, 60000);
@@ -824,4 +720,187 @@ async function saveLayoutPreferences() {
   } catch (err) {
     showError(err?.message || "Failed to save preferences.");
   }
+}
+
+// -----------------------------------------------------------------------------
+// Utilities
+// -----------------------------------------------------------------------------
+
+function showUnexpectedError(err) {
+  console.error(err);
+
+  showError(err?.message || "An unexpected error occurred.");
+}
+
+function parseUkDateTime(value) {
+  const [datePart, timePart] = value.split(", ");
+
+  const [day, month, year] = datePart.split("/");
+
+  return new Date(`${year}-${month}-${day}T${timePart}`);
+}
+
+// -----------------------------------------------------------------------------
+// Matrix Helpers
+// -----------------------------------------------------------------------------
+
+function getAllRoles(actions) {
+  return [
+    ...new Set(
+      actions.flatMap((action) => action.roles.map((role) => role.name)),
+    ),
+  ];
+}
+
+function getVisibleRoles(allRoles) {
+  if (!selectedRoles.length) {
+    return allRoles;
+  }
+
+  return allRoles.filter((role) => selectedRoles.includes(role));
+}
+
+function getStages(actions) {
+  return [...new Set(actions.map((action) => action.stage_number))].sort(
+    (a, b) => a - b,
+  );
+}
+
+function buildActionCard(action) {
+  const roleNames = action.roles.map((role) => role.name).join(", ");
+
+  const dueLabel =
+    action.due_from_stage_start != null
+      ? `${action.due_from_stage_start} mins from stage start`
+      : `${action.due_from_incident_start} mins from incident start`;
+
+  const actionButton =
+    action.status === "pending"
+      ? `
+          <div class="matrix-action__buttons">
+            <button
+              class="btn btn-secondary btn-start-action-card"
+              data-action-id="${action.id}"
+            >
+              Start
+            </button>
+          </div>
+        `
+      : action.status === "in_progress"
+        ? `
+            <div class="matrix-action__buttons">
+              <button
+                class="btn btn-secondary btn-complete-action-card"
+                data-action-id="${action.id}"
+              >
+                Complete
+              </button>
+            </div>
+          `
+        : "";
+
+  return `
+    <div
+      class="matrix-action matrix-action--${action.status}"
+      data-action-id="${action.id}"
+    >
+      <div class="matrix-action__title">
+        ${action.title}
+      </div>
+
+      <div class="matrix-action__meta">
+        <span class="matrix-action__status">
+          ${action.status}
+        </span>
+
+        <span class="matrix-action__due">
+          ${dueLabel}
+        </span>
+      </div>
+
+      <div class="matrix-action__roles">
+        ${roleNames}
+      </div>
+
+      ${actionButton}
+    </div>
+  `;
+}
+
+function buildStageRow(stageNumber, actions, roles) {
+  const stageInfo = actions.find(
+    (action) => action.stage_number === stageNumber,
+  );
+
+  let html = `
+    <tr>
+      <td class="stage-label">
+        <strong>
+          Stage ${stageNumber}
+        </strong>
+
+        <br>
+
+        <small>
+          ${stageInfo?.stage_name ?? ""}
+        </small>
+
+        <br>
+
+        <small>
+          Due:
+          ${stageInfo?.stage_due_from_incident_start ?? 0}
+          mins
+        </small>
+      </td>
+  `;
+
+  roles.forEach((roleName) => {
+    const matchingActions = actions.filter(
+      (action) =>
+        action.stage_number === stageNumber &&
+        action.roles.some((role) => role.name === roleName),
+    );
+
+    html += "<td>";
+
+    matchingActions.forEach((action) => {
+      html += buildActionCard(action);
+    });
+
+    html += "</td>";
+  });
+
+  html += "</tr>";
+
+  return html;
+}
+
+function buildMatrixTable(actions, roles, stages) {
+  let html = `
+    <thead>
+      <tr>
+        <th>Stage</th>
+  `;
+
+  roles.forEach((role) => {
+    html += `<th>${role}</th>`;
+  });
+
+  html += `
+      </tr>
+    </thead>
+
+    <tbody>
+  `;
+
+  stages.forEach((stageNumber) => {
+    html += buildStageRow(stageNumber, actions, roles);
+  });
+
+  html += `
+    </tbody>
+  `;
+
+  return html;
 }
