@@ -189,6 +189,15 @@ function updateStatistics(incidents) {
     );
   }).length;
 
+  const openWorkload = incidents
+    .filter((incident) => incident.status === "active")
+    .reduce((total, incident) => {
+      const remainingActions =
+        incident.summary.total_actions - incident.summary.completed_actions;
+
+      return total + remainingActions;
+    }, 0);
+
   const activeIncidentCount = document.getElementById("active-incident-count");
 
   if (activeIncidentCount) {
@@ -204,6 +213,6 @@ function updateStatistics(incidents) {
   const openActionCount = document.getElementById("open-action-count");
 
   if (openActionCount) {
-    openActionCount.textContent = active;
+    openActionCount.textContent = openWorkload;
   }
 }
