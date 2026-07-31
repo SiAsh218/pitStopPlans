@@ -258,16 +258,27 @@ function renderActions(actions) {
               ${
                 action.status === "pending"
                   ? `
-                    <div class="matrix-action__buttons">
-                      <button
-                        class="btn btn-secondary btn-start-action-card"
-                        data-action-id="${action.id}"
-                      >
-                        Start
-                      </button>
-                    </div>
-                  `
-                  : ""
+                        <div class="matrix-action__buttons">
+                          <button
+                            class="btn btn-secondary btn-start-action-card"
+                            data-action-id="${action.id}"
+                          >
+                            Start
+                          </button>
+                        </div>
+                      `
+                  : action.status === "in_progress"
+                    ? `
+                          <div class="matrix-action__buttons">
+                            <button
+                              class="btn btn-secondary btn-complete-action-card"
+                              data-action-id="${action.id}"
+                            >
+                              Complete
+                            </button>
+                          </div>
+                        `
+                    : ""
               }
             </div>
           `;
@@ -293,6 +304,7 @@ function renderActions(actions) {
 
   wireActionCards();
   wireStartActionButtons();
+  wireCompleteActionButtons();
 }
 
 function wireActionCards() {
@@ -317,6 +329,22 @@ function wireStartActionButtons() {
       } catch (err) {
         showError(err?.message || "An unexpected error occurred.");
         return;
+      }
+    });
+  });
+}
+
+function wireCompleteActionButtons() {
+  document.querySelectorAll(".btn-complete-action-card").forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+
+      try {
+        await completeAction(button.dataset.actionId);
+
+        await refreshIncidentPage();
+      } catch (err) {
+        showError(err?.message || "An unexpected error occurred.");
       }
     });
   });
