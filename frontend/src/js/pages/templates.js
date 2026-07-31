@@ -16,8 +16,6 @@ export async function initTemplatesPage() {
   try {
     const templates = await getTemplateSummary();
 
-    console.log(templates);
-
     renderTemplates(templates);
     wireCreateTemplateButton();
   } catch (err) {

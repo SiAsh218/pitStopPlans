@@ -19,8 +19,6 @@ export async function loadIncidents() {
 
     const incidents = await getIncidents();
 
-    console.log(incidents);
-
     allIncidents = incidents.sort(
       (a, b) => new Date(b.started_at) - new Date(a.started_at),
     );

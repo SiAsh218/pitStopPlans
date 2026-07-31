@@ -62,8 +62,6 @@ export async function initIncidentPage() {
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
 
-  console.log("Incident:", incident);
-
   const container = document.querySelector(".incident-meta");
 
   if (!container) {
@@ -762,7 +760,6 @@ function queuePreferenceSave() {
 }
 
 function startIncidentTimer(startedAt) {
-  console.log(startedAt);
   clearInterval(incidentTimerInterval);
 
   const element = document.getElementById("incident-duration");

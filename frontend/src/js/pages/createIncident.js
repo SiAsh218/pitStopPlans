@@ -46,6 +46,4 @@ export async function initCreateIncidentPage() {
       showError("Failed to create incident");
     }
   });
-
-  console.log("Create Incident Page Loaded");
 }
