@@ -5,20 +5,40 @@
   </div>
 
   <div class="header-actions">
-    <button
-      class="btn btn-secondary header-nav-back-btn hidden"
-      id="users-nav-btn"
-      type="button"
-    >
-      Users
-    </button>
-    <button
-      class="btn btn-secondary header-nav-back-btn hidden"
-      id="audit-log-btn"
-      type="button"
-    >
-      Audit Logs
-    </button>
+    <div class="header-dropdown hidden" id="admin-actions-dropdown">
+      <button
+        class="btn btn-secondary header-dropdown__toggle"
+        id="admin-actions-toggle"
+        type="button"
+      >
+        Admin actions
+      </button>
+
+      <div class="header-dropdown__menu hidden" id="admin-actions-menu">
+        <button
+          class="btn header-dropdown__item"
+          id="users-nav-btn"
+          type="button"
+        >
+          Users
+        </button>
+        <button
+          class="btn header-dropdown__item"
+          id="audit-log-btn"
+          type="button"
+        >
+          Audit Logs
+        </button>
+        <button
+          class="btn header-dropdown__item"
+          id="operational-roles-nav-btn"
+          type="button"
+        >
+          Operational Roles
+        </button>
+      </div>
+    </div>
+
     <button
       class="btn btn-secondary header-nav-back-btn"
       id="dashboard-nav-btn"

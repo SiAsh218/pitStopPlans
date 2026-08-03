@@ -157,6 +157,15 @@ class ViewController {
     return this.render(res, "users.html", data);
   }
 
+  async roles(req, res) {
+    const data = {
+      title: "Operational Roles",
+      isLoggedIn: true,
+    };
+
+    return this.render(res, "roles.html", data);
+  }
+
   async auditLog(req, res) {
     const data = {
       title: "Audit Log",

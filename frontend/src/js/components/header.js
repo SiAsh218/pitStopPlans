@@ -8,15 +8,21 @@ export function initHeader() {
   const dashboardBtn = document.getElementById("dashboard-nav-btn");
   const usersBtn = document.getElementById("users-nav-btn");
   const auditLogBtn = document.getElementById("audit-log-btn");
+  const operationalRolesBtn = document.getElementById(
+    "operational-roles-nav-btn",
+  );
+  const adminActionsDropdown = document.getElementById(
+    "admin-actions-dropdown",
+  );
+  const adminActionsToggle = document.getElementById("admin-actions-toggle");
+  const adminActionsMenu = document.getElementById("admin-actions-menu");
 
   const user = getCurrentUser();
 
   if (user?.role !== "admin") {
-    usersBtn?.remove();
-    auditLogBtn?.remove();
+    adminActionsDropdown?.remove();
   } else {
-    usersBtn.classList.remove("hidden");
-    auditLogBtn.classList.remove("hidden");
+    adminActionsDropdown?.classList.remove("hidden");
   }
 
   buttonCreateTemplate?.addEventListener("click", () => {
@@ -37,6 +43,37 @@ export function initHeader() {
 
   auditLogBtn?.addEventListener("click", () => {
     window.location.href = "/audit-log";
+  });
+
+  adminActionsToggle?.addEventListener("click", () => {
+    adminActionsMenu?.classList.toggle("hidden");
+  });
+
+  operationalRolesBtn?.addEventListener("click", () => {
+    window.location.href = "/roles";
+  });
+
+  adminActionsMenu?.addEventListener("click", (event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    if (target.id === "operational-roles-nav-btn") {
+      window.location.href = "/roles";
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (
+      adminActionsMenu &&
+      adminActionsToggle &&
+      !adminActionsMenu.contains(event.target) &&
+      !adminActionsToggle.contains(event.target)
+    ) {
+      adminActionsMenu.classList.add("hidden");
+    }
   });
 
   const isDashboardPage = window.location.pathname === "/";

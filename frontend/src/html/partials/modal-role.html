@@ -11,13 +11,17 @@
         <input type="hidden" id="modal-role-id" />
 
         <div class="modal-form__group">
-          <label class="modal-form__label" for="modal-form-incident--role">
-            Role
+          <label class="modal-form__label" for="modal-role-name">
+            Operational Role Name
           </label>
 
-          <select class="modal-form__input" id="modal-form-incident--role">
-            <option value=""></option>
-          </select>
+          <input
+            class="modal-form__input"
+            id="modal-role-name"
+            type="text"
+            placeholder="Enter new role"
+            required
+          />
         </div>
 
         <button class="btn btn-primary" id="modal-role-submit" type="submit">

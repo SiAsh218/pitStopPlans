@@ -40,6 +40,11 @@ module.exports = [
   },
   {
     method: "GET",
+    path: "/roles",
+    handler: viewController.roles.bind(viewController),
+  },
+  {
+    method: "GET",
     path: "/audit-log",
     handler: viewController.auditLog.bind(viewController),
   },
