@@ -11,67 +11,54 @@
  *
  * Flow:
  * 1. Load config + environment
- * 2. Resolve port and environment
+ * 2. Resolve port
  * 3. Attach global error handlers
  * 4. Instantiate App
  * 5. Start server
  * ============================================================
  */
 
-const path = require("path");
 const config = require("./config.json");
-
-// Import the main application class (backend server)
-const App = require(path.join(__dirname, "backend", "app.js"));
-
-/**
- * Determine runtime environment
- * Defaults to "development" if not set
- */
-const env = process.env.NODE_ENV || "development";
+const App = require("./backend/app");
 
 /**
  * Resolve port in priority order:
  * 1. Environment variable (PORT)
  * 2. Default config port
  */
-const port = process.env.PORT || config.port;
+const port = process.env.PORT ?? config.port;
 
 /**
- * ============================================================
- * Global Error Handlers (Process Level)
- * ============================================================
+ * Logs a fatal application error and terminates the process.
  *
- * These catch errors outside normal request flow.
- * Without these, Node can fail silently or behave unpredictably.
+ * @param {string} type - Error type.
+ * @param {unknown} error - Error object or rejection reason.
+ * @returns {void}
  */
+function handleFatalError(type, error) {
+  console.error(`${type}:`, error);
+  process.exit(1);
+}
 
 /**
- * Handles synchronous errors that are not caught anywhere else
+ * Handles synchronous errors that are not caught anywhere else.
  */
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-
-  // Exit process to avoid running in unstable state
-  process.exit(1);
+process.on("uncaughtException", (error) => {
+  handleFatalError("Uncaught Exception", error);
 });
 
 /**
- * Handles unhandled Promise rejections
+ * Handles unhandled Promise rejections.
  */
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-
-  // Exit for consistency and safety
-  process.exit(1);
+process.on("unhandledRejection", (error) => {
+  handleFatalError("Unhandled Rejection", error);
 });
 
 /**
- * ============================================================
- * Main Application Bootstrap
- * ============================================================
+ * Creates and starts the application server.
  *
- * Creates and starts the server.
+ * @async
+ * @returns {Promise<void>}
  */
 async function run() {
   try {
@@ -82,8 +69,8 @@ async function run() {
     await app.start();
 
     console.log(`Server running on port ${port}`);
-  } catch (err) {
-    console.error("Failed to start app:", err);
+  } catch (error) {
+    console.error("Failed to start app:", error);
 
     // Exit if startup fails
     process.exit(1);
@@ -91,6 +78,6 @@ async function run() {
 }
 
 /**
- * Execute application
+ * Execute application.
  */
 run();

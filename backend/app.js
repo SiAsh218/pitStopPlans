@@ -6,49 +6,39 @@
  * Purpose:
  * - Creates and configures the HTTP server
  * - Wires middleware, routing, and static file serving together
- * - Handles request lifecycle (from incoming request → response)
+ * - Handles request lifecycle (incoming request → response)
  *
  * High-Level Flow:
  * 1. Incoming request
  * 2. Attempt to serve static files
- * 3. Parse request body (for POST/PUT)
+ * 3. Parse request body
  * 4. Parse query parameters
- * 5. Pass request through router + middleware
- * 6. Send response or fallback (404 / 500)
+ * 5. Execute middleware and routes
+ * 6. Return response or fallback (404 / 500)
  * ============================================================
  */
 
-const config = require("../config.json");
 require("dotenv").config();
 
 const http = require("http");
 const path = require("path");
 const fs = require("fs").promises;
 
-// Custom router (handles routes and middleware chain)
-const router = require("./router.js");
-const AppError = require("./utils/AppError.js");
+const config = require("../config.json");
+
+// Custom router
+const router = require("./router");
+const AppError = require("./utils/AppError");
 
 // =========================
 // Middleware Registration
 // =========================
 
-/**
- * Middleware responsibilities:
- * - logger → logs requests
- * - requireJSON → validates JSON requests
- * - validateTrain → validates train data
- *
- * ORDER MATTERS:
- * Middleware runs in the order registered here
- */
 const logger = require("./middleware/logger");
-// const timer = require("./middleware/timer.js");
-const requireJSON = require("./middleware/requireJSON.js");
-const validateTrain = require("./middleware/validateTrain.js");
+const requireJSON = require("./middleware/requireJSON");
+// const validateTrain = require("./middleware/validateTrain");
 
 router.use(logger);
-// router.use(timer);
 router.use(requireJSON);
 // router.use(validateTrain);
 
@@ -56,42 +46,68 @@ router.use(requireJSON);
 // Database Initialisation
 // =========================
 
-/**
- * Responsible for:
- * - Creating tables if they don't exist
- * - Seeding initial data (e.g. admin user)
- */
 const initialiseDatabase = require("./data/init");
 const seedDatabase = require("./data/seed");
 
 // =========================
-// MIME Types (for static files)
+// MIME Types
 // =========================
+
 const MIME_TYPES = config.mimeTypes || {};
 
+/**
+ * Main application server.
+ *
+ * Responsible for:
+ * - HTTP server creation
+ * - Static file serving
+ * - Request parsing
+ * - Router execution
+ * - Error handling
+ */
 class App {
   /**
-   * Creates a new App instance
+   * Creates a new application instance.
    *
-   * @param {{ port: number }} options
+   * @param {Object} options - Application options.
+   * @param {number} options.port - Port to listen on.
    */
   constructor({ port }) {
+    /**
+     * Active listening port.
+     *
+     * @type {number}
+     */
     this.port = port;
 
     /**
-     * Current environment (development / production)
+     * Current application environment.
+     *
+     * @type {string}
      */
     this.mode = process.env.NODE_ENV || "development";
 
     /**
-     * Absolute path to static frontend directory
+     * Absolute path to static frontend assets.
+     *
+     * @type {string}
      */
     this.staticFilePath = path.join(__dirname, "..", config.paths.static);
 
+    /**
+     * HTTP server instance.
+     *
+     * @type {import("http").Server|null}
+     */
     this.server = null;
+
+    /**
+     * Active host address.
+     *
+     * @type {string|null}
+     */
     this.host = null;
 
-    // Initialise DB on startup
     try {
       initialiseDatabase();
       seedDatabase();
@@ -101,19 +117,17 @@ class App {
   }
 
   /**
-   * Start the HTTP server
+   * Starts the application.
    *
-   * - Determines environment
-   * - Creates HTTP server
-   * - Starts listening on configured port
+   * Creates and configures the HTTP server, then
+   * begins listening on the configured port.
+   *
+   * @async
+   * @returns {Promise<void>}
    */
   async start() {
     try {
-      if (this.mode === "production") {
-        this.runHTTP("production");
-      } else {
-        this.runHTTP("development");
-      }
+      this.runHTTP(this.mode === "production" ? "production" : "development");
 
       await this._listenWithRetry(this.port, this.host);
     } catch (error) {
@@ -122,8 +136,21 @@ class App {
     }
   }
 
+  /**
+   * Attempts to bind the server to a port.
+   *
+   * If the port is already in use, additional ports
+   * are tried until a free port is found or the retry
+   * limit is reached.
+   *
+   * @async
+   * @param {number} port - Starting port.
+   * @param {string} host - Host address.
+   * @returns {Promise<void>}
+   */
   async _listenWithRetry(port, host) {
     const maxAttempts = 10;
+
     let currentPort = port;
     let attempt = 0;
 
@@ -136,9 +163,12 @@ class App {
           };
 
           this.server.once("error", onError);
+
           this.server.listen(currentPort, host, () => {
             this.server.off("error", onError);
+
             this.port = currentPort;
+
             resolve();
           });
         });
@@ -146,6 +176,7 @@ class App {
         console.log(
           `Server running (${this.mode}) on http://${host}:${this.port}`,
         );
+
         return;
       } catch (error) {
         if (error.code !== "EADDRINUSE") {
@@ -158,55 +189,55 @@ class App {
           throw error;
         }
 
+        const previousPort = currentPort;
         currentPort += 1;
-        console.warn(`Port ${port} is in use, trying ${currentPort}...`);
+
+        console.warn(
+          `Port ${previousPort} is in use, trying ${currentPort}...`,
+        );
       }
     }
   }
 
   /**
-   * Initialise HTTP server and define request handler
+   * Initialises the HTTP server and request handling.
    *
-   * @param {"development"|"production"} mode
+   * @param {"development"|"production"} mode - Runtime mode.
+   * @returns {void}
    */
   runHTTP(mode) {
     this.mode = mode;
-
-    /**
-     * Select host depending on environment
-     */
     this.host = mode === "production" ? config.prod.ip : config.dev.ip;
 
-    /**
-     * Create HTTP server
-     */
     this.server = http.createServer(async (req, res) => {
       try {
         // ====================================================
         // 1. STATIC FILE HANDLING
         // ====================================================
+
         const isStatic = await this._serveStaticFiles(req, res);
 
-        if (isStatic) return;
+        if (isStatic) {
+          return;
+        }
 
         // ====================================================
-        // 2. BODY PARSING (POST / PUT)
+        // 2. BODY PARSING
         // ====================================================
-        if (req.method === "POST" || req.method === "PUT") {
+
+        if (["POST", "PUT"].includes(req.method)) {
           let body = "";
 
-          // Read request stream
           for await (const chunk of req) {
             body += chunk.toString();
           }
 
-          // Parse JSON body
           if (body.trim().length === 0) {
             req.body = {};
           } else {
             try {
               req.body = JSON.parse(body);
-            } catch (err) {
+            } catch {
               throw new AppError("Invalid JSON payload", 400);
             }
           }
@@ -215,52 +246,70 @@ class App {
         // ====================================================
         // 3. QUERY PARAM PARSING
         // ====================================================
+
         const fullUrl = new URL(req.url, `http://${req.headers.host}`);
 
-        /**
-         * Convert query string → object
-         * Example: ?status=delayed → { status: "delayed" }
-         */
         req.query = Object.fromEntries(fullUrl.searchParams);
 
         // ====================================================
         // 4. ROUTING + MIDDLEWARE
         // ====================================================
+
         const handled = await router.handleRequest(req, res);
 
         // ====================================================
         // 5. FALLBACK (404)
         // ====================================================
+
         if (!handled) {
-          this._sendJson(res, 404, { success: false, error: "Not Found" });
+          this._sendJson(res, 404, {
+            success: false,
+            error: "Not Found",
+          });
         }
-      } catch (err) {
-        // ====================================================
-        // GLOBAL REQUEST ERROR HANDLER
-        // ====================================================
-        console.error("Server Error:", err);
-        this._sendError(res, err);
+      } catch (error) {
+        console.error("Server Error:", error);
+        this._sendError(res, error);
       }
     });
   }
 
+  /**
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} payload
+   * @returns {void}
+   */
   _sendJson(res, statusCode, payload) {
     if (res.headersSent) {
       return;
     }
 
-    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.writeHead(statusCode, {
+      "Content-Type": "application/json",
+    });
+
     res.end(JSON.stringify(payload));
   }
 
+  /**
+   * Sends an error response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {Error & {statusCode?: number}} err
+   * @returns {void}
+   */
   _sendError(res, err) {
     if (res.headersSent) {
       return;
     }
 
     const statusCode =
-      err && typeof err.statusCode === "number" ? err.statusCode : 500;
-    const message = err && err.message ? err.message : "Internal Server Error";
+      typeof err?.statusCode === "number" ? err.statusCode : 500;
+
+    const message = err?.message ?? "Internal Server Error";
 
     this._sendJson(res, statusCode, {
       success: false,
@@ -269,34 +318,29 @@ class App {
   }
 
   /**
-   * Attempt to serve static files (CSS, JS, HTML, etc.)
+   * Attempts to serve a static file.
    *
    * @param {import("http").IncomingMessage} req
    * @param {import("http").ServerResponse} res
-   * @returns {Promise<boolean>} true if handled
+   * @returns {Promise<boolean>} True if handled.
    */
   async _serveStaticFiles(req, res) {
-    if (!req.url) return false;
+    if (!req.url) {
+      return false;
+    }
 
-    /**
-     * Block certain system paths (security precaution)
-     */
     if (req.url.startsWith("/.well-known")) {
       res.writeHead(410);
       res.end();
+
       return true;
     }
 
-    // Resolve safe file path
     const filePath = this._getSafePath(req.url);
 
     const ext = path.extname(filePath);
-
     const contentType = MIME_TYPES[ext];
 
-    /**
-     * Only serve GET requests for known file types
-     */
     if (!contentType || req.method !== "GET") {
       return false;
     }
@@ -305,52 +349,48 @@ class App {
   }
 
   /**
-   * Prevent path traversal attacks
+   * Creates a safe filesystem path from a request URL.
    *
-   * Example attack:
-   *   ../../etc/passwd
+   * Helps prevent path traversal attacks.
    *
    * @param {string} requestUrl
-   * @returns {string} safe absolute path
+   * @returns {string}
    */
   _getSafePath(requestUrl) {
-    let safePath = path.normalize(requestUrl).replace(/^(\.\.[\/\\])+/, "");
-
-    /**
-     * Default to home.html if directory requested
-     */
-    // if (safePath.endsWith("/")) {
-    //   safePath += "home.html";
-    // }
+    const safePath = path.normalize(requestUrl).replace(/^(\.\.[/\\])+/, "");
 
     return path.join(this.staticFilePath, safePath);
   }
 
   /**
-   * Serve file from disk
+   * Serves a file from disk.
    *
+   * @async
    * @param {import("http").ServerResponse} res
    * @param {string} filePath
    * @param {string} contentType
+   * @returns {Promise<boolean>}
    */
   async _serveStatic(res, filePath, contentType) {
     try {
       const data = await fs.readFile(filePath);
 
-      res.writeHead(200, { "Content-Type": contentType });
+      res.writeHead(200, {
+        "Content-Type": contentType,
+      });
 
       res.end(data);
 
       return true;
     } catch (error) {
-      /**
-       * Ignore file-not-found logs for normal 404s
-       */
       if (error.code !== "ENOENT") {
         console.error("Static file error:", error);
       }
 
-      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.writeHead(404, {
+        "Content-Type": "text/plain",
+      });
+
       res.end("File not found");
 
       return true;
