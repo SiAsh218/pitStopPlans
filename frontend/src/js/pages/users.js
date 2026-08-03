@@ -11,6 +11,15 @@ import { showSuccess, showError } from "../utils/myAlert.js";
 let allUsers = [];
 let allRoles = [];
 
+const userState = {
+  search: "",
+  role: "all",
+  appRole: "all",
+  active: "all",
+  page: 1,
+  limit: 10,
+};
+
 export async function initUsersPage() {
   const container = document.getElementById("users-list");
 
@@ -20,13 +29,17 @@ export async function initUsersPage() {
 
   try {
     allRoles = await getRoles();
+    renderRoleFilterOptions();
     await loadUsers();
   } catch (err) {
     console.error(err);
 
     showError(err.message || "Failed to load users");
   }
+
   wireSearch();
+  wireFilterInputs();
+  wireRefreshUsers();
   wireCreateUserButton();
   wireCreateUserForm();
   wireCreateUserModal();
@@ -163,8 +176,9 @@ function wireCreateUserForm() {
 
 async function loadUsers() {
   allUsers = await getUsers();
+  userState.page = 1;
 
-  renderUsers(allUsers);
+  renderCurrentPage();
 }
 
 function renderUsers(users) {
@@ -291,6 +305,132 @@ function wireEditButtons() {
   });
 }
 
+function renderRoleFilterOptions() {
+  const roleSelect = document.getElementById("user-role-filter");
+
+  if (!roleSelect) {
+    return;
+  }
+
+  roleSelect.innerHTML = `
+    <option value="all">All</option>
+    ${allRoles
+      .map((role) => `<option value="${role.name}">${role.name}</option>`)
+      .join("")}
+  `;
+}
+
+function getFilteredUsers() {
+  return allUsers.filter((user) => {
+    const searchTerm = userState.search;
+    const email = user.email.toLowerCase();
+    const role = user.role.toLowerCase();
+    const jobRoles = user.job_roles
+      .map((r) => r.name)
+      .join(" ")
+      .toLowerCase();
+
+    const matchesSearch =
+      !searchTerm ||
+      email.includes(searchTerm) ||
+      role.includes(searchTerm) ||
+      jobRoles.includes(searchTerm);
+
+    const matchesRole =
+      userState.role === "all" ||
+      user.job_roles.some((jobRole) => jobRole.name === userState.role);
+
+    const matchesAppRole =
+      userState.appRole === "all" || user.role === userState.appRole;
+
+    const matchesActive =
+      userState.active === "all" ||
+      (userState.active === "active" && user.active) ||
+      (userState.active === "disabled" && !user.active);
+
+    return matchesSearch && matchesRole && matchesAppRole && matchesActive;
+  });
+}
+
+function getPaginatedUsers(filteredUsers) {
+  const total = filteredUsers.length;
+  const pageCount = Math.max(1, Math.ceil(total / userState.limit));
+  const page = Math.min(Math.max(1, userState.page), pageCount);
+  const offset = (page - 1) * userState.limit;
+
+  return {
+    rows: filteredUsers.slice(offset, offset + userState.limit),
+    meta: {
+      total,
+      limit: userState.limit,
+      page,
+      pageCount,
+    },
+  };
+}
+
+function renderCurrentPage() {
+  const filteredUsers = getFilteredUsers();
+  const { rows, meta } = getPaginatedUsers(filteredUsers);
+
+  renderUsers(rows);
+  renderPagination(meta);
+}
+
+function renderPagination(meta = {}) {
+  const container = document.getElementById("user-pagination");
+
+  if (!container) {
+    return;
+  }
+
+  if (!meta || meta.total === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const currentPage = meta.page || 1;
+  const pageCount = meta.pageCount || 1;
+
+  container.innerHTML = `
+    <div class="pagination">
+      <button id="user-page-prev" class="btn btn-secondary" ${
+        currentPage <= 1 ? "disabled" : ""
+      }>
+        Previous
+      </button>
+
+      <span class="pagination__summary">
+        Page ${currentPage} of ${pageCount} • ${meta.total} users
+      </span>
+
+      <button id="user-page-next" class="btn btn-secondary" ${
+        currentPage >= pageCount ? "disabled" : ""
+      }>
+        Next
+      </button>
+    </div>
+  `;
+
+  document.getElementById("user-page-prev")?.addEventListener("click", () => {
+    if (userState.page <= 1) {
+      return;
+    }
+
+    userState.page -= 1;
+    renderCurrentPage();
+  });
+
+  document.getElementById("user-page-next")?.addEventListener("click", () => {
+    if (userState.page >= pageCount) {
+      return;
+    }
+
+    userState.page += 1;
+    renderCurrentPage();
+  });
+}
+
 function wireDisableButtons() {
   document.querySelectorAll(".btn-disable-user").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -393,25 +533,44 @@ function wireSearch() {
   }
 
   searchInput.addEventListener("input", () => {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-
-    const filteredUsers = allUsers.filter((user) => {
-      const email = user.email.toLowerCase();
-
-      const role = user.role.toLowerCase();
-
-      const jobRoles = user.job_roles
-        .map((r) => r.name)
-        .join(" ")
-        .toLowerCase();
-
-      return (
-        email.includes(searchTerm) ||
-        role.includes(searchTerm) ||
-        jobRoles.includes(searchTerm)
-      );
-    });
-
-    renderUsers(filteredUsers);
+    userState.search = searchInput.value.toLowerCase().trim();
+    userState.page = 1;
+    renderCurrentPage();
   });
+}
+
+function wireFilterInputs() {
+  const roleSelect = document.getElementById("user-role-filter");
+  const appRoleSelect = document.getElementById("user-app-role-filter");
+  const statusSelect = document.getElementById("user-status-filter");
+
+  if (!roleSelect || !appRoleSelect || !statusSelect) {
+    return;
+  }
+
+  roleSelect.addEventListener("change", () => {
+    userState.role = roleSelect.value;
+    userState.page = 1;
+    renderCurrentPage();
+  });
+
+  appRoleSelect.addEventListener("change", () => {
+    userState.appRole = appRoleSelect.value;
+    userState.page = 1;
+    renderCurrentPage();
+  });
+
+  statusSelect.addEventListener("change", () => {
+    userState.active = statusSelect.value;
+    userState.page = 1;
+    renderCurrentPage();
+  });
+}
+
+function wireRefreshUsers() {
+  document
+    .getElementById("btn-refresh-users")
+    ?.addEventListener("click", async () => {
+      await loadUsers();
+    });
 }

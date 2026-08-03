@@ -19,8 +19,37 @@
             <input
               id="user-search"
               type="search"
-              placeholder="Search by email"
+              placeholder="Search by email, role, or job role"
             />
+          </label>
+
+          <label class="dashboard-filter">
+            <span>Operational Role</span>
+
+            <select id="user-role-filter">
+              <option value="all">All</option>
+            </select>
+          </label>
+
+          <label class="dashboard-filter">
+            <span>Application Role</span>
+
+            <select id="user-app-role-filter">
+              <option value="all">All</option>
+              <option value="admin">Admin</option>
+              <option value="editor">Editor</option>
+              <option value="user">User</option>
+            </select>
+          </label>
+
+          <label class="dashboard-filter">
+            <span>Status</span>
+
+            <select id="user-status-filter">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="disabled">Disabled</option>
+            </select>
           </label>
         </div>
 
@@ -40,6 +69,8 @@
       <div id="users-list">
         <p>Loading users...</p>
       </div>
+
+      <div id="user-pagination"></div>
 
       <div id="user-role-modal" class="hidden"></div>
     </main>

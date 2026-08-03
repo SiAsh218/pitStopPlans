@@ -1,5 +1,9 @@
 .create-incident {
   max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
 }
 
 .create-incident h1 {
@@ -7,6 +11,8 @@
 }
 
 #create-incident-form {
+  width: 100%;
+  max-width: 680px;
   background: white;
   padding: 2rem;
   border-radius: 12px;

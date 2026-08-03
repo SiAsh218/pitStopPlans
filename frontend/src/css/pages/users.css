@@ -7,3 +7,11 @@
   background: #fee2e2;
   color: #991b1b;
 }
+
+.dashboard-filter select {
+  min-width: 150px;
+}
+
+#user-pagination {
+  margin-top: 1.5rem;
+}
