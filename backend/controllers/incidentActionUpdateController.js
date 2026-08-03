@@ -1,10 +1,25 @@
 const AppError = require("../utils/AppError");
-
 const incidentActionUpdateService = require("../services/incidentActionUpdateService");
 
+/**
+ * Handles incident action update HTTP requests.
+ */
 class IncidentActionUpdateController {
-  _sendJSON(res, status, payload) {
-    res.writeHead(status, {
+  constructor() {
+    this.getByAction = this.getByAction.bind(this);
+    this.create = this.create.bind(this);
+  }
+
+  /**
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} payload
+   * @returns {void}
+   */
+  _sendJSON(res, statusCode, payload) {
+    res.writeHead(statusCode, {
       "Content-Type": "application/json",
     });
 
@@ -12,9 +27,11 @@ class IncidentActionUpdateController {
   }
 
   /**
-   * ============================================================
-   * Get Updates For Action
-   * ============================================================
+   * Retrieves updates for an incident action.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   getByAction(req, res) {
     const result = incidentActionUpdateService.getUpdates(
@@ -30,9 +47,12 @@ class IncidentActionUpdateController {
   }
 
   /**
-   * ============================================================
-   * Add Comment
-   * ============================================================
+   * Creates a new comment/update.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   * @throws {AppError} When note is missing.
    */
   create(req, res) {
     const note = req.body.note;

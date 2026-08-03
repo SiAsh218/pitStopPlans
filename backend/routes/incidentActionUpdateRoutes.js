@@ -5,7 +5,7 @@ const controller = require("../controllers/incidentActionUpdateController");
 
 module.exports = [
   /**
-   * Get updates for action
+   * Get updates for an action.
    */
   {
     method: "GET",
@@ -13,20 +13,16 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      controller.getByAction.bind(controller),
+      controller.getByAction,
     ],
   },
 
   /**
-   * Add comment/update
+   * Add comment/update.
    */
   {
     method: "POST",
     path: "/api/incident_actions/:id/updates",
-    handler: [
-      auth,
-      requireRole("admin", "editor", "user"),
-      controller.create.bind(controller),
-    ],
+    handler: [auth, requireRole("admin", "editor", "user"), controller.create],
   },
 ];

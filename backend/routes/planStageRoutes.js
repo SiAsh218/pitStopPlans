@@ -10,7 +10,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planStageController.getByTemplate.bind(planStageController),
+      planStageController.getByTemplate,
     ],
   },
 
@@ -20,37 +20,25 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planStageController.getById.bind(planStageController),
+      planStageController.getById,
     ],
   },
 
   {
     method: "POST",
     path: "/api/plan_stages",
-    handler: [
-      auth,
-      requireRole("admin", "editor"),
-      planStageController.create.bind(planStageController),
-    ],
+    handler: [auth, requireRole("admin", "editor"), planStageController.create],
   },
 
   {
     method: "PUT",
     path: "/api/plan_stages/:id",
-    handler: [
-      auth,
-      requireRole("admin", "editor"),
-      planStageController.update.bind(planStageController),
-    ],
+    handler: [auth, requireRole("admin", "editor"), planStageController.update],
   },
 
   {
     method: "DELETE",
     path: "/api/plan_stages/:id",
-    handler: [
-      auth,
-      requireRole("admin"),
-      planStageController.delete.bind(planStageController),
-    ],
+    handler: [auth, requireRole("admin"), planStageController.delete],
   },
 ];

@@ -1,32 +1,32 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
-const authController = require("../controllers/authController.js");
+const auth = require("../middleware/auth");
+const requireRole = require("../middleware/role");
+const authController = require("../controllers/authController");
 
 module.exports = [
   /**
-   * Register new user
+   * Register a new user.
    */
   {
     method: "POST",
     path: "/api/auth/register",
-    handler: [
-      auth,
-      requireRole("admin"),
-      authController.register.bind(authController),
-    ],
+    handler: [auth, requireRole("admin"), authController.register],
   },
 
   /**
-   * Login user and return JWT
+   * Login and receive a JWT.
    */
   {
     method: "POST",
     path: "/api/auth/login",
-    handler: authController.login.bind(authController),
+    handler: authController.login,
   },
+
+  /**
+   * Validate current JWT.
+   */
   {
     method: "GET",
     path: "/api/auth/validate",
-    handler: [auth, authController.validate.bind(authController)],
+    handler: [auth, authController.validate],
   },
 ];

@@ -1,10 +1,29 @@
 const AppError = require("../utils/AppError");
-
 const incidentActionService = require("../services/incidentActionService");
 
+/**
+ * Handles incident action HTTP requests.
+ */
 class IncidentActionController {
-  _sendJSON(res, status, payload) {
-    res.writeHead(status, {
+  constructor() {
+    this.getByIncident = this.getByIncident.bind(this);
+    this.getById = this.getById.bind(this);
+    this.start = this.start.bind(this);
+    this.complete = this.complete.bind(this);
+    this.reopen = this.reopen.bind(this);
+    this.assign = this.assign.bind(this);
+  }
+
+  /**
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} payload
+   * @returns {void}
+   */
+  _sendJSON(res, statusCode, payload) {
+    res.writeHead(statusCode, {
       "Content-Type": "application/json",
     });
 
@@ -12,9 +31,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Get Actions For Incident
-   * ============================================================
+   * Gets actions for an incident.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   getByIncident(req, res) {
     const result = incidentActionService.getByIncident(
@@ -30,9 +51,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Get Action By ID
-   * ============================================================
+   * Gets a single incident action.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   getById(req, res) {
     const action = incidentActionService.getById(Number(req.params.id));
@@ -48,9 +71,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Start Action
-   * ============================================================
+   * Starts an action.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   start(req, res) {
     this._sendJSON(res, 200, {
@@ -60,9 +85,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Complete Action
-   * ============================================================
+   * Completes an action.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   complete(req, res) {
     this._sendJSON(res, 200, {
@@ -75,9 +102,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Reopen Action
-   * ============================================================
+   * Reopens an action.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   reopen(req, res) {
     this._sendJSON(res, 200, {
@@ -87,9 +116,11 @@ class IncidentActionController {
   }
 
   /**
-   * ============================================================
-   * Assign Action
-   * ============================================================
+   * Assigns an action to a user.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
    */
   assign(req, res) {
     const userId = Number(req.body.user_id);

@@ -1,15 +1,11 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
-const auditLogController = require("../controllers/auditLogController.js");
+const auth = require("../middleware/auth");
+const requireRole = require("../middleware/role");
+const auditLogController = require("../controllers/auditLogController");
 
 module.exports = [
   {
     method: "GET",
     path: "/api/audit-logs",
-    handler: [
-      auth,
-      requireRole("admin"),
-      auditLogController.getAll.bind(auditLogController),
-    ],
+    handler: [auth, requireRole("admin"), auditLogController.getAll],
   },
 ];

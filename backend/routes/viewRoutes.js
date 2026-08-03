@@ -1,51 +1,49 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
-const viewController = require("../controllers/viewController.js");
+const viewController = require("../controllers/viewController");
 
 module.exports = [
   {
     method: "GET",
     path: "/",
-    handler: viewController.home.bind(viewController),
+    handler: viewController.home,
   },
   {
     method: "GET",
     path: "/login",
-    handler: viewController.login.bind(viewController),
+    handler: viewController.login,
   },
   {
     method: "GET",
     path: "/templates",
-    handler: viewController.createPlanTemplate.bind(viewController),
+    handler: viewController.createPlanTemplate,
   },
   {
     method: "GET",
     path: "/create-incident",
-    handler: viewController.createIncident.bind(viewController),
+    handler: viewController.createIncident,
   },
   {
     method: "GET",
     path: "/incidents/:id",
-    handler: viewController.incident.bind(viewController),
+    handler: viewController.incident,
   },
   {
     method: "GET",
     path: "/templates/:id",
-    handler: viewController.planTemplate.bind(viewController),
+    handler: viewController.planTemplate,
   },
   {
     method: "GET",
     path: "/users",
-    handler: viewController.users.bind(viewController),
+    handler: viewController.users,
   },
   {
     method: "GET",
     path: "/roles",
-    handler: viewController.roles.bind(viewController),
+    handler: viewController.roles,
   },
   {
     method: "GET",
     path: "/audit-log",
-    handler: viewController.auditLog.bind(viewController),
+    handler: viewController.auditLog,
   },
 ];

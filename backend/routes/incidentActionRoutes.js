@@ -13,7 +13,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      controller.getByIncident.bind(controller),
+      controller.getByIncident,
     ],
   },
 
@@ -23,11 +23,7 @@ module.exports = [
   {
     method: "GET",
     path: "/api/incident_actions/:id",
-    handler: [
-      auth,
-      requireRole("admin", "editor", "user"),
-      controller.getById.bind(controller),
-    ],
+    handler: [auth, requireRole("admin", "editor", "user"), controller.getById],
   },
 
   /**
@@ -36,11 +32,7 @@ module.exports = [
   {
     method: "POST",
     path: "/api/incident_actions/:id/start",
-    handler: [
-      auth,
-      requireRole("admin", "editor", "user"),
-      controller.start.bind(controller),
-    ],
+    handler: [auth, requireRole("admin", "editor", "user"), controller.start],
   },
 
   /**
@@ -52,7 +44,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      controller.complete.bind(controller),
+      controller.complete,
     ],
   },
   /**
@@ -61,11 +53,7 @@ module.exports = [
   {
     method: "POST",
     path: "/api/incident_actions/:id/reopen",
-    handler: [
-      auth,
-      requireRole("admin", "editor", "user"),
-      controller.reopen.bind(controller),
-    ],
+    handler: [auth, requireRole("admin", "editor", "user"), controller.reopen],
   },
 
   /**
@@ -74,10 +62,6 @@ module.exports = [
   {
     method: "POST",
     path: "/api/incident_actions/:id/assign",
-    handler: [
-      auth,
-      requireRole("admin", "editor"),
-      controller.assign.bind(controller),
-    ],
+    handler: [auth, requireRole("admin", "editor"), controller.assign],
   },
 ];

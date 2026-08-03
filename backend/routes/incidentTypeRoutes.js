@@ -1,70 +1,51 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
-const incidentTypeController = require("../controllers/incidentTypeController.js");
+const auth = require("../middleware/auth");
+const requireRole = require("../middleware/role");
+const incidentTypeController = require("../controllers/incidentTypeController");
 
 module.exports = [
-  /**
-   * Get all incident types
-   */
   {
     method: "GET",
     path: "/api/incident-types",
     handler: [
-      auth, // Authenticates JWT
+      auth,
       requireRole("admin", "editor", "user"),
-      incidentTypeController.getAll.bind(incidentTypeController),
+      incidentTypeController.getAll,
     ],
   },
 
-  /**
-   * Get incident type by id
-   */
   {
     method: "GET",
     path: "/api/incident_types/:id",
     handler: [
-      auth, // Authenticates JWT
+      auth,
       requireRole("admin", "editor", "user"),
-      incidentTypeController.getById.bind(incidentTypeController),
+      incidentTypeController.getById,
     ],
   },
 
-  /**
-   * Create new incident types
-   */
   {
     method: "POST",
     path: "/api/incident_types",
     handler: [
-      auth, // Authenticates JWT
+      auth,
       requireRole("admin", "editor"),
-      incidentTypeController.create.bind(incidentTypeController),
+      incidentTypeController.create,
     ],
   },
 
-  /**
-   * Update incident type
-   */
   {
     method: "PUT",
     path: "/api/incident_types/:id",
     handler: [
-      auth, // Authenticates JWT
+      auth,
       requireRole("admin", "editor"),
-      incidentTypeController.update.bind(incidentTypeController),
+      incidentTypeController.update,
     ],
   },
 
-  /**
-   * Delete incident type
-   */
   {
     method: "DELETE",
     path: "/api/incident_types/:id",
-    handler: [
-      auth, // Authenticates JWT
-      requireRole("admin"),
-      incidentTypeController.delete.bind(incidentTypeController),
-    ],
+    handler: [auth, requireRole("admin"), incidentTypeController.delete],
   },
 ];

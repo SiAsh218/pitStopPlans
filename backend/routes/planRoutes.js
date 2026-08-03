@@ -1,10 +1,10 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
-const planController = require("../controllers/planController.js");
+const auth = require("../middleware/auth");
+const requireRole = require("../middleware/role");
+const planController = require("../controllers/planController");
 
 module.exports = [
   /**
-   * Get all plans
+   * Get all plans.
    */
   {
     method: "GET",
@@ -12,12 +12,12 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planController.getAll.bind(planController),
+      planController.getAll,
     ],
   },
 
   /**
-   * Get full plan by template ID
+   * Get plan by ID.
    */
   {
     method: "GET",
@@ -25,19 +25,16 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planController.getById.bind(planController),
+      planController.getById,
     ],
   },
+
   /**
-   * Create full plan by template ID
+   * Create a plan.
    */
   {
     method: "POST",
     path: "/api/plans",
-    handler: [
-      auth,
-      requireRole("admin", "editor"),
-      planController.create.bind(planController),
-    ],
+    handler: [auth, requireRole("admin", "editor"), planController.create],
   },
 ];

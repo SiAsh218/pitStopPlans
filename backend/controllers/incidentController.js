@@ -1,10 +1,27 @@
 const incidentService = require("../services/incidentService");
-
 const AppError = require("../utils/AppError");
 
+/**
+ * Handles incident HTTP requests and converts
+ * service results into API responses.
+ */
 class IncidentController {
+  constructor() {
+    // Bind methods once so route definitions don't need .bind(...)
+    this.getAll = this.getAll.bind(this);
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.close = this.close.bind(this);
+    this.dashboard = this.dashboard.bind(this);
+  }
+
   /**
-   * Send JSON response
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @param {number} statusCode - HTTP status code.
+   * @param {object} payload - Response payload.
+   * @returns {void}
    */
   _sendJSON(res, statusCode, payload) {
     res.writeHead(statusCode, {
@@ -15,7 +32,11 @@ class IncidentController {
   }
 
   /**
-   * Get all incidents
+   * Get all incidents.
+   *
+   * @param {object} req - HTTP request.
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @returns {void}
    */
   getAll(req, res) {
     const result = incidentService.getAllIncidents(req.query);
@@ -28,7 +49,12 @@ class IncidentController {
   }
 
   /**
-   * Get incident by id
+   * Get an incident by identifier.
+   *
+   * @param {object} req - HTTP request.
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @returns {void}
+   * @throws {AppError} When the incident cannot be found.
    */
   getById(req, res) {
     const id = Number(req.params.id);
@@ -46,7 +72,11 @@ class IncidentController {
   }
 
   /**
-   * Create incident
+   * Create a new incident.
+   *
+   * @param {object} req - HTTP request.
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @returns {void}
    */
   create(req, res) {
     const incident = incidentService.createIncident(req.body, req.user.id);
@@ -57,6 +87,13 @@ class IncidentController {
     });
   }
 
+  /**
+   * Close an incident.
+   *
+   * @param {object} req - HTTP request.
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @returns {void}
+   */
   close(req, res) {
     const incident = incidentService.closeIncident(
       Number(req.params.id),
@@ -69,6 +106,14 @@ class IncidentController {
     });
   }
 
+  /**
+   * Get dashboard data for an incident.
+   *
+   * @param {object} req - HTTP request.
+   * @param {import("http").ServerResponse} res - HTTP response.
+   * @returns {void}
+   * @throws {AppError} When the incident cannot be found.
+   */
   dashboard(req, res) {
     const data = incidentService.getIncidentDashboard(Number(req.params.id));
 

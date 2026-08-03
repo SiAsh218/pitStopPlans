@@ -1,8 +1,26 @@
-const planStageService = require("../services/planStageService.js");
+const planStageService = require("../services/planStageService");
+const AppError = require("../utils/AppError");
 
-const AppError = require("../utils/AppError.js");
-
+/**
+ * Handles plan stage HTTP requests.
+ */
 class PlanStageController {
+  constructor() {
+    this.getByTemplate = this.getByTemplate.bind(this);
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
+  }
+
+  /**
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} payload
+   * @returns {void}
+   */
   _sendJSON(res, statusCode, payload) {
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
@@ -11,6 +29,13 @@ class PlanStageController {
     res.end(JSON.stringify(payload));
   }
 
+  /**
+   * Gets stages for a template.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
   getByTemplate(req, res) {
     const templateId = Number(req.params.templateId);
 
@@ -23,6 +48,13 @@ class PlanStageController {
     });
   }
 
+  /**
+   * Gets a stage by ID.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
   getById(req, res) {
     const id = Number(req.params.id);
 
@@ -38,6 +70,13 @@ class PlanStageController {
     });
   }
 
+  /**
+   * Creates a stage.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
   create(req, res) {
     const stage = planStageService.createStage(req.body);
 
@@ -47,6 +86,13 @@ class PlanStageController {
     });
   }
 
+  /**
+   * Updates a stage.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
   update(req, res) {
     const id = Number(req.params.id);
 
@@ -62,6 +108,13 @@ class PlanStageController {
     });
   }
 
+  /**
+   * Deletes a stage.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
   delete(req, res) {
     const id = Number(req.params.id);
 

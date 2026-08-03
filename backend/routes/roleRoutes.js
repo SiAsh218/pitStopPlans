@@ -1,5 +1,4 @@
 const auth = require("../middleware/auth");
-
 const requireRole = require("../middleware/role");
 
 const roleController = require("../controllers/roleController");
@@ -11,7 +10,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      roleController.getAll.bind(roleController),
+      roleController.getAll,
     ],
   },
 
@@ -21,36 +20,25 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      roleController.getById.bind(roleController),
+      roleController.getById,
     ],
   },
 
   {
     method: "POST",
     path: "/api/roles",
-    handler: [
-      auth,
-      requireRole("admin"),
-      roleController.create.bind(roleController),
-    ],
+    handler: [auth, requireRole("admin"), roleController.create],
   },
 
   {
     method: "DELETE",
     path: "/api/roles/:id",
-    handler: [
-      auth,
-      requireRole("admin"),
-      roleController.delete.bind(roleController),
-    ],
+    handler: [auth, requireRole("admin"), roleController.delete],
   },
+
   {
     method: "PUT",
     path: "/api/roles/:id",
-    handler: [
-      auth,
-      requireRole("admin"),
-      roleController.update.bind(roleController),
-    ],
+    handler: [auth, requireRole("admin"), roleController.update],
   },
 ];

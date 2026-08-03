@@ -1,10 +1,33 @@
-const planTemplateService = require("../services/planTemplateService.js");
-
-const incidentTypeService = require("../services/incidentTypeService.js");
-
+const planTemplateService = require("../services/planTemplateService");
+const incidentTypeService = require("../services/incidentTypeService");
 const AppError = require("../utils/AppError");
 
+/**
+ * Handles plan template HTTP requests.
+ */
 class PlanTemplateController {
+  constructor() {
+    this.getAll = this.getAll.bind(this);
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.removeDraft = this.removeDraft.bind(this);
+    this.approve = this.approve.bind(this);
+    this.clone = this.clone.bind(this);
+    this.retire = this.retire.bind(this);
+    this.getCurrent = this.getCurrent.bind(this);
+    this.getSummary = this.getSummary.bind(this);
+    this.getHistory = this.getHistory.bind(this);
+  }
+
+  /**
+   * Sends a JSON response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} payload
+   * @returns {void}
+   */
   _sendJSON(res, statusCode, payload) {
     res.writeHead(statusCode, {
       "Content-Type": "application/json",
@@ -14,9 +37,23 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Get All Templates
-   * ============================================================
+   * Validates and returns an ID value.
+   *
+   * @param {string} value
+   * @returns {number}
+   */
+  _getId(value) {
+    const id = Number(value);
+
+    if (!id) {
+      throw new AppError("Invalid ID", 400);
+    }
+
+    return id;
+  }
+
+  /**
+   * Get all templates.
    */
   getAll(req, res) {
     const result = planTemplateService.getAllPlanTemplates(req.query);
@@ -29,16 +66,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Get Template By ID
-   * ============================================================
+   * Get template by ID.
    */
   getById(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const template = planTemplateService.getPlanTemplateById(id);
 
@@ -53,9 +84,7 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Create Template
-   * ============================================================
+   * Create template.
    */
   create(req, res) {
     const { incident_type_id, incidentType, title } = req.body;
@@ -104,16 +133,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Update Draft Template
-   * ============================================================
+   * Update template.
    */
   update(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const template = planTemplateService.updatePlanTemplate(
       id,
@@ -132,16 +155,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Remove Draft Template
-   * ============================================================
+   * Remove draft template.
    */
   removeDraft(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const result = planTemplateService.removeDraftTemplate(id, req.user.id);
 
@@ -153,16 +170,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Approve Template
-   * ============================================================
+   * Approve template.
    */
   approve(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const template = planTemplateService.approveTemplate(id, req.user.id);
 
@@ -173,16 +184,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Clone Template
-   * ============================================================
+   * Clone template.
    */
   clone(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const template = planTemplateService.cloneTemplate(id, req.user.id);
 
@@ -193,16 +198,10 @@ class PlanTemplateController {
   }
 
   /**
-   * ============================================================
-   * Retire Template
-   * ============================================================
+   * Retire template.
    */
   retire(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const retired = planTemplateService.retireTemplate(id, req.user.id);
 
@@ -216,6 +215,9 @@ class PlanTemplateController {
     });
   }
 
+  /**
+   * Get current templates.
+   */
   getCurrent(req, res) {
     const templates = planTemplateService.getCurrentPlanTemplates();
 
@@ -225,6 +227,9 @@ class PlanTemplateController {
     });
   }
 
+  /**
+   * Get template summary.
+   */
   getSummary(req, res) {
     const templates = planTemplateService.getTemplateSummary();
 
@@ -234,12 +239,11 @@ class PlanTemplateController {
     });
   }
 
+  /**
+   * Get template history.
+   */
   getHistory(req, res) {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      throw new AppError("Invalid ID", 400);
-    }
+    const id = this._getId(req.params.id);
 
     const history = planTemplateService.getTemplateHistory(id);
 

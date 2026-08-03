@@ -36,11 +36,9 @@ const AppError = require("./utils/AppError");
 
 const logger = require("./middleware/logger");
 const requireJSON = require("./middleware/requireJSON");
-// const validateTrain = require("./middleware/validateTrain");
 
 router.use(logger);
 router.use(requireJSON);
-// router.use(validateTrain);
 
 // =========================
 // Database Initialisation

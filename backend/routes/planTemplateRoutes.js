@@ -1,32 +1,23 @@
-const auth = require("../middleware/auth.js");
-const requireRole = require("../middleware/role.js");
+const auth = require("../middleware/auth");
+const requireRole = require("../middleware/role");
 
-const planTemplateController = require("../controllers/planTemplateController.js");
+const planTemplateController = require("../controllers/planTemplateController");
 
 module.exports = [
-  /**
-   * ============================================================
-   * Get All Templates
-   * ============================================================
-   */
   {
     method: "GET",
     path: "/api/plan_templates",
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planTemplateController.getAll.bind(planTemplateController),
+      planTemplateController.getAll,
     ],
   },
 
   {
     method: "GET",
     path: "/api/plan_templates/current",
-    handler: [
-      auth,
-      requireRole("admin"),
-      planTemplateController.getCurrent.bind(planTemplateController),
-    ],
+    handler: [auth, requireRole("admin"), planTemplateController.getCurrent],
   },
 
   {
@@ -35,52 +26,37 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planTemplateController.getSummary.bind(planTemplateController),
+      planTemplateController.getSummary,
     ],
   },
 
-  /**
-   * ============================================================
-   * Get Template By ID
-   * ============================================================
-   */
   {
     method: "GET",
     path: "/api/plan_templates/:id",
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planTemplateController.getById.bind(planTemplateController),
+      planTemplateController.getById,
     ],
   },
 
-  /**
-   * ============================================================
-   * Create Template
-   * ============================================================
-   */
   {
     method: "POST",
     path: "/api/plan_templates",
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planTemplateController.create.bind(planTemplateController),
+      planTemplateController.create,
     ],
   },
 
-  /**
-   * ============================================================
-   * Update Draft Template
-   * ============================================================
-   */
   {
     method: "PUT",
     path: "/api/plan_templates/:id",
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planTemplateController.update.bind(planTemplateController),
+      planTemplateController.update,
     ],
   },
 
@@ -90,66 +66,39 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planTemplateController.removeDraft.bind(planTemplateController),
+      planTemplateController.removeDraft,
     ],
   },
 
-  /**
-   * ============================================================
-   * Approve Template
-   * ============================================================
-   */
   {
     method: "POST",
     path: "/api/plan_templates/:id/approve",
-    handler: [
-      auth,
-      requireRole("admin"),
-      planTemplateController.approve.bind(planTemplateController),
-    ],
+    handler: [auth, requireRole("admin"), planTemplateController.approve],
   },
 
-  /**
-   * ============================================================
-   * Clone Template
-   * ============================================================
-   */
   {
     method: "POST",
     path: "/api/plan_templates/:id/clone",
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planTemplateController.clone.bind(planTemplateController),
+      planTemplateController.clone,
     ],
   },
 
-  /**
-   * ============================================================
-   * Retire Template
-   * ============================================================
-   */
   {
     method: "POST",
     path: "/api/plan_templates/:id/retire",
-    handler: [
-      auth,
-      requireRole("admin"),
-      planTemplateController.retire.bind(planTemplateController),
-    ],
+    handler: [auth, requireRole("admin"), planTemplateController.retire],
   },
-  /**
-   * ============================================================
-   * History
-   * ============================================================
-   */
+
   {
     method: "GET",
     path: "/api/plan_templates/:id/history",
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planTemplateController.getHistory.bind(planTemplateController),
+      planTemplateController.getHistory,
     ],
   },
 ];

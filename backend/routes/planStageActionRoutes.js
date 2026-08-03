@@ -1,5 +1,4 @@
 const auth = require("../middleware/auth");
-
 const requireRole = require("../middleware/role");
 
 const planStageActionController = require("../controllers/planStageActionController");
@@ -11,7 +10,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planStageActionController.getByStage.bind(planStageActionController),
+      planStageActionController.getByStage,
     ],
   },
 
@@ -21,7 +20,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      planStageActionController.getById.bind(planStageActionController),
+      planStageActionController.getById,
     ],
   },
 
@@ -31,7 +30,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planStageActionController.create.bind(planStageActionController),
+      planStageActionController.create,
     ],
   },
 
@@ -41,17 +40,13 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
-      planStageActionController.update.bind(planStageActionController),
+      planStageActionController.update,
     ],
   },
 
   {
     method: "DELETE",
     path: "/api/plan_stage_actions/:id",
-    handler: [
-      auth,
-      requireRole("admin"),
-      planStageActionController.delete.bind(planStageActionController),
-    ],
+    handler: [auth, requireRole("admin"), planStageActionController.delete],
   },
 ];

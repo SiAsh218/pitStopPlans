@@ -291,33 +291,28 @@ function renderActionPanel(action, updates = []) {
 
   if (action.status === "pending") {
     buttons = `
-      <div class="action-panel__buttons">
-        <button
-          class="btn btn-primary"
-          id="btn-start-action"
-        >
-          Start Action
-        </button>
-      </div>
+      <button
+        class="btn btn-primary"
+        id="btn-start-action"
+      >
+        Start Action
+      </button>
     `;
   }
 
   if (action.status === "in_progress") {
     buttons = `
-      <div class="action-panel__buttons">
-        <button
-          class="btn btn-primary"
-          id="btn-complete-action"
-        >
-          Complete Action
-        </button>
-      </div>
+      <button
+        class="btn btn-primary"
+        id="btn-complete-action"
+      >
+        Complete Action
+      </button>
     `;
   }
 
   if (action.status === "completed") {
     buttons = `
-    <div class="action-panel__buttons">
       <p>
         ✅ Action Completed
       </p>
@@ -328,8 +323,7 @@ function renderActionPanel(action, updates = []) {
       >
         Reopen Action
       </button>
-    </div>
-  `;
+    `;
   }
 
   const updatesHtml =

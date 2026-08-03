@@ -7,74 +7,42 @@ module.exports = [
   {
     method: "GET",
     path: "/api/users",
-
-    handler: [
-      auth,
-      requireRole("admin"),
-
-      userController.getAll.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.getAll],
   },
 
   {
     method: "GET",
     path: "/api/users/:id",
-
-    handler: [
-      auth,
-      requireRole("admin"),
-
-      userController.getById.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.getById],
   },
+
   {
     method: "POST",
     path: "/api/users",
-    handler: [
-      auth,
-      requireRole("admin"),
-      userController.create.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.create],
   },
 
   {
     method: "PUT",
     path: "/api/users/:id",
-    handler: [
-      auth,
-      requireRole("admin"),
-      userController.update.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.update],
   },
 
   {
     method: "PUT",
     path: "/api/users/:id/disable",
-    handler: [
-      auth,
-      requireRole("admin"),
-      userController.disable.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.disable],
   },
 
   {
     method: "PUT",
     path: "/api/users/:id/enable",
-    handler: [
-      auth,
-      requireRole("admin"),
-      userController.enable.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.enable],
   },
 
   {
     method: "PUT",
     path: "/api/users/:id/roles",
-
-    handler: [
-      auth,
-      requireRole("admin"),
-      userController.updateRoles.bind(userController),
-    ],
+    handler: [auth, requireRole("admin"), userController.updateRoles],
   },
 ];

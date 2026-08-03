@@ -1,125 +1,27 @@
-/**
- * ============================================================
- * Auth Controller (Authentication API Layer)
- * ============================================================
- *
- * Purpose:
- * - Handles authentication-related HTTP requests
- * - Delegates authentication logic to AuthService
- * - Returns consistent JSON responses
- *
- * Responsibilities:
- * ✅ Handle user registration
- * ✅ Handle user login
- * ✅ Return JWT tokens and user data
- *
- * IMPORTANT:
- * - DOES NOT contain authentication logic itself
- * - Delegates all logic to authService
- *
- * Related Flow:
- *   Request → Controller → AuthService → Repository → DB
- *
- * ============================================================
- */
-
 const authService = require("../services/authService");
 
+/**
+ * Handles authentication-related HTTP requests.
+ */
 class AuthController {
-  /**
-   * ============================================================
-   * POST /api/auth/register
-   * ============================================================
-   *
-   * Registers a new user
-   *
-   * Expected body:
-   * {
-   *   email: string,
-   *   password: string
-   * }
-   *
-   * Flow:
-   * 1. Extract email + password from request
-   * 2. Call AuthService.register()
-   * 3. Return created user (without sensitive data)
-   */
-  register(req, res) {
-    const { email, password } = req.body;
-
-    /**
-     * Delegate registration logic to service
-     */
-    const user = authService.register(email, password);
-
-    /**
-     * Send response
-     */
-    this._send(res, 201, user);
+  constructor() {
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.validate = this.validate.bind(this);
   }
 
   /**
-   * ============================================================
-   * POST /api/auth/login
-   * ============================================================
+   * Sends a standard JSON response.
    *
-   * Logs a user in and returns a JWT token
-   *
-   * Expected body:
-   * {
-   *   email: string,
-   *   password: string
-   * }
-   *
-   * Response:
-   * {
-   *   token: string,
-   *   user: { id, email, role }
-   * }
+   * @param {import("http").ServerResponse} res
+   * @param {number} statusCode
+   * @param {object} data
+   * @returns {void}
    */
-  login(req, res) {
-    const { email, password } = req.body;
-
-    /**
-     * Delegate authentication logic to service
-     */
-    const result = authService.login(email, password);
-
-    /**
-     * Send response (includes JWT)
-     */
-    this._send(res, 200, result);
-  }
-
-  validate(req, res) {
-    res.writeHead(200, {
+  _send(res, statusCode, data) {
+    res.writeHead(statusCode, {
       "Content-Type": "application/json",
     });
-
-    res.end(
-      JSON.stringify({
-        success: true,
-        data: {
-          id: req.user.id,
-          role: req.user.role,
-        },
-      }),
-    );
-  }
-
-  /**
-   * ============================================================
-   * Helper: Send JSON Response
-   * ============================================================
-   *
-   * Ensures consistent API response format
-   *
-   * @param {ServerResponse} res
-   * @param {number} code - HTTP status code
-   * @param {object} data - Response payload
-   */
-  _send(res, code, data) {
-    res.writeHead(code, { "Content-Type": "application/json" });
 
     res.end(
       JSON.stringify({
@@ -127,6 +29,50 @@ class AuthController {
         data,
       }),
     );
+  }
+
+  /**
+   * Registers a new user.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
+  register(req, res) {
+    const { email, password } = req.body;
+
+    const user = authService.register(email, password);
+
+    this._send(res, 201, user);
+  }
+
+  /**
+   * Authenticates a user.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
+  login(req, res) {
+    const { email, password } = req.body;
+
+    const result = authService.login(email, password);
+
+    this._send(res, 200, result);
+  }
+
+  /**
+   * Validates the authenticated user token.
+   *
+   * @param {object} req
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
+  validate(req, res) {
+    this._send(res, 200, {
+      id: req.user.id,
+      role: req.user.role,
+    });
   }
 }
 

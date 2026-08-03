@@ -1,12 +1,11 @@
 const auth = require("../middleware/auth");
-
 const requireRole = require("../middleware/role");
 
 const userPreferenceController = require("../controllers/userPreferenceController");
 
 module.exports = [
   /**
-   * Get current user's preferences
+   * Get current user's preferences.
    */
   {
     method: "GET",
@@ -14,12 +13,12 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      userPreferenceController.getPreferences.bind(userPreferenceController),
+      userPreferenceController.getPreferences,
     ],
   },
 
   /**
-   * Save preferences
+   * Save current user's preferences.
    */
   {
     method: "PUT",
@@ -27,7 +26,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
-      userPreferenceController.savePreferences.bind(userPreferenceController),
+      userPreferenceController.savePreferences,
     ],
   },
 ];
