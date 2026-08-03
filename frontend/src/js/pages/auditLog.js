@@ -245,6 +245,7 @@ function formatAction(action) {
     APPROVE_TEMPLATE: "Approved Template",
     CLONE_TEMPLATE: "Cloned Template",
     RETIRE_TEMPLATE: "Retired Template",
+    DELETE_DRAFT_TEMPLATE: "Discarded Draft Template",
   };
 
   return labels[action] || action;
