@@ -24,6 +24,16 @@
   color: var(--color-text-secondary);
 }
 
+.header-nav-back-btn {
+  /* display: none; */
+  /* padding: 0.45rem 0.75rem; */
+  font-size: 0.9rem;
+}
+
+.header-nav-back-btn.is-visible {
+  display: inline-flex;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
