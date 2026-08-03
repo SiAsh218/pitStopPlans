@@ -23,6 +23,83 @@ class PlanStageRepository extends BaseRepository {
       .all(planTemplateId);
   }
 
+  findByTemplateIdWithQuery(planTemplateId, options = {}) {
+    const columns = this.getColumns();
+    const filters = { plan_template_id: planTemplateId };
+
+    if (options.filters && typeof options.filters === "object") {
+      Object.assign(filters, options.filters);
+    }
+
+    const reservedKeys = new Set([
+      "filters",
+      "search",
+      "q",
+      "sortBy",
+      "sort",
+      "order",
+      "limit",
+      "page",
+      "offset",
+    ]);
+
+    for (const [key, value] of Object.entries(options)) {
+      if (reservedKeys.has(key)) {
+        continue;
+      }
+
+      if (!columns.includes(key)) {
+        continue;
+      }
+
+      filters[key] = value;
+    }
+
+    const search = options.search ?? options.q;
+    const sortBy = (options.sortBy || options.sort || "").trim();
+    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset =
+      options.offset !== undefined
+        ? Math.max(0, Number(options.offset) || 0)
+        : (page - 1) * limit;
+
+    const where = this._buildWhereClause(filters, search, columns);
+    const orderClause =
+      sortBy && columns.includes(sortBy)
+        ? `ORDER BY ${sortBy} ${sortOrder}`
+        : "ORDER BY stage_number";
+
+    const sql = `
+      SELECT *
+      FROM plan_stages
+      ${where.clause}
+      ${orderClause}
+      LIMIT ?
+      OFFSET ?
+    `;
+
+    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
+
+    const countResult = this.db
+      .prepare(`SELECT COUNT(*) AS total FROM plan_stages ${where.clause}`)
+      .get(...where.params);
+
+    const total = countResult?.total || 0;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
+
   /**
    * ============================================================
    * Find stage by template + stage number

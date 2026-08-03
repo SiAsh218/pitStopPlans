@@ -14,8 +14,16 @@ class PlanStageActionService {
    * Get Actions By Stage
    * ============================================================
    */
-  getActionsByStage(stageId) {
-    return planStageActionRepository.findByStageIdWithRoles(stageId);
+  getActionsByStage(stageId, options = {}) {
+    const result = planStageActionRepository.findByStageIdWithRolesQuery(
+      stageId,
+      options,
+    );
+
+    return {
+      rows: result.rows,
+      meta: result.meta,
+    };
   }
 
   /**

@@ -11,11 +11,12 @@ class PlanController {
   }
 
   getAll(req, res) {
-    const plans = planService.getAllPlans();
+    const result = planService.getAllPlans(req.query);
 
     this._sendJSON(res, 200, {
       success: true,
-      data: plans,
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

@@ -17,9 +17,15 @@ class IncidentActionController {
    * ============================================================
    */
   getByIncident(req, res) {
+    const result = incidentActionService.getByIncident(
+      Number(req.params.incidentId),
+      req.query,
+    );
+
     this._sendJSON(res, 200, {
       success: true,
-      data: incidentActionService.getByIncident(Number(req.params.incidentId)),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

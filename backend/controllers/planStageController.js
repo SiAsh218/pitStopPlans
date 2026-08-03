@@ -14,11 +14,12 @@ class PlanStageController {
   getByTemplate(req, res) {
     const templateId = Number(req.params.templateId);
 
-    const stages = planStageService.getStagesByTemplate(templateId);
+    const result = planStageService.getStagesByTemplate(templateId, req.query);
 
     this._sendJSON(res, 200, {
       success: true,
-      data: stages,
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

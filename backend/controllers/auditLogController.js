@@ -10,9 +10,12 @@ class AuditLogController {
   }
 
   getAll(req, res) {
+    const result = auditLogService.getRecent(req.query);
+
     this._sendJSON(res, 200, {
       success: true,
-      data: auditLogService.getRecent(),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 }

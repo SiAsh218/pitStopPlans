@@ -14,9 +14,12 @@ class PlanStageActionController {
   getByStage(req, res) {
     const stageId = Number(req.params.stageId);
 
+    const result = planStageActionService.getActionsByStage(stageId, req.query);
+
     this._sendJSON(res, 200, {
       success: true,
-      data: planStageActionService.getActionsByStage(stageId),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

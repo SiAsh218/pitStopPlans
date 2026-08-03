@@ -63,20 +63,23 @@ class PlanService {
    * Get All Plans
    * ============================================================
    */
-  getAllPlans() {
-    const templates = planTemplateRepository.findAllWithIncidentType();
+  getAllPlans(options = {}) {
+    const result = planTemplateRepository.findAllWithQuery(options);
 
-    return templates.map((template) => {
-      const stages = planStageRepository.findByTemplateId(template.id);
+    return {
+      rows: result.rows.map((template) => {
+        const stages = planStageRepository.findByTemplateId(template.id);
 
-      for (const stage of stages) {
-        stage.actions = planStageActionRepository.findByStageIdWithRoles(
-          stage.id,
-        );
-      }
+        for (const stage of stages) {
+          stage.actions = planStageActionRepository.findByStageIdWithRoles(
+            stage.id,
+          );
+        }
 
-      return this._toDTO(template, stages);
-    });
+        return this._toDTO(template, stages);
+      }),
+      meta: result.meta,
+    };
   }
 
   createPlan(data) {

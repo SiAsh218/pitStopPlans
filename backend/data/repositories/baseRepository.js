@@ -51,6 +51,148 @@ class BaseRepository {
     return stmt.all();
   }
 
+  getColumns() {
+    if (this._columns) {
+      return this._columns;
+    }
+
+    const columns = this.db
+      .prepare(`PRAGMA table_info(${this.table})`)
+      .all()
+      .map((column) => column.name);
+
+    this._columns = columns;
+
+    return columns;
+  }
+
+  findAllWithQuery(options = {}) {
+    const columns = this.getColumns();
+    const reservedKeys = new Set([
+      "filters",
+      "search",
+      "q",
+      "sortBy",
+      "sort",
+      "order",
+      "limit",
+      "page",
+      "offset",
+    ]);
+
+    const filters = {};
+
+    if (options.filters && typeof options.filters === "object") {
+      Object.assign(filters, options.filters);
+    }
+
+    for (const [key, value] of Object.entries(options)) {
+      if (reservedKeys.has(key)) {
+        continue;
+      }
+
+      if (!columns.includes(key)) {
+        continue;
+      }
+
+      filters[key] = value;
+    }
+
+    const search = options.search ?? options.q;
+    const sortBy = (options.sortBy || options.sort || "").trim();
+    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset =
+      options.offset !== undefined
+        ? Math.max(0, Number(options.offset) || 0)
+        : (page - 1) * limit;
+
+    const where = this._buildWhereClause(filters, search, columns);
+
+    const orderClause =
+      sortBy && columns.includes(sortBy)
+        ? `ORDER BY ${sortBy} ${sortOrder}`
+        : "";
+
+    const sql = `
+      SELECT *
+      FROM ${this.table}
+      ${where.clause}
+      ${orderClause}
+      LIMIT ?
+      OFFSET ?
+    `;
+
+    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
+
+    const countResult = this.db
+      .prepare(`SELECT COUNT(*) AS total FROM ${this.table} ${where.clause}`)
+      .get(...where.params);
+
+    const total = countResult?.total || 0;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  _buildWhereClause(filters, search, columns) {
+    const clauses = [];
+    const params = [];
+
+    for (const [column, value] of Object.entries(filters)) {
+      if (!columns.includes(column)) {
+        continue;
+      }
+
+      if (value === null || value === "null") {
+        clauses.push(`${column} IS NULL`);
+        continue;
+      }
+
+      if (typeof value === "string" && value.includes("%")) {
+        clauses.push(`${column} LIKE ?`);
+        params.push(value);
+        continue;
+      }
+
+      if (value === "true" || value === "false") {
+        clauses.push(`${column} = ?`);
+        params.push(value === "true" ? 1 : 0);
+        continue;
+      }
+
+      clauses.push(`${column} = ?`);
+      params.push(value);
+    }
+
+    if (search) {
+      const searchColumns = columns.map(
+        (column) => `CAST(${column} AS TEXT) LIKE ?`,
+      );
+
+      if (searchColumns.length) {
+        clauses.push(`(${searchColumns.join(" OR ")})`);
+        for (let i = 0; i < searchColumns.length; i += 1) {
+          params.push(`%${search}%`);
+        }
+      }
+    }
+
+    return {
+      clause: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+      params,
+    };
+  }
+
   /**
    * ============================================================
    * Fetch a single record by ID

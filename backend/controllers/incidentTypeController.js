@@ -8,11 +8,12 @@ class IncidentTypeController {
   }
 
   getAll(req, res) {
-    const incidentTypes = incidentTypeService.getAllIncidentTypes();
+    const result = incidentTypeService.getAllIncidentTypes(req.query);
 
     this._sendJSON(res, 200, {
       success: true,
-      data: incidentTypes,
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

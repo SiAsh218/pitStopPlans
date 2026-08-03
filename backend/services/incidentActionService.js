@@ -10,8 +10,11 @@ class IncidentActionService {
    * Get Actions For Incident
    * ============================================================
    */
-  getByIncident(incidentId) {
-    return incidentActionRepository.findByIncidentId(incidentId);
+  getByIncident(incidentId, options = {}) {
+    return incidentActionRepository.findByIncidentIdWithRolesQuery(
+      incidentId,
+      options,
+    );
   }
 
   /**

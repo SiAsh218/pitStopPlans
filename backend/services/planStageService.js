@@ -25,10 +25,16 @@ class PlanStageService {
    * Get Stages By Template
    * ============================================================
    */
-  getStagesByTemplate(templateId) {
-    const rows = planStageRepository.findByTemplateId(templateId);
+  getStagesByTemplate(templateId, options = {}) {
+    const result = planStageRepository.findByTemplateIdWithQuery(
+      templateId,
+      options,
+    );
 
-    return rows.map((row) => this._toDTO(row));
+    return {
+      rows: result.rows.map((row) => this._toDTO(row)),
+      meta: result.meta,
+    };
   }
 
   /**

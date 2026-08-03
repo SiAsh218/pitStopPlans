@@ -50,3 +50,45 @@
   background: #eef2f7;
   font-size: 0.875rem;
 }
+
+.dashboard-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-toolbar__controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 180px;
+}
+
+.dashboard-filter input,
+.dashboard-filter select {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #d1d1d1;
+  border-radius: 6px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.pagination__summary {
+  color: var(--text-muted);
+}

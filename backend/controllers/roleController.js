@@ -12,9 +12,12 @@ class RoleController {
   }
 
   getAll(req, res) {
+    const result = roleService.getAllRoles(req.query);
+
     this._sendJSON(res, 200, {
       success: true,
-      data: roleService.getAllRoles(),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

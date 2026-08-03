@@ -45,6 +45,96 @@ class IncidentRepository extends BaseRepository {
       .all();
   }
 
+  findAllWithDetailsQuery(options = {}) {
+    const columns = this.getColumns();
+    const filters = {};
+
+    if (options.filters && typeof options.filters === "object") {
+      Object.assign(filters, options.filters);
+    }
+
+    for (const [key, value] of Object.entries(options)) {
+      if (
+        [
+          "q",
+          "search",
+          "sortBy",
+          "sort",
+          "order",
+          "limit",
+          "page",
+          "offset",
+          "filters",
+        ].includes(key)
+      ) {
+        continue;
+      }
+
+      if (!columns.includes(key)) {
+        continue;
+      }
+
+      filters[key] = value;
+    }
+
+    const search = options.search ?? options.q;
+    const sortBy = (options.sortBy || options.sort || "").trim();
+    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset =
+      options.offset !== undefined
+        ? Math.max(0, Number(options.offset) || 0)
+        : (page - 1) * limit;
+
+    const where = this._buildWhereClause(filters, search, columns);
+    const allowedSortColumns = [
+      ...columns,
+      "incident_type_name",
+      "created_by_email",
+    ];
+    const orderClause =
+      sortBy && allowedSortColumns.includes(sortBy)
+        ? `ORDER BY ${sortBy} ${sortOrder}`
+        : "ORDER BY i.started_at DESC";
+
+    const sql = `
+      SELECT
+        i.*,
+        it.name AS incident_type_name,
+        i.template_version,
+        u.email AS created_by_email
+      FROM incidents i
+      INNER JOIN incident_types it
+        ON i.incident_type_id = it.id
+      INNER JOIN users u
+        ON i.created_by = u.id
+      ${where.clause}
+      ${orderClause}
+      LIMIT ?
+      OFFSET ?
+    `;
+
+    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
+
+    const countResult = this.db
+      .prepare(`SELECT COUNT(*) AS total FROM incidents i ${where.clause}`)
+      .get(...where.params);
+
+    const total = countResult?.total || 0;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
+
   insertIncident(data) {
     return this.db
       .prepare(

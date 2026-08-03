@@ -10,9 +10,10 @@ class IncidentActionUpdateService {
    * Get Updates For Action
    * ============================================================
    */
-  getUpdates(incidentActionId) {
-    return incidentActionUpdateRepository.findByIncidentActionId(
+  getUpdates(incidentActionId, options = {}) {
+    return incidentActionUpdateRepository.findByIncidentActionIdWithQuery(
       incidentActionId,
+      options,
     );
   }
 

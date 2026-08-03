@@ -1,7 +1,24 @@
 import { getToken } from "../auth.js";
 
-async function request(method, url, body = null) {
-  const response = await fetch(url, {
+function buildQueryString(params = {}) {
+  return Object.entries(params)
+    .filter(
+      ([, value]) => value !== undefined && value !== null && value !== "",
+    )
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+    )
+    .join("&");
+}
+
+async function request(method, url, body = null, params = null, options = {}) {
+  const fullUrl =
+    params && Object.keys(params).length
+      ? `${url}?${buildQueryString(params)}`
+      : url;
+
+  const response = await fetch(fullUrl, {
     method,
 
     headers: {
@@ -20,12 +37,12 @@ async function request(method, url, body = null) {
     throw new Error(json.error || "Request failed");
   }
 
-  return json.data;
+  return options.raw ? json : json.data;
 }
 
 export const api = {
-  get(url) {
-    return request("GET", url);
+  get(url, params = null, options = {}) {
+    return request("GET", url, null, params, options);
   },
 
   post(url, body) {

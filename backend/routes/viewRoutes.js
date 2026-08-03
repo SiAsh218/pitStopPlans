@@ -1,3 +1,5 @@
+const auth = require("../middleware/auth.js");
+const requireRole = require("../middleware/role.js");
 const viewController = require("../controllers/viewController.js");
 
 module.exports = [

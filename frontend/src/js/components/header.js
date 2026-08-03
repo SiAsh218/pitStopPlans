@@ -7,13 +7,16 @@ export function initHeader() {
   const logoutBtn = document.getElementById("logout-btn");
   const dashboardBtn = document.getElementById("dashboard-nav-btn");
   const usersBtn = document.getElementById("users-nav-btn");
+  const auditLogBtn = document.getElementById("audit-log-btn");
 
   const user = getCurrentUser();
 
   if (user?.role !== "admin") {
     usersBtn?.remove();
+    auditLogBtn?.remove();
   } else {
     usersBtn.classList.remove("hidden");
+    auditLogBtn.classList.remove("hidden");
   }
 
   buttonCreateTemplate?.addEventListener("click", () => {
@@ -30,6 +33,10 @@ export function initHeader() {
 
   usersBtn?.addEventListener("click", () => {
     window.location.href = "/users";
+  });
+
+  auditLogBtn?.addEventListener("click", () => {
+    window.location.href = "/audit-log";
   });
 
   const isDashboardPage = window.location.pathname === "/";

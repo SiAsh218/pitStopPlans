@@ -11,8 +11,12 @@ class AuditService {
     });
   }
 
-  getRecent(limit = 100) {
-    return auditLogRepository.getRecent(limit);
+  getRecent(options = {}) {
+    if (typeof options === "number") {
+      return auditLogRepository.getRecent(options);
+    }
+
+    return auditLogRepository.findRecentWithQuery(options);
   }
 }
 

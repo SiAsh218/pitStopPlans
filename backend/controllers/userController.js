@@ -11,9 +11,12 @@ class UserController {
   }
 
   getAll(req, res) {
+    const result = userService.getUsers(req.query);
+
     this._sendJSON(res, 200, {
       success: true,
-      data: userService.getUsers(),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

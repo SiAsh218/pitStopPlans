@@ -18,11 +18,12 @@ class IncidentController {
    * Get all incidents
    */
   getAll(req, res) {
-    const incidents = incidentService.getAllIncidents();
+    const result = incidentService.getAllIncidents(req.query);
 
     this._sendJSON(res, 200, {
       success: true,
-      data: incidents,
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

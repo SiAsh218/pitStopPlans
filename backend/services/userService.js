@@ -8,17 +8,20 @@ const bcrypt = require("bcrypt");
 const AppError = require("../utils/AppError");
 
 class UserService {
-  getUsers() {
-    const users = userRepository.findAll();
+  getUsers(options = {}) {
+    const result = userRepository.findAllWithQuery(options);
 
-    return users.map((user) => {
-      const { password: _password, ...safeUser } = user;
+    return {
+      rows: result.rows.map((user) => {
+        const { password: _password, ...safeUser } = user;
 
-      return {
-        ...safeUser,
-        job_roles: userRoleRepository.findByUserId(user.id),
-      };
-    });
+        return {
+          ...safeUser,
+          job_roles: userRoleRepository.findByUserId(user.id),
+        };
+      }),
+      meta: result.meta,
+    };
   }
 
   getUserById(id) {

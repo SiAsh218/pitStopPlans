@@ -6,6 +6,8 @@ const planStageRepository = require("../data/repositories/planStageRepository");
 
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 
+const auditService = require("../services/auditLogService.js");
+
 const AppError = require("../utils/AppError");
 
 class PlanTemplateService {
@@ -40,10 +42,13 @@ class PlanTemplateService {
    * Get All Templates
    * ============================================================
    */
-  getAllPlanTemplates() {
-    const rows = planTemplateRepository.findAllWithIncidentType();
+  getAllPlanTemplates(options = {}) {
+    const result = planTemplateRepository.findAllWithQuery(options);
 
-    return rows.map((row) => this._toDTO(row));
+    return {
+      rows: result.rows.map((row) => this._toDTO(row)),
+      meta: result.meta,
+    };
   }
 
   /**
@@ -96,7 +101,23 @@ class PlanTemplateService {
       created_by: userId,
     });
 
-    return this.getPlanTemplateById(result.lastInsertRowid);
+    const createdTemplate = this.getPlanTemplateById(result.lastInsertRowid);
+
+    auditService.log(
+      userId,
+      "CREATE_TEMPLATE",
+      "plan_template",
+      createdTemplate.id,
+      {
+        title: createdTemplate.title,
+        version: createdTemplate.version,
+        status: createdTemplate.status,
+        incidentTypeId: createdTemplate.incident_type.id,
+        incidentTypeName: createdTemplate.incident_type.name,
+      },
+    );
+
+    return createdTemplate;
   }
 
   /**
@@ -104,7 +125,7 @@ class PlanTemplateService {
    * Update Draft Template
    * ============================================================
    */
-  updatePlanTemplate(id, updates) {
+  updatePlanTemplate(id, updates, userId) {
     const template = planTemplateRepository.findById(id);
 
     if (!template) {
@@ -118,6 +139,8 @@ class PlanTemplateService {
       );
     }
 
+    const beforeTemplate = this.getPlanTemplateById(id);
+
     const fields = {};
 
     if (updates.title !== undefined) {
@@ -130,9 +153,24 @@ class PlanTemplateService {
 
     if (Object.keys(fields).length > 0) {
       planTemplateRepository.updateById(id, fields);
+
+      const afterTemplate = this.getPlanTemplateById(id);
+
+      auditService.log(userId, "UPDATE_TEMPLATE", "plan_template", id, {
+        before: {
+          title: beforeTemplate.title,
+          status: beforeTemplate.status,
+        },
+        after: {
+          title: afterTemplate.title,
+          status: afterTemplate.status,
+        },
+      });
+
+      return afterTemplate;
     }
 
-    return this.getPlanTemplateById(id);
+    return beforeTemplate;
   }
 
   /**
@@ -151,6 +189,8 @@ class PlanTemplateService {
       throw new AppError("Template already approved", 400);
     }
 
+    const beforeStatus = template.status;
+
     planTemplateRepository.updateById(id, {
       status: "approved",
 
@@ -159,7 +199,19 @@ class PlanTemplateService {
       approved_at: new Date().toISOString().replace("T", " ").substring(0, 19),
     });
 
-    return this.getPlanTemplateById(id);
+    const afterTemplate = this.getPlanTemplateById(id);
+
+    auditService.log(userId, "APPROVE_TEMPLATE", "plan_template", id, {
+      before: {
+        status: beforeStatus,
+      },
+      after: {
+        status: afterTemplate.status,
+      },
+      approvedBy: userId,
+    });
+
+    return afterTemplate;
   }
 
   /**
@@ -214,6 +266,13 @@ class PlanTemplateService {
 
     const newTemplateId = templateResult.lastInsertRowid;
 
+    auditService.log(userId, "CLONE_TEMPLATE", "plan_template", newTemplateId, {
+      sourceTemplateId: template.id,
+      sourceTitle: template.title,
+      sourceVersion: template.version,
+      newVersion: latestVersion.version + 1,
+    });
+
     /**
      * Clone stages
      */
@@ -240,15 +299,26 @@ class PlanTemplateService {
    * Retire Template
    * ============================================================
    */
-  retireTemplate(id) {
+  retireTemplate(id, userId) {
     const template = planTemplateRepository.findById(id);
 
     if (!template) {
       return false;
     }
 
+    const beforeStatus = template.status;
+
     planTemplateRepository.updateById(id, {
       status: "retired",
+    });
+
+    auditService.log(userId, "RETIRE_TEMPLATE", "plan_template", id, {
+      before: {
+        status: beforeStatus,
+      },
+      after: {
+        status: "retired",
+      },
     });
 
     return true;

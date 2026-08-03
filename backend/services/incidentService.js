@@ -46,20 +46,23 @@ class IncidentService {
   /**
    * Get all incidents
    */
-  getAllIncidents() {
-    const incidents = incidentRepository.findAllWithDetails();
+  getAllIncidents(options = {}) {
+    const result = incidentRepository.findAllWithDetailsQuery(options);
 
-    return incidents.map((incident) => {
-      const dto = this._toDTO(incident);
+    return {
+      rows: result.rows.map((incident) => {
+        const dto = this._toDTO(incident);
 
-      const actions = incidentActionRepository.findByIncidentIdWithRoles(
-        incident.id,
-      );
+        const actions = incidentActionRepository.findByIncidentIdWithRoles(
+          incident.id,
+        );
 
-      dto.summary = this._getActionSummary(actions);
+        dto.summary = this._getActionSummary(actions);
 
-      return dto;
-    });
+        return dto;
+      }),
+      meta: result.meta,
+    };
   }
 
   /**

@@ -19,11 +19,12 @@ class PlanTemplateController {
    * ============================================================
    */
   getAll(req, res) {
-    const templates = planTemplateService.getAllPlanTemplates();
+    const result = planTemplateService.getAllPlanTemplates(req.query);
 
     this._sendJSON(res, 200, {
       success: true,
-      data: templates,
+      data: result.rows,
+      meta: result.meta,
     });
   }
 
@@ -114,7 +115,11 @@ class PlanTemplateController {
       throw new AppError("Invalid ID", 400);
     }
 
-    const template = planTemplateService.updatePlanTemplate(id, req.body);
+    const template = planTemplateService.updatePlanTemplate(
+      id,
+      req.body,
+      req.user.id,
+    );
 
     if (!template) {
       throw new AppError("Plan Template not found", 404);
@@ -178,7 +183,7 @@ class PlanTemplateController {
       throw new AppError("Invalid ID", 400);
     }
 
-    const retired = planTemplateService.retireTemplate(id);
+    const retired = planTemplateService.retireTemplate(id, req.user.id);
 
     if (!retired) {
       throw new AppError("Plan Template not found", 404);

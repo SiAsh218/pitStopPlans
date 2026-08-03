@@ -3,14 +3,17 @@ const incidentTypeRepository = require("../data/repositories/incidentTypeReposit
 class IncidentTypeService {
   constructor() {}
 
-  getAllIncidentTypes() {
-    const rows = incidentTypeRepository.findAll();
+  getAllIncidentTypes(options = {}) {
+    const result = incidentTypeRepository.findAllWithQuery(options);
 
-    return rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-    }));
+    return {
+      rows: result.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+      })),
+      meta: result.meta,
+    };
   }
 
   getIncidentTypeById(id) {

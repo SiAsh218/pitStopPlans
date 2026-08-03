@@ -17,9 +17,15 @@ class IncidentActionUpdateController {
    * ============================================================
    */
   getByAction(req, res) {
+    const result = incidentActionUpdateService.getUpdates(
+      Number(req.params.id),
+      req.query,
+    );
+
     this._sendJSON(res, 200, {
       success: true,
-      data: incidentActionUpdateService.getUpdates(Number(req.params.id)),
+      data: result.rows,
+      meta: result.meta,
     });
   }
 

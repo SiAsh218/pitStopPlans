@@ -3,8 +3,8 @@ const roleRepository = require("../data/repositories/roleRepository");
 const AppError = require("../utils/AppError");
 
 class RoleService {
-  getAllRoles() {
-    return roleRepository.findAll();
+  getAllRoles(options = {}) {
+    return roleRepository.findAllWithQuery(options);
   }
 
   getRoleById(id) {

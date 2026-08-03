@@ -266,23 +266,7 @@ function initialiseDatabase() {
 `);
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS audit_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      entity_type TEXT NOT NULL,
-      entity_id INTEGER NOT NULL,
-      action TEXT NOT NULL,
-      field_name TEXT,
-      old_value TEXT,
-      new_value TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id)
-        REFERENCES users(id)
-    );
-  `);
-
-  db.exec(`
-    CREATE TABLE audit_logs (
+    CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       action TEXT NOT NULL,
