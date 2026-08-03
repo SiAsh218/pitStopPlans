@@ -10,9 +10,11 @@ import { formatDateTime } from "../utils/dateHandler.js";
 // -----------------------------------------------------------------------------
 
 let allIncidents = [];
-let filters = {
+const state = {
   search: "",
   status: "active",
+  page: 1,
+  limit: 10,
 };
 
 // -----------------------------------------------------------------------------
@@ -34,8 +36,7 @@ export async function loadIncidents() {
     );
 
     bindDashboardControls();
-    updateStatistics(allIncidents);
-    renderIncidents(getFilteredIncidents());
+    renderCurrentPage();
   } catch (err) {
     showDashboardError(incidentList, err);
   }
@@ -48,22 +49,33 @@ export async function loadIncidents() {
 function bindDashboardControls() {
   const searchInput = document.getElementById("incident-search");
   const statusFilter = document.getElementById("incident-status-filter");
+  const pageSizeSelect = document.getElementById("incident-page-size");
   const refreshButton = document.getElementById("btn-refresh-incidents");
 
-  if (!searchInput || !statusFilter || !refreshButton) {
+  if (!searchInput || !statusFilter || !pageSizeSelect || !refreshButton) {
     return;
   }
 
-  searchInput.value = filters.search;
-  statusFilter.value = filters.status;
+  searchInput.value = state.search;
+  statusFilter.value = state.status;
+  pageSizeSelect.value = String(state.limit);
+
   searchInput.oninput = (event) => {
-    filters.search = event.target.value.trim().toLowerCase();
-    renderIncidents(getFilteredIncidents());
+    state.search = event.target.value.trim().toLowerCase();
+    state.page = 1;
+    renderCurrentPage();
   };
 
   statusFilter.onchange = (event) => {
-    filters.status = event.target.value;
-    renderIncidents(getFilteredIncidents());
+    state.status = event.target.value;
+    state.page = 1;
+    renderCurrentPage();
+  };
+
+  pageSizeSelect.onchange = (event) => {
+    state.limit = Number(event.target.value) || 10;
+    state.page = 1;
+    renderCurrentPage();
   };
 
   refreshButton.onclick = () => {
@@ -78,8 +90,8 @@ function bindDashboardControls() {
 function getFilteredIncidents() {
   return allIncidents.filter((incident) => {
     const matchesStatus =
-      filters.status === "all" || incident.status === filters.status;
-    const searchTerm = filters.search;
+      state.status === "all" || incident.status === state.status;
+    const searchTerm = state.search;
     const matchesSearch =
       searchTerm.length === 0 ||
       [incident.title, incident.incident_type?.name]
@@ -118,6 +130,91 @@ function renderIncidents(incidents) {
     });
     container.appendChild(card);
   });
+}
+
+function renderPagination(meta = {}) {
+  const container = document.getElementById("incident-pagination");
+
+  if (!container) {
+    return;
+  }
+
+  if (!meta || meta.total === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const currentPage = meta.page || 1;
+  const pageCount = meta.pageCount || 1;
+
+  container.innerHTML = `
+    <div class="pagination">
+      <button id="incident-page-prev" class="btn btn-secondary" ${
+        currentPage <= 1 ? "disabled" : ""
+      }>
+        Previous
+      </button>
+
+      <span class="pagination__summary">
+        Page ${currentPage} of ${pageCount} • ${meta.total} incidents
+      </span>
+
+      <button id="incident-page-next" class="btn btn-secondary" ${
+        currentPage >= pageCount ? "disabled" : ""
+      }>
+        Next
+      </button>
+    </div>
+  `;
+
+  document
+    .getElementById("incident-page-prev")
+    ?.addEventListener("click", () => {
+      if (state.page <= 1) {
+        return;
+      }
+
+      state.page -= 1;
+      renderCurrentPage();
+    });
+
+  document
+    .getElementById("incident-page-next")
+    ?.addEventListener("click", () => {
+      if (state.page >= pageCount) {
+        return;
+      }
+
+      state.page += 1;
+      renderCurrentPage();
+    });
+}
+
+function getPaginatedIncidents(filteredIncidents) {
+  const total = filteredIncidents.length;
+  const pageCount = Math.max(1, Math.ceil(total / state.limit));
+  const page = Math.min(Math.max(1, state.page), pageCount);
+  const offset = (page - 1) * state.limit;
+  const rows = filteredIncidents.slice(offset, offset + state.limit);
+
+  return {
+    rows,
+    meta: {
+      total,
+      limit: state.limit,
+      page,
+      pageCount,
+    },
+  };
+}
+
+function renderCurrentPage() {
+  const filtered = getFilteredIncidents();
+  const { rows, meta } = getPaginatedIncidents(filtered);
+
+  updateStatistics(filtered);
+  renderIncidents(rows);
+  renderPagination(meta);
 }
 
 // -----------------------------------------------------------------------------

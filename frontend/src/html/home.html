@@ -49,6 +49,15 @@
               <option value="closed">Closed</option>
             </select>
           </label>
+
+          <label class="dashboard-filter">
+            <span>Page size</span>
+            <select id="incident-page-size">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+            </select>
+          </label>
         </div>
 
         <button id="btn-refresh-incidents" class="btn btn-secondary">
@@ -61,6 +70,8 @@
       <div id="incident-list">
         <p>Loading incidents...</p>
       </div>
+
+      <div id="incident-pagination" class="pagination-container"></div>
     </main>
 
     <!-- Webpack bundle (JS + CSS) -->
