@@ -6,9 +6,19 @@ class PlanStageRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Get all stages for a template
-   * ============================================================
+   * Default stage ordering.
+   *
+   * @returns {string}
+   */
+  _defaultOrder() {
+    return "ORDER BY stage_number";
+  }
+
+  /**
+   * Gets all stages for a template.
+   *
+   * @param {number} planTemplateId
+   * @returns {object[]}
    */
   findByTemplateId(planTemplateId) {
     return this.db
@@ -17,93 +27,37 @@ class PlanStageRepository extends BaseRepository {
         SELECT *
         FROM plan_stages
         WHERE plan_template_id = ?
-        ORDER BY stage_number
+        ${this._defaultOrder()}
       `,
       )
       .all(planTemplateId);
   }
 
+  /**
+   * Gets paginated stages for a template.
+   *
+   * @param {number} planTemplateId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findByTemplateIdWithQuery(planTemplateId, options = {}) {
-    const columns = this.getColumns();
-    const filters = { plan_template_id: planTemplateId };
-
-    if (options.filters && typeof options.filters === "object") {
-      Object.assign(filters, options.filters);
-    }
-
-    const reservedKeys = new Set([
-      "filters",
-      "search",
-      "q",
-      "sortBy",
-      "sort",
-      "order",
-      "limit",
-      "page",
-      "offset",
-    ]);
-
-    for (const [key, value] of Object.entries(options)) {
-      if (reservedKeys.has(key)) {
-        continue;
-      }
-
-      if (!columns.includes(key)) {
-        continue;
-      }
-
-      filters[key] = value;
-    }
-
-    const search = options.search ?? options.q;
-    const sortBy = (options.sortBy || options.sort || "").trim();
-    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
-    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
-    const page = Math.max(1, Number(options.page) || 1);
-    const offset =
-      options.offset !== undefined
-        ? Math.max(0, Number(options.offset) || 0)
-        : (page - 1) * limit;
-
-    const where = this._buildWhereClause(filters, search, columns);
-    const orderClause =
-      sortBy && columns.includes(sortBy)
-        ? `ORDER BY ${sortBy} ${sortOrder}`
-        : "ORDER BY stage_number";
-
-    const sql = `
-      SELECT *
-      FROM plan_stages
-      ${where.clause}
-      ${orderClause}
-      LIMIT ?
-      OFFSET ?
-    `;
-
-    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
-
-    const countResult = this.db
-      .prepare(`SELECT COUNT(*) AS total FROM plan_stages ${where.clause}`)
-      .get(...where.params);
-
-    const total = countResult?.total || 0;
+    const result = super.findAllWithQuery({
+      ...options,
+      plan_template_id: planTemplateId,
+    });
 
     return {
-      rows,
-      meta: {
-        total,
-        limit,
-        offset,
-        page,
-        pageCount: Math.ceil(total / limit),
-      },
+      ...result,
+      rows: result.rows.sort((a, b) => a.stage_number - b.stage_number),
     };
   }
 
   /**
-   * ============================================================
-   * Find stage by template + stage number
-   * ============================================================
+   * Finds a stage by template and stage number.
+   *
+   * @param {number} planTemplateId
+   * @param {number} stageNumber
+   * @returns {object|undefined}
    */
   findByTemplateAndStageNumber(planTemplateId, stageNumber) {
     return this.db
@@ -119,12 +73,11 @@ class PlanStageRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Clone Stage
-   * ============================================================
+   * Clones a stage into another template.
    *
-   * Creates a copy of an existing stage
-   * under a new template.
+   * @param {number} stageId
+   * @param {number} targetTemplateId
+   * @returns {object|null}
    */
   cloneStage(stageId, targetTemplateId) {
     const stage = this.findById(stageId);
@@ -135,11 +88,8 @@ class PlanStageRepository extends BaseRepository {
 
     const result = this.insert({
       plan_template_id: targetTemplateId,
-
       stage_number: stage.stage_number,
-
       name: stage.name,
-
       due_from_incident_start: stage.due_from_incident_start,
     });
 

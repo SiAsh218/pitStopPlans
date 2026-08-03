@@ -1,73 +1,51 @@
-/**
- * ============================================================
- * BaseRepository (Generic Data Access Layer)
- * ============================================================
- *
- * Purpose:
- * - Provides reusable database operations for any table
- * - Eliminates duplication of common CRUD logic
- * - Enables easy scaling when adding new tables
- *
- * Responsibilities:
- * ✅ Abstract SQL queries
- * ✅ Provide generic CRUD methods
- * ✅ Allow child repositories to extend functionality
- *
- * Usage:
- *   class TrainRepository extends BaseRepository {
- *     constructor() {
- *       super("trains");
- *     }
- *   }
- *
- * IMPORTANT:
- * - This layer ONLY handles database operations
- * - No business logic should exist here
- * ============================================================
- */
-
-const db = require("../db.js");
+const db = require("../db");
 
 class BaseRepository {
   /**
-   * @param {string} table - Name of the database table
+   * @param {string} table
    */
   constructor(table) {
     this.table = table;
     this.db = db;
+    this._columns = null;
   }
 
   /**
-   * ============================================================
-   * Fetch all records from table
-   * ============================================================
+   * Returns table columns.
    *
-   * Example:
-   *   SELECT * FROM trains
+   * @returns {string[]}
    */
-  findAll() {
-    const stmt = this.db.prepare(`SELECT * FROM ${this.table}`);
-
-    return stmt.all();
-  }
-
   getColumns() {
     if (this._columns) {
       return this._columns;
     }
 
-    const columns = this.db
+    this._columns = this.db
       .prepare(`PRAGMA table_info(${this.table})`)
       .all()
       .map((column) => column.name);
 
-    this._columns = columns;
-
-    return columns;
+    return this._columns;
   }
 
-  findAllWithQuery(options = {}) {
+  /**
+   * Returns all rows.
+   *
+   * @returns {object[]}
+   */
+  findAll() {
+    return this.db.prepare(`SELECT * FROM ${this.table}`).all();
+  }
+
+  /**
+   * Normalises query options.
+   *
+   * @param {object} options
+   * @returns {object}
+   */
+  _normaliseQueryOptions(options = {}) {
     const columns = this.getColumns();
+
     const reservedKeys = new Set([
       "filters",
       "search",
@@ -98,21 +76,40 @@ class BaseRepository {
       filters[key] = value;
     }
 
-    const search = options.search ?? options.q;
-    const sortBy = (options.sortBy || options.sort || "").trim();
-    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
-    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
-    const page = Math.max(1, Number(options.page) || 1);
-    const offset =
-      options.offset !== undefined
-        ? Math.max(0, Number(options.offset) || 0)
-        : (page - 1) * limit;
+    return {
+      columns,
+      filters,
+      search: options.search ?? options.q,
+      sortBy: (options.sortBy || options.sort || "").trim(),
+      sortOrder: options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC",
+      limit: Math.max(1, Math.min(Number(options.limit) || 25, 200)),
+      page: Math.max(1, Number(options.page) || 1),
+      offset:
+        options.offset !== undefined
+          ? Math.max(0, Number(options.offset) || 0)
+          : (Math.max(1, Number(options.page) || 1) - 1) *
+            Math.max(1, Math.min(Number(options.limit) || 25, 200)),
+    };
+  }
 
-    const where = this._buildWhereClause(filters, search, columns);
+  /**
+   * Generic paged query.
+   *
+   * @param {object} options
+   * @returns {{rows: object[], meta: object}}
+   */
+  findAllWithQuery(options = {}) {
+    const query = this._normaliseQueryOptions(options);
+
+    const where = this._buildWhereClause(
+      query.filters,
+      query.search,
+      query.columns,
+    );
 
     const orderClause =
-      sortBy && columns.includes(sortBy)
-        ? `ORDER BY ${sortBy} ${sortOrder}`
+      query.sortBy && query.columns.includes(query.sortBy)
+        ? `ORDER BY ${query.sortBy} ${query.sortOrder}`
         : "";
 
     const sql = `
@@ -124,10 +121,18 @@ class BaseRepository {
       OFFSET ?
     `;
 
-    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
+    const rows = this.db
+      .prepare(sql)
+      .all(...where.params, query.limit, query.offset);
 
     const countResult = this.db
-      .prepare(`SELECT COUNT(*) AS total FROM ${this.table} ${where.clause}`)
+      .prepare(
+        `
+        SELECT COUNT(*) AS total
+        FROM ${this.table}
+        ${where.clause}
+      `,
+      )
       .get(...where.params);
 
     const total = countResult?.total || 0;
@@ -136,14 +141,22 @@ class BaseRepository {
       rows,
       meta: {
         total,
-        limit,
-        offset,
-        page,
-        pageCount: Math.ceil(total / limit),
+        limit: query.limit,
+        offset: query.offset,
+        page: query.page,
+        pageCount: Math.ceil(total / query.limit),
       },
     };
   }
 
+  /**
+   * Builds WHERE clause.
+   *
+   * @param {object} filters
+   * @param {string} search
+   * @param {string[]} columns
+   * @returns {{clause: string, params: any[]}}
+   */
   _buildWhereClause(filters, search, columns) {
     const clauses = [];
     const params = [];
@@ -181,6 +194,7 @@ class BaseRepository {
 
       if (searchColumns.length) {
         clauses.push(`(${searchColumns.join(" OR ")})`);
+
         for (let i = 0; i < searchColumns.length; i += 1) {
           params.push(`%${search}%`);
         }
@@ -194,121 +208,80 @@ class BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Fetch a single record by ID
-   * ============================================================
+   * Finds row by ID.
    *
-   * Example:
-   *   SELECT * FROM trains WHERE id = 1
+   * @param {number} id
+   * @returns {object|undefined}
    */
   findById(id) {
-    const stmt = this.db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`);
-
-    return stmt.get(id);
+    return this.db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`).get(id);
   }
 
   /**
-   * ============================================================
-   * Delete a record by ID
-   * ============================================================
+   * Deletes row by ID.
    *
-   * Example:
-   *   DELETE FROM trains WHERE id = 1
-   *
-   * Returns:
-   *   .run() result (includes number of rows affected)
+   * @param {number} id
+   * @returns {object}
    */
   deleteById(id) {
-    const stmt = this.db.prepare(`DELETE FROM ${this.table} WHERE id = ?`);
-
-    return stmt.run(id);
+    return this.db.prepare(`DELETE FROM ${this.table} WHERE id = ?`).run(id);
   }
 
   /**
-   * ============================================================
-   * Insert a new record
-   * ============================================================
+   * Inserts a row.
    *
-   * Accepts:
-   *   fields = { column: value }
-   *
-   * Example:
-   *   insert({ name: "Train A", status: "On Time" })
-   *
-   * Builds dynamic SQL:
-   *   INSERT INTO trains (name, status)
-   *   VALUES (?, ?)
+   * @param {object} fields
+   * @returns {object}
    */
   insert(fields) {
-    /**
-     * Extract column names and values
-     */
     const keys = Object.keys(fields);
+
+    if (!keys.length) {
+      throw new Error("No fields supplied for insert");
+    }
+
     const values = Object.values(fields);
 
-    /**
-     * Generate placeholders:
-     *   ["?", "?"] → "?, ?"
-     */
     const placeholders = keys.map(() => "?").join(", ");
 
-    /**
-     * Prepare dynamic INSERT statement
-     */
-    const stmt = this.db.prepare(`
-      INSERT INTO ${this.table} (${keys.join(", ")})
-      VALUES (${placeholders})
-    `);
-
-    /**
-     * Execute query with values
-     */
-    return stmt.run(...values);
+    return this.db
+      .prepare(
+        `
+        INSERT INTO ${this.table}
+        (${keys.join(", ")})
+        VALUES (${placeholders})
+      `,
+      )
+      .run(...values);
   }
 
   /**
-   * ============================================================
-   * Update a record by ID
-   * ============================================================
+   * Updates a row by ID.
    *
-   * Accepts:
-   *   id = record identifier
-   *   fields = { column: value }
-   *
-   * Example:
-   *   updateById(1, { status: "Delayed" })
-   *
-   * Builds dynamic SQL:
-   *   UPDATE trains
-   *   SET status = ?
-   *   WHERE id = 1
+   * @param {number} id
+   * @param {object} fields
+   * @returns {object}
    */
   updateById(id, fields) {
-    /**
-     * Extract column names and values
-     */
     const keys = Object.keys(fields);
+
+    if (!keys.length) {
+      throw new Error("No fields supplied for update");
+    }
+
     const values = Object.values(fields);
 
-    /**
-     * Generate SET clause:
-     *   ["status = ?", "name = ?"]
-     */
-    const setClause = keys.map((k) => `${k} = ?`).join(", ");
+    const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    /**
-     * Prepare dynamic UPDATE statement
-     */
-    const stmt = this.db.prepare(`
-      UPDATE ${this.table}
-      SET ${setClause}
-      WHERE id = ?
-    `);
-
-    /**
-     * Execute query with values + id
-     */
-    return stmt.run(...values, id);
+    return this.db
+      .prepare(
+        `
+        UPDATE ${this.table}
+        SET ${setClause}
+        WHERE id = ?
+      `,
+      )
+      .run(...values, id);
   }
 }
 

@@ -6,18 +6,30 @@ class IncidentActionUpdateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Get all updates for an incident action
-   * ============================================================
+   * Common projection.
+   *
+   * @returns {string}
+   */
+  _projection() {
+    return `
+      iau.*,
+      u.id AS user_id,
+      u.email AS user_email
+    `;
+  }
+
+  /**
+   * Gets all updates for an incident action.
+   *
+   * @param {number} incidentActionId
+   * @returns {object[]}
    */
   findByIncidentActionId(incidentActionId) {
     return this.db
       .prepare(
         `
         SELECT
-          iau.*,
-          u.id AS user_id,
-          u.email AS user_email
+          ${this._projection()}
         FROM incident_action_updates iau
         INNER JOIN users u
           ON iau.user_id = u.id
@@ -28,9 +40,18 @@ class IncidentActionUpdateRepository extends BaseRepository {
       .all(incidentActionId);
   }
 
+  /**
+   * Gets paginated updates for an incident action.
+   *
+   * @param {number} incidentActionId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findByIncidentActionIdWithQuery(incidentActionId, options = {}) {
     const columns = this.getColumns();
-    const filters = { incident_action_id: incidentActionId };
+    const filters = {
+      incident_action_id: incidentActionId,
+    };
 
     if (options.filters && typeof options.filters === "object") {
       Object.assign(filters, options.filters);
@@ -61,16 +82,22 @@ class IncidentActionUpdateRepository extends BaseRepository {
     }
 
     const search = options.search ?? options.q;
+
     const sortBy = (options.sortBy || options.sort || "").trim();
+
     const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+
     const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+
     const page = Math.max(1, Number(options.page) || 1);
+
     const offset =
       options.offset !== undefined
         ? Math.max(0, Number(options.offset) || 0)
         : (page - 1) * limit;
 
     const where = this._buildWhereClause(filters, search, columns);
+
     const orderClause =
       sortBy && columns.includes(sortBy)
         ? `ORDER BY ${sortBy} ${sortOrder}`
@@ -78,9 +105,7 @@ class IncidentActionUpdateRepository extends BaseRepository {
 
     const sql = `
       SELECT
-        iau.*,
-        u.id AS user_id,
-        u.email AS user_email
+        ${this._projection()}
       FROM incident_action_updates iau
       INNER JOIN users u
         ON iau.user_id = u.id
@@ -94,7 +119,13 @@ class IncidentActionUpdateRepository extends BaseRepository {
 
     const countResult = this.db
       .prepare(
-        `SELECT COUNT(*) AS total FROM incident_action_updates iau ${where.clause}`,
+        `
+        SELECT COUNT(*) AS total
+        FROM incident_action_updates iau
+        INNER JOIN users u
+          ON iau.user_id = u.id
+        ${where.clause}
+      `,
       )
       .get(...where.params);
 
@@ -113,18 +144,17 @@ class IncidentActionUpdateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Get single update with user details
-   * ============================================================
+   * Gets a single update with user details.
+   *
+   * @param {number} id
+   * @returns {object|undefined}
    */
   findByIdWithDetails(id) {
     return this.db
       .prepare(
         `
         SELECT
-          iau.*,
-          u.id AS user_id,
-          u.email AS user_email
+          ${this._projection()}
         FROM incident_action_updates iau
         INNER JOIN users u
           ON iau.user_id = u.id

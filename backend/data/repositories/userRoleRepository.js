@@ -1,6 +1,12 @@
 const db = require("../db");
 
 class UserRoleRepository {
+  /**
+   * Gets all roles assigned to a user.
+   *
+   * @param {number} userId
+   * @returns {object[]}
+   */
   findByUserId(userId) {
     return db
       .prepare(
@@ -12,11 +18,18 @@ class UserRoleRepository {
         INNER JOIN roles r
           ON r.id = ur.role_id
         WHERE ur.user_id = ?
+        ORDER BY r.name
       `,
       )
       .all(userId);
   }
 
+  /**
+   * Removes all role assignments for a user.
+   *
+   * @param {number} userId
+   * @returns {object}
+   */
   deleteByUserId(userId) {
     return db
       .prepare(
@@ -28,21 +41,31 @@ class UserRoleRepository {
       .run(userId);
   }
 
-  setRoles(userId, roleIds) {
-    this.deleteByUserId(userId);
+  /**
+   * Replaces all role assignments for a user.
+   *
+   * @param {number} userId
+   * @param {number[]} roleIds
+   */
+  setRoles(userId, roleIds = []) {
+    const transaction = db.transaction(() => {
+      this.deleteByUserId(userId);
 
-    const stmt = db.prepare(`
-      INSERT INTO user_roles
-      (
-        user_id,
-        role_id
-      )
-      VALUES (?, ?)
-    `);
+      const stmt = db.prepare(`
+        INSERT INTO user_roles
+        (
+          user_id,
+          role_id
+        )
+        VALUES (?, ?)
+      `);
 
-    for (const roleId of roleIds) {
-      stmt.run(userId, roleId);
-    }
+      for (const roleId of roleIds) {
+        stmt.run(userId, roleId);
+      }
+    });
+
+    transaction();
   }
 }
 

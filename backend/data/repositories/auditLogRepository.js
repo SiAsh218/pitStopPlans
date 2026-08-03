@@ -5,10 +5,36 @@ class AuditLogRepository extends BaseRepository {
     super("audit_logs");
   }
 
+  /**
+   * Common audit log projection.
+   *
+   * @returns {string}
+   */
+  _projection() {
+    return `
+      audit_logs.*,
+      actor.email AS actor_email,
+      target.email AS target_email,
+      template.title AS target_title
+    `;
+  }
+
+  /**
+   * Creates an audit log entry.
+   *
+   * @param {object} entry
+   * @returns {object}
+   */
   create(entry) {
     return this.insert(entry);
   }
 
+  /**
+   * Returns paginated audit logs.
+   *
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findRecentWithQuery(options = {}) {
     const columns = this.getColumns();
     const filters = {};
@@ -42,17 +68,24 @@ class AuditLogRepository extends BaseRepository {
     }
 
     const search = options.search ?? options.q;
+
     const sortBy = (options.sortBy || options.sort || "").trim();
+
     const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+
     const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+
     const page = Math.max(1, Number(options.page) || 1);
+
     const offset =
       options.offset !== undefined
         ? Math.max(0, Number(options.offset) || 0)
         : (page - 1) * limit;
 
     const where = this._buildWhereClause(filters, search, columns);
+
     const allowedSortColumns = [...columns, "actor_email", "target_email"];
+
     const orderClause =
       sortBy && allowedSortColumns.includes(sortBy)
         ? `ORDER BY ${sortBy} ${sortOrder}`
@@ -60,10 +93,7 @@ class AuditLogRepository extends BaseRepository {
 
     const sql = `
       SELECT
-        audit_logs.*,
-        actor.email AS actor_email,
-        target.email AS target_email,
-        template.title AS target_title
+        ${this._projection()}
       FROM audit_logs
       LEFT JOIN users actor
         ON actor.id = audit_logs.user_id
@@ -82,7 +112,21 @@ class AuditLogRepository extends BaseRepository {
     const rows = this.db.prepare(sql).all(...where.params, limit, offset);
 
     const countResult = this.db
-      .prepare(`SELECT COUNT(*) AS total FROM audit_logs ${where.clause}`)
+      .prepare(
+        `
+        SELECT COUNT(*) AS total
+        FROM audit_logs
+        LEFT JOIN users actor
+          ON actor.id = audit_logs.user_id
+        LEFT JOIN users target
+          ON target.id = audit_logs.entity_id
+          AND audit_logs.entity_type = 'user'
+        LEFT JOIN plan_templates template
+          ON template.id = audit_logs.entity_id
+          AND audit_logs.entity_type = 'plan_template'
+        ${where.clause}
+      `,
+      )
       .get(...where.params);
 
     const total = countResult?.total || 0;
@@ -99,6 +143,12 @@ class AuditLogRepository extends BaseRepository {
     };
   }
 
+  /**
+   * Returns recent audit logs.
+   *
+   * @param {number} [limit=100]
+   * @returns {{rows: object[], meta: object}}
+   */
   getRecent(limit = 100) {
     return this.findRecentWithQuery({ limit });
   }

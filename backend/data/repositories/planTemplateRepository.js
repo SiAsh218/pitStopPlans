@@ -6,13 +6,28 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Latest Approved Version
-   * ============================================================
+   * Common template projection with incident type details.
    *
-   * Used when creating incidents.
+   * @returns {string}
+   */
+  _templateProjection() {
+    return `
+      pt.id,
+      pt.version,
+      pt.title,
+      pt.status,
+      pt.created_at,
+      pt.approved_at,
+      pt.incident_type_id,
+      it.name AS incident_type_name
+    `;
+  }
+
+  /**
+   * Latest approved version for an incident type.
    *
-   * Returns latest APPROVED template only.
+   * @param {number} incidentTypeId
+   * @returns {object|undefined}
    */
   findLatestApprovedVersionByIncidentType(incidentTypeId) {
     return this.db
@@ -30,11 +45,10 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Latest Version (Any Status)
-   * ============================================================
+   * Latest version regardless of status.
    *
-   * Useful for template editing.
+   * @param {number} incidentTypeId
+   * @returns {object|undefined}
    */
   findLatestVersionByIncidentType(incidentTypeId) {
     return this.db
@@ -51,9 +65,11 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Find By Incident Type + Version
-   * ============================================================
+   * Finds a template by incident type and version.
+   *
+   * @param {number} incidentTypeId
+   * @param {number} version
+   * @returns {object|undefined}
    */
   findByIncidentTypeAndVersion(incidentTypeId, version) {
     return this.db
@@ -69,9 +85,11 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Find By Incident Type + Status
-   * ============================================================
+   * Finds templates by incident type and status.
+   *
+   * @param {number} incidentTypeId
+   * @param {string} status
+   * @returns {object[]}
    */
   findByIncidentTypeAndStatus(incidentTypeId, status) {
     return this.db
@@ -88,29 +106,56 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * All Templates With Incident Type
-   * ============================================================
+   * Finds templates by status.
+   *
+   * @param {string} status
+   * @returns {object[]}
+   */
+  findByStatus(status) {
+    return this.db
+      .prepare(
+        `
+        SELECT *
+        FROM plan_templates
+        WHERE status = ?
+        ORDER BY created_at DESC
+      `,
+      )
+      .all(status);
+  }
+
+  /**
+   * Returns all draft templates.
+   *
+   * @returns {object[]}
+   */
+  findDrafts() {
+    return this.findByStatus("draft");
+  }
+
+  /**
+   * Returns all approved templates.
+   *
+   * @returns {object[]}
+   */
+  findApproved() {
+    return this.findByStatus("approved");
+  }
+
+  /**
+   * Returns all templates with incident type details.
+   *
+   * @returns {object[]}
    */
   findAllWithIncidentType() {
     return this.db
       .prepare(
         `
         SELECT
-          pt.id,
-          pt.version,
-          pt.title,
-          pt.status,
-          pt.created_at,
-          pt.incident_type_id,
-
-          it.name AS incident_type_name
-
+          ${this._templateProjection()}
         FROM plan_templates pt
-
         INNER JOIN incident_types it
           ON pt.incident_type_id = it.id
-
         ORDER BY
           it.name,
           pt.version DESC
@@ -119,6 +164,12 @@ class PlanTemplateRepository extends BaseRepository {
       .all();
   }
 
+  /**
+   * Returns paginated templates with filtering, searching and sorting.
+   *
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findAllWithQuery(options = {}) {
     const columns = this.getColumns();
     const filters = {};
@@ -152,17 +203,24 @@ class PlanTemplateRepository extends BaseRepository {
     }
 
     const search = options.search ?? options.q;
+
     const sortBy = (options.sortBy || options.sort || "").trim();
+
     const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+
     const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+
     const page = Math.max(1, Number(options.page) || 1);
+
     const offset =
       options.offset !== undefined
         ? Math.max(0, Number(options.offset) || 0)
         : (page - 1) * limit;
 
     const where = this._buildWhereClause(filters, search, columns);
+
     const allowedSortColumns = [...columns, "incident_type_name"];
+
     const orderClause =
       sortBy && allowedSortColumns.includes(sortBy)
         ? `ORDER BY ${sortBy} ${sortOrder}`
@@ -170,13 +228,7 @@ class PlanTemplateRepository extends BaseRepository {
 
     const sql = `
       SELECT
-        pt.id,
-        pt.version,
-        pt.title,
-        pt.status,
-        pt.created_at,
-        pt.incident_type_id,
-        it.name AS incident_type_name
+        ${this._templateProjection()}
       FROM plan_templates pt
       INNER JOIN incident_types it
         ON pt.incident_type_id = it.id
@@ -190,7 +242,13 @@ class PlanTemplateRepository extends BaseRepository {
 
     const countResult = this.db
       .prepare(
-        `SELECT COUNT(*) AS total FROM plan_templates pt ${where.clause}`,
+        `
+        SELECT COUNT(*) AS total
+        FROM plan_templates pt
+        INNER JOIN incident_types it
+          ON pt.incident_type_id = it.id
+        ${where.clause}
+      `,
       )
       .get(...where.params);
 
@@ -209,24 +267,20 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Template By ID
-   * ============================================================
+   * Finds a template by ID including incident type details.
+   *
+   * @param {number} id
+   * @returns {object|undefined}
    */
   findByIdWithIncidentType(id) {
     return this.db
       .prepare(
         `
         SELECT
-          pt.*,
-
-          it.name AS incident_type_name
-
+          ${this._templateProjection()}
         FROM plan_templates pt
-
         INNER JOIN incident_types it
           ON pt.incident_type_id = it.id
-
         WHERE pt.id = ?
       `,
       )
@@ -234,11 +288,10 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Template History
-   * ============================================================
+   * Returns all versions of an incident type.
    *
-   * All versions for an incident type.
+   * @param {number} incidentTypeId
+   * @returns {object[]}
    */
   findByIncidentTypeId(incidentTypeId) {
     return this.db
@@ -254,75 +307,28 @@ class PlanTemplateRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Draft Templates
-   * ============================================================
-   */
-  findDrafts() {
-    return this.db
-      .prepare(
-        `
-        SELECT *
-        FROM plan_templates
-        WHERE status = 'draft'
-        ORDER BY created_at DESC
-      `,
-      )
-      .all();
-  }
-
-  /**
-   * ============================================================
-   * Approved Templates
-   * ============================================================
-   */
-  findApproved() {
-    return this.db
-      .prepare(
-        `
-        SELECT *
-        FROM plan_templates
-        WHERE status = 'approved'
-        ORDER BY created_at DESC
-      `,
-      )
-      .all();
-  }
-
-  /**
-   * ============================================================
-   * Latest Template Per Incident Type
-   * ============================================================
+   * Returns the latest non-retired template
+   * for each incident type.
+   *
+   * @returns {object[]}
    */
   findLatestWithIncidentType() {
     return this.db
       .prepare(
         `
-      SELECT
-        pt.id,
-        pt.version,
-        pt.title,
-        pt.status,
-        pt.created_at,
-        pt.incident_type_id,
-
-        it.name AS incident_type_name
-
-      FROM plan_templates pt
-
-      INNER JOIN incident_types it
-        ON pt.incident_type_id = it.id
-
-      WHERE pt.version = (
-        SELECT MAX(version)
-        FROM plan_templates p2
-        WHERE p2.incident_type_id = pt.incident_type_id
-      )
-
-      AND pt.status != 'retired'
-
-      ORDER BY it.name
-    `,
+        SELECT
+          ${this._templateProjection()}
+        FROM plan_templates pt
+        INNER JOIN incident_types it
+          ON pt.incident_type_id = it.id
+        WHERE pt.version = (
+          SELECT MAX(version)
+          FROM plan_templates p2
+          WHERE p2.incident_type_id = pt.incident_type_id
+        )
+        AND pt.status != 'retired'
+        ORDER BY it.name
+      `,
       )
       .all();
   }

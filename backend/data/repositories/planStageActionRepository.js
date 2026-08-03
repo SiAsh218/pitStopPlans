@@ -5,6 +5,21 @@ class PlanStageActionRepository extends BaseRepository {
     super("plan_stage_actions");
   }
 
+  /**
+   * Default action ordering.
+   *
+   * @returns {string}
+   */
+  _defaultOrder() {
+    return "ORDER BY action_number";
+  }
+
+  /**
+   * Gets actions for a stage.
+   *
+   * @param {number} stageId
+   * @returns {object[]}
+   */
   findByStageId(stageId) {
     return this.db
       .prepare(
@@ -12,91 +27,38 @@ class PlanStageActionRepository extends BaseRepository {
         SELECT *
         FROM plan_stage_actions
         WHERE plan_stage_id = ?
-        ORDER BY action_number
+        ${this._defaultOrder()}
       `,
       )
       .all(stageId);
   }
 
+  /**
+   * Gets paginated actions for a stage.
+   *
+   * @param {number} stageId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findByStageIdWithQuery(stageId, options = {}) {
-    const columns = this.getColumns();
-    const filters = { plan_stage_id: stageId };
-
-    if (options.filters && typeof options.filters === "object") {
-      Object.assign(filters, options.filters);
-    }
-
-    const reservedKeys = new Set([
-      "filters",
-      "search",
-      "q",
-      "sortBy",
-      "sort",
-      "order",
-      "limit",
-      "page",
-      "offset",
-    ]);
-
-    for (const [key, value] of Object.entries(options)) {
-      if (reservedKeys.has(key)) {
-        continue;
-      }
-
-      if (!columns.includes(key)) {
-        continue;
-      }
-
-      filters[key] = value;
-    }
-
-    const search = options.search ?? options.q;
-    const sortBy = (options.sortBy || options.sort || "").trim();
-    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
-    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
-    const page = Math.max(1, Number(options.page) || 1);
-    const offset =
-      options.offset !== undefined
-        ? Math.max(0, Number(options.offset) || 0)
-        : (page - 1) * limit;
-
-    const where = this._buildWhereClause(filters, search, columns);
-    const orderClause =
-      sortBy && columns.includes(sortBy)
-        ? `ORDER BY ${sortBy} ${sortOrder}`
-        : "ORDER BY action_number";
-
-    const sql = `
-      SELECT *
-      FROM plan_stage_actions
-      ${where.clause}
-      ${orderClause}
-      LIMIT ?
-      OFFSET ?
-    `;
-
-    const rows = this.db.prepare(sql).all(...where.params, limit, offset);
-
-    const countResult = this.db
-      .prepare(
-        `SELECT COUNT(*) AS total FROM plan_stage_actions ${where.clause}`,
-      )
-      .get(...where.params);
-
-    const total = countResult?.total || 0;
+    const result = super.findAllWithQuery({
+      ...options,
+      plan_stage_id: stageId,
+    });
 
     return {
-      rows,
-      meta: {
-        total,
-        limit,
-        offset,
-        page,
-        pageCount: Math.ceil(total / limit),
-      },
+      ...result,
+      rows: result.rows.sort((a, b) => a.action_number - b.action_number),
     };
   }
 
+  /**
+   * Gets paginated actions with roles.
+   *
+   * @param {number} stageId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
   findByStageIdWithRolesQuery(stageId, options = {}) {
     const result = this.findByStageIdWithQuery(stageId, options);
 
@@ -109,6 +71,13 @@ class PlanStageActionRepository extends BaseRepository {
     };
   }
 
+  /**
+   * Finds an action by stage and action number.
+   *
+   * @param {number} stageId
+   * @param {number} actionNumber
+   * @returns {object|undefined}
+   */
   findByStageAndActionNumber(stageId, actionNumber) {
     return this.db
       .prepare(
@@ -122,6 +91,12 @@ class PlanStageActionRepository extends BaseRepository {
       .get(stageId, actionNumber);
   }
 
+  /**
+   * Gets roles assigned to an action.
+   *
+   * @param {number} actionId
+   * @returns {object[]}
+   */
   getRoles(actionId) {
     return this.db
       .prepare(
@@ -139,6 +114,12 @@ class PlanStageActionRepository extends BaseRepository {
       .all(actionId);
   }
 
+  /**
+   * Removes all role assignments.
+   *
+   * @param {number} actionId
+   * @returns {object}
+   */
   clearRoles(actionId) {
     return this.db
       .prepare(
@@ -151,18 +132,24 @@ class PlanStageActionRepository extends BaseRepository {
       .run(actionId);
   }
 
+  /**
+   * Replaces role assignments.
+   *
+   * @param {number} actionId
+   * @param {number[]} roleIds
+   */
   setRoles(actionId, roleIds = []) {
     const transaction = this.db.transaction(() => {
       this.clearRoles(actionId);
 
       const stmt = this.db.prepare(`
-            INSERT INTO plan_stage_action_roles
-            (
-              plan_stage_action_id,
-              role_id
-            )
-            VALUES (?, ?)
-          `);
+        INSERT INTO plan_stage_action_roles
+        (
+          plan_stage_action_id,
+          role_id
+        )
+        VALUES (?, ?)
+      `);
 
       for (const roleId of roleIds) {
         stmt.run(actionId, roleId);
@@ -172,6 +159,12 @@ class PlanStageActionRepository extends BaseRepository {
     transaction();
   }
 
+  /**
+   * Gets an action with role assignments.
+   *
+   * @param {number} actionId
+   * @returns {object|null}
+   */
   getWithRoles(actionId) {
     const action = this.findById(actionId);
 
@@ -185,6 +178,12 @@ class PlanStageActionRepository extends BaseRepository {
     };
   }
 
+  /**
+   * Gets all actions for a stage with roles.
+   *
+   * @param {number} stageId
+   * @returns {object[]}
+   */
   findByStageIdWithRoles(stageId) {
     const actions = this.findByStageId(stageId);
 
@@ -195,13 +194,11 @@ class PlanStageActionRepository extends BaseRepository {
   }
 
   /**
-   * ============================================================
-   * Clone Action
-   * ============================================================
+   * Clones an action and its role assignments.
    *
-   * Creates a copy of an existing action
-   * under a new stage and copies role
-   * assignments.
+   * @param {number} actionId
+   * @param {number} newStageId
+   * @returns {object|null}
    */
   cloneAction(actionId, newStageId) {
     const action = this.findById(actionId);
@@ -223,7 +220,7 @@ class PlanStageActionRepository extends BaseRepository {
 
     this.setRoles(
       result.lastInsertRowid,
-      roles.map((r) => r.id),
+      roles.map((role) => role.id),
     );
 
     return this.getWithRoles(result.lastInsertRowid);
