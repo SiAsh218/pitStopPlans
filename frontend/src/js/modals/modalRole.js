@@ -1,4 +1,4 @@
-import { createRole } from "../services/roleService.js";
+import { createRole, updateRole } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
 
 export function initModalRole() {
@@ -14,19 +14,28 @@ export function initModalRole() {
     e.preventDefault();
 
     try {
-      const name = document.getElementById("modal-role-name").value;
+      const name = document.getElementById("modal-role-name").value.trim();
+      const roleId = Number(
+        document.getElementById("modal-role-id").value || 0,
+      );
 
-      await createRole({
-        name,
-      });
+      if (!name) {
+        throw new Error("Role name is required");
+      }
 
-      showSuccess("Role created successfully");
+      if (roleId > 0) {
+        await updateRole(roleId, { name });
+        showSuccess("Role updated successfully");
+      } else {
+        await createRole({ name });
+        showSuccess("Role created successfully");
+      }
 
       location.reload();
     } catch (err) {
       console.error(err);
 
-      showError("Failed to create role");
+      showError(err.message || "Failed to save role");
     }
   });
 }

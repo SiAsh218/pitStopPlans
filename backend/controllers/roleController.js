@@ -56,7 +56,7 @@ class RoleController {
   }
 
   update(req, res) {
-    const role = roleService.updateRole(Number(req.params.id), req.body.name);
+    const role = roleService.updateRole(Number(req.params.id), req.body);
 
     this._sendJSON(res, 200, {
       success: true,

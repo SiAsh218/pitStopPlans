@@ -1,4 +1,4 @@
-import { getRoles, createRole, deleteRole } from "../services/roleService.js";
+import { getRoles, createRole, updateRole } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
 
 let allRoles = [];
@@ -18,7 +18,6 @@ export async function initRolesPage() {
 
   wireSearch();
   wireAddRoleButton();
-  wireModal();
   await loadRoles();
 }
 
@@ -55,11 +54,17 @@ function renderRoles(roles) {
         <article class="card">
           <div class="card__content">
             <h2>${role.name}</h2>
+            <span class="badge ${role.active ? "badge--active" : "badge--disabled"}">
+              ${role.active ? "Active" : "Disabled"}
+            </span>
           </div>
 
           <div class="card__actions">
-            <button class="btn btn-secondary btn-delete-role" data-role-id="${role.id}">
-              Delete
+            <button class="btn btn-secondary btn-edit-role" data-role-id="${role.id}" data-role-name="${role.name}">
+              Edit
+            </button>
+            <button class="btn btn-secondary btn-toggle-role" data-role-id="${role.id}" data-role-active="${role.active}">
+              ${role.active ? "Disable" : "Enable"}
             </button>
           </div>
         </article>
@@ -67,24 +72,53 @@ function renderRoles(roles) {
     )
     .join("");
 
-  wireDeleteButtons();
+  wireEditButtons();
+  wireToggleButtons();
 }
 
-function wireDeleteButtons() {
-  document.querySelectorAll(".btn-delete-role").forEach((button) => {
-    button.addEventListener("click", async () => {
+function wireEditButtons() {
+  document.querySelectorAll(".btn-edit-role").forEach((button) => {
+    button.addEventListener("click", () => {
       const roleId = Number(button.dataset.roleId);
+      const roleName = button.dataset.roleName || "";
 
-      if (!confirm("Delete this role?")) {
+      const modal = document.getElementById("modal-form-role");
+      const roleTitle = document.getElementById("modal-role-title");
+      const roleNameInput = document.getElementById("modal-role-name");
+      const roleIdInput = document.getElementById("modal-role-id");
+      const roleSubmit = document.getElementById("modal-role-submit");
+
+      if (
+        !modal ||
+        !roleTitle ||
+        !roleNameInput ||
+        !roleIdInput ||
+        !roleSubmit
+      ) {
         return;
       }
 
+      roleTitle.textContent = "Edit Operational Role";
+      roleSubmit.textContent = "Save Changes";
+      roleNameInput.value = roleName;
+      roleIdInput.value = String(roleId);
+      modal.classList.remove("hidden");
+    });
+  });
+}
+
+function wireToggleButtons() {
+  document.querySelectorAll(".btn-toggle-role").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const roleId = Number(button.dataset.roleId);
+      const isActive = Number(button.dataset.roleActive) === 1;
+
       try {
-        await deleteRole(roleId);
-        showSuccess("Role deleted successfully");
+        await updateRole(roleId, { active: !isActive });
+        showSuccess(`Role ${isActive ? "disabled" : "enabled"} successfully`);
         await loadRoles();
       } catch (err) {
-        showError(err.message || "Failed to delete role");
+        showError(err.message || "Failed to update role status");
       }
     });
   });
@@ -195,51 +229,19 @@ function wireSearch() {
 function wireAddRoleButton() {
   document.getElementById("btn-add-role")?.addEventListener("click", () => {
     const modal = document.getElementById("modal-form-role");
+    const roleTitle = document.getElementById("modal-role-title");
+    const roleNameInput = document.getElementById("modal-role-name");
+    const roleIdInput = document.getElementById("modal-role-id");
+    const roleSubmit = document.getElementById("modal-role-submit");
 
-    if (!modal) {
+    if (!modal || !roleTitle || !roleNameInput || !roleIdInput || !roleSubmit) {
       return;
     }
 
-    document.getElementById("modal-role-title").textContent =
-      "Add Operational Role";
-    document.getElementById("modal-role-name").value = "";
+    roleTitle.textContent = "Add Operational Role";
+    roleSubmit.textContent = "Create Role";
+    roleNameInput.value = "";
+    roleIdInput.value = "";
     modal.classList.remove("hidden");
   });
-}
-
-function wireModal() {
-  const modal = document.getElementById("modal-form-role");
-
-  if (!modal) {
-    return;
-  }
-
-  modal.querySelector(".modal-form__close")?.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
-
-  modal.querySelector(".modal-form__overlay")?.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
-
-  modal
-    .querySelector(".modal-form__form")
-    ?.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      try {
-        const name = document.getElementById("modal-role-name").value.trim();
-
-        if (!name) {
-          throw new Error("Role name is required");
-        }
-
-        await createRole({ name });
-        showSuccess("Operational role added successfully");
-        modal.classList.add("hidden");
-        await loadRoles();
-      } catch (err) {
-        showError(err.message || "Failed to create role");
-      }
-    });
 }

@@ -20,6 +20,8 @@ const userState = {
   limit: 10,
 };
 
+let editingUser = null;
+
 export async function initUsersPage() {
   const container = document.getElementById("users-list");
 
@@ -47,13 +49,17 @@ export async function initUsersPage() {
   wireEditUserForm();
 }
 
-function wireCreateUserButton() {
-  document.getElementById("btn-create-user")?.addEventListener("click", () => {
-    const rolesContainer = document.getElementById("new-user-roles");
+function renderNewUserRoles(showDisabled = false) {
+  const rolesContainer = document.getElementById("new-user-roles");
+  if (!rolesContainer) {
+    return;
+  }
 
-    rolesContainer.innerHTML = allRoles
-      .map(
-        (role) => `
+  const visibleRoles = allRoles.filter((role) => role.active || showDisabled);
+
+  rolesContainer.innerHTML = visibleRoles
+    .map(
+      (role) => `
             <label>
               <input
                 type="checkbox"
@@ -64,8 +70,53 @@ function wireCreateUserButton() {
             </label>
             <br>
           `,
-      )
-      .join("");
+    )
+    .join("");
+}
+
+function renderEditUserRoles(user, showDisabled = false) {
+  const roleContainer = document.getElementById("edit-user-roles");
+  if (!roleContainer) {
+    return;
+  }
+
+  const selectedRoleIds = user.job_roles.map((role) => role.id);
+
+  const visibleRoles = allRoles.filter(
+    (role) => role.active || showDisabled || selectedRoleIds.includes(role.id),
+  );
+
+  roleContainer.innerHTML = visibleRoles
+    .map(
+      (role) => `
+          <label>
+            <input
+              type="checkbox"
+              value="${role.id}"
+              ${selectedRoleIds.includes(role.id) ? "checked" : ""}
+            />
+
+            ${role.name}${!role.active ? " (disabled)" : ""}
+          </label>
+          <br>
+        `,
+    )
+    .join("");
+}
+
+function wireCreateUserButton() {
+  document.getElementById("btn-create-user")?.addEventListener("click", () => {
+    const showDisabledToggle = document.getElementById(
+      "show-disabled-new-user-roles",
+    );
+
+    if (showDisabledToggle) {
+      showDisabledToggle.checked = false;
+      showDisabledToggle.onchange = () =>
+        renderNewUserRoles(showDisabledToggle.checked);
+    }
+
+    renderNewUserRoles(false);
 
     document
       .getElementById("modal-form-create-user")
@@ -472,30 +523,25 @@ async function openEditUserModal(userId) {
       return;
     }
 
+    editingUser = user;
+
     document.getElementById("edit-user-id").value = user.id;
 
     document.getElementById("edit-user-email").value = user.email;
 
     document.getElementById("edit-user-role").value = user.role;
 
-    const roleContainer = document.getElementById("edit-user-roles");
+    const showDisabledToggle = document.getElementById(
+      "show-disabled-edit-user-roles",
+    );
 
-    roleContainer.innerHTML = allRoles
-      .map(
-        (role) => `
-          <label>
-            <input
-              type="checkbox"
-              value="${role.id}"
-              ${user.job_roles.some((r) => r.id === role.id) ? "checked" : ""}
-            />
+    if (showDisabledToggle) {
+      showDisabledToggle.checked = false;
+      showDisabledToggle.onchange = () =>
+        renderEditUserRoles(user, showDisabledToggle.checked);
+    }
 
-            ${role.name}
-          </label>
-          <br>
-        `,
-      )
-      .join("");
+    renderEditUserRoles(user, false);
 
     document.getElementById("edit-user-password").value = "";
 

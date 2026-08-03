@@ -62,9 +62,19 @@ function initialiseDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS roles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE NOT NULL
+      name TEXT UNIQUE NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1
     );
   `);
+
+  const roleColumns = db
+    .prepare("PRAGMA table_info(roles)")
+    .all()
+    .map((column) => column.name);
+
+  if (!roleColumns.includes("active")) {
+    db.exec(`ALTER TABLE roles ADD COLUMN active INTEGER NOT NULL DEFAULT 1;`);
+  }
 
   /**
    * ============================================================

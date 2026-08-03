@@ -25,16 +25,30 @@ class RoleService {
     return roleRepository.findById(result.lastInsertRowid);
   }
 
-  updateRole(id, name) {
-    const existing = roleRepository.findByName(name);
+  updateRole(id, data) {
+    const fields =
+      typeof data === "string"
+        ? { name: data }
+        : {
+            ...(data.name !== undefined ? { name: data.name } : {}),
+            ...(data.active !== undefined
+              ? { active: data.active ? 1 : 0 }
+              : {}),
+          };
 
-    if (existing && existing.id !== id) {
-      throw new AppError("Role already exists", 409);
+    if (!Object.keys(fields).length) {
+      throw new AppError("No role changes provided", 400);
     }
 
-    roleRepository.updateById(id, {
-      name,
-    });
+    if (fields.name) {
+      const existing = roleRepository.findByName(fields.name);
+
+      if (existing && existing.id !== id) {
+        throw new AppError("Role already exists", 409);
+      }
+    }
+
+    roleRepository.updateById(id, fields);
 
     return roleRepository.findById(id);
   }

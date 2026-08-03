@@ -390,7 +390,22 @@ function wireEditActionButtons() {
   document.querySelectorAll(".btn-edit-action").forEach((button) => {
     button.addEventListener("click", async (e) => {
       e.stopPropagation();
-      await renderActionRoleCheckboxes();
+      const selectedRoleIds = JSON.parse(button.dataset.roleIds || "[]");
+      const showDisabledToggle = document.getElementById(
+        "show-disabled-action-roles",
+      );
+
+      if (showDisabledToggle) {
+        showDisabledToggle.checked = false;
+        showDisabledToggle.onchange = async () => {
+          await renderActionRoleCheckboxes(
+            selectedRoleIds,
+            showDisabledToggle.checked,
+          );
+        };
+      }
+
+      await renderActionRoleCheckboxes(selectedRoleIds, false);
 
       document.getElementById("modal-action-number").disabled = false;
       document.getElementById("modal-action-title-input").disabled = false;
@@ -402,8 +417,6 @@ function wireEditActionButtons() {
       document
         .getElementById("modal-action-roles")
         .closest(".modal-form__group").style.display = "";
-
-      const selectedRoleIds = JSON.parse(button.dataset.roleIds || "[]");
 
       document.querySelectorAll(".action-role-checkbox").forEach((checkbox) => {
         checkbox.disabled = false;
@@ -842,14 +855,24 @@ function wireAddRoleButton() {
   });
 }
 
-async function renderActionRoleCheckboxes() {
+async function renderActionRoleCheckboxes(
+  selectedRoleIds = [],
+  showDisabled = false,
+) {
   const roles = await getRoles();
+  const selectedIds = new Set(selectedRoleIds.map(Number));
+
+  const visibleRoles = roles.filter(
+    (role) => role.active || showDisabled || selectedIds.has(role.id),
+  );
 
   const container = document.getElementById("modal-action-roles");
 
   container.innerHTML = "";
 
-  roles.forEach((role) => {
+  visibleRoles.forEach((role) => {
+    const disabledLabel = !role.active ? " (disabled)" : "";
+
     container.insertAdjacentHTML(
       "beforeend",
       `
@@ -859,9 +882,10 @@ async function renderActionRoleCheckboxes() {
             type="checkbox"
             class="action-role-checkbox"
             value="${role.id}"
+            ${selectedIds.has(role.id) ? "checked" : ""}
           >
 
-          ${role.name}
+          ${role.name}${disabledLabel}
 
         </label>
       `,
@@ -872,7 +896,22 @@ async function renderActionRoleCheckboxes() {
 function wireActionButtons() {
   document.querySelectorAll(".btn-add-action").forEach((button) => {
     button.addEventListener("click", async () => {
-      await renderActionRoleCheckboxes();
+      const selectedRoleIds = [];
+      const showDisabledToggle = document.getElementById(
+        "show-disabled-action-roles",
+      );
+
+      if (showDisabledToggle) {
+        showDisabledToggle.checked = false;
+        showDisabledToggle.onchange = async () => {
+          await renderActionRoleCheckboxes(
+            selectedRoleIds,
+            showDisabledToggle.checked,
+          );
+        };
+      }
+
+      await renderActionRoleCheckboxes(selectedRoleIds, false);
 
       document.getElementById("modal-action-id").value = "";
       document.getElementById("modal-action-stage-id").value =
