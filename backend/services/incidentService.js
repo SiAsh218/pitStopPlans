@@ -191,20 +191,26 @@ class IncidentService {
 
     const template = this._getLatestApprovedTemplate(data.incident_type_id);
 
-    const result = incidentRepository.insertIncident({
-      incident_type_id: data.incident_type_id,
-      plan_template_id: template.id,
-      template_version: template.version,
-      title: data.title,
-      description: data.description ?? null,
-      status: "active",
-      created_by: userId,
-      incident_manager_id: userId,
+    let incidentId;
+
+    const transaction = incidentRepository.db.transaction(() => {
+      const result = incidentRepository.insertIncident({
+        incident_type_id: data.incident_type_id,
+        plan_template_id: template.id,
+        template_version: template.version,
+        title: data.title,
+        description: data.description ?? null,
+        status: "active",
+        created_by: userId,
+        incident_manager_id: userId,
+      });
+
+      incidentId = result.lastInsertRowid;
+
+      this._createIncidentActions(incidentId, template.id);
     });
 
-    const incidentId = result.lastInsertRowid;
-
-    this._createIncidentActions(incidentId, template.id);
+    transaction();
 
     return this.getIncidentById(incidentId);
   }

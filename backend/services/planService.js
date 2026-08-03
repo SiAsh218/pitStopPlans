@@ -105,47 +105,55 @@ class PlanService {
   createPlan(data) {
     this._validateIncidentTypeDoesNotExist(data.incidentType.name);
 
-    const incidentTypeResult = incidentTypeRepository.insert({
-      name: data.incidentType.name,
-      description: data.incidentType.description,
-    });
+    let templateId;
 
-    const incidentTypeId = incidentTypeResult.lastInsertRowid;
-
-    const templateResult = planTemplateRepository.insert({
-      incident_type_id: incidentTypeId,
-      version: 1,
-    });
-
-    const templateId = templateResult.lastInsertRowid;
-
-    for (const stage of data.stages) {
-      const stageResult = planStageRepository.insert({
-        plan_template_id: templateId,
-        stage_number: Number(stage.stageNumber),
-        name: stage.stageName,
-        due_from_incident_start: Number(stage.minsFromIncStart),
+    const transaction = planTemplateRepository.db.transaction(() => {
+      const incidentTypeResult = incidentTypeRepository.insert({
+        name: data.incidentType.name,
+        description: data.incidentType.description,
       });
 
-      const stageId = stageResult.lastInsertRowid;
+      const incidentTypeId = incidentTypeResult.lastInsertRowid;
 
-      for (const action of stage.actions || []) {
-        const actionResult = planStageActionRepository.insert({
-          plan_stage_id: stageId,
-          action_number: action.actionNumber,
-          title: action.title,
-          description: action.description,
-          due_from_stage_start: action.dueFromStageStart,
-          due_from_incident_start: action.dueFromIncidentStart,
+      const templateResult = planTemplateRepository.insert({
+        incident_type_id: incidentTypeId,
+        version: 1,
+        title: data.title,
+        status: "draft",
+      });
+
+      templateId = templateResult.lastInsertRowid;
+
+      for (const stage of data.stages) {
+        const stageResult = planStageRepository.insert({
+          plan_template_id: templateId,
+          stage_number: Number(stage.stageNumber),
+          name: stage.stageName,
+          due_from_incident_start: Number(stage.minsFromIncStart),
         });
 
-        const actionId = actionResult.lastInsertRowid;
+        const stageId = stageResult.lastInsertRowid;
 
-        if (action.roleIds?.length) {
-          planStageActionRepository.setRoles(actionId, action.roleIds);
+        for (const action of stage.actions || []) {
+          const actionResult = planStageActionRepository.insert({
+            plan_stage_id: stageId,
+            action_number: action.actionNumber,
+            title: action.title,
+            description: action.description,
+            due_from_stage_start: action.dueFromStageStart,
+            due_from_incident_start: action.dueFromIncidentStart,
+          });
+
+          const actionId = actionResult.lastInsertRowid;
+
+          if (action.roleIds?.length) {
+            planStageActionRepository.setRoles(actionId, action.roleIds);
+          }
         }
       }
-    }
+    });
+
+    transaction();
 
     return this.getPlan(templateId);
   }

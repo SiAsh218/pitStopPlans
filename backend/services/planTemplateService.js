@@ -285,6 +285,12 @@ class PlanTemplateService {
 
   /**
    * Clone template.
+   *
+   * Creates:
+   * - New template version
+   * - Copies stages
+   * - Copies actions
+   * - Copies role assignments
    */
   cloneTemplate(id, userId) {
     const template = this._getTemplateOrThrow(id);
@@ -301,22 +307,44 @@ class PlanTemplateService {
       );
     }
 
-    const latestVersion =
-      planTemplateRepository.findLatestVersionByIncidentType(
-        template.incident_type_id,
-      );
+    let newTemplateId;
+    let nextVersion;
 
-    const nextVersion = latestVersion.version + 1;
+    const transaction = planTemplateRepository.db.transaction(() => {
+      const latestVersion =
+        planTemplateRepository.findLatestVersionByIncidentType(
+          template.incident_type_id,
+        );
 
-    const templateResult = planTemplateRepository.insert({
-      incident_type_id: template.incident_type_id,
-      version: nextVersion,
-      title: template.title,
-      status: "draft",
-      created_by: userId,
+      nextVersion = latestVersion.version + 1;
+
+      const templateResult = planTemplateRepository.insert({
+        incident_type_id: template.incident_type_id,
+        version: nextVersion,
+        title: template.title,
+        status: "draft",
+        created_by: userId,
+      });
+
+      newTemplateId = templateResult.lastInsertRowid;
+
+      const stages = planStageRepository.findByTemplateId(template.id);
+
+      for (const stage of stages) {
+        const newStage = planStageRepository.cloneStage(
+          stage.id,
+          newTemplateId,
+        );
+
+        const actions = planStageActionRepository.findByStageId(stage.id);
+
+        for (const action of actions) {
+          planStageActionRepository.cloneAction(action.id, newStage.id);
+        }
+      }
     });
 
-    const newTemplateId = templateResult.lastInsertRowid;
+    transaction();
 
     auditService.log(userId, "CLONE_TEMPLATE", "plan_template", newTemplateId, {
       sourceTemplateId: template.id,
@@ -324,18 +352,6 @@ class PlanTemplateService {
       sourceVersion: template.version,
       newVersion: nextVersion,
     });
-
-    const stages = planStageRepository.findByTemplateId(template.id);
-
-    for (const stage of stages) {
-      const newStage = planStageRepository.cloneStage(stage.id, newTemplateId);
-
-      const actions = planStageActionRepository.findByStageId(stage.id);
-
-      for (const action of actions) {
-        planStageActionRepository.cloneAction(action.id, newStage.id);
-      }
-    }
 
     return this.getPlanTemplateById(newTemplateId);
   }
