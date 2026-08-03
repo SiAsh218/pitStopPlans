@@ -8,49 +8,41 @@
  * - Allows attaching an HTTP status code to errors
  * - Enables consistent error handling in the router
  *
- * Why this exists:
- * ------------------------------------------------------------
- * Native JavaScript Error only supports:
- *   - message
- *
- * But APIs need:
- *   ✅ HTTP status codes (e.g. 404, 401, 500)
- *   ✅ Structured error handling
- *
- * This class extends Error to include:
- *   - message → human-readable error
- *   - statusCode → HTTP response code
- *
  * ============================================================
  */
 
+/**
+ * Application-specific error that includes
+ * an HTTP status code.
+ *
+ * @extends Error
+ */
 class AppError extends Error {
   /**
-   * Create a new application error
+   * Creates a new application error.
    *
-   * @param {string} message - Error message
-   * @param {number} statusCode - HTTP status code
-   *
-   * Example:
-   *   throw new AppError("Not Found", 404)
+   * @param {string} message - Human-readable error message.
+   * @param {number} [statusCode=500] - HTTP status code.
    */
-  constructor(message, statusCode) {
-    /**
-     * Call parent Error constructor
-     * Sets the error message
-     */
+  constructor(message, statusCode = 500) {
     super(message);
 
     /**
-     * HTTP status code for this error
+     * Error name for debugging and logging.
      *
-     * Used by router to set response status
+     * @type {string}
+     */
+    this.name = "AppError";
+
+    /**
+     * HTTP status code associated with the error.
+     *
+     * @type {number}
      */
     this.statusCode = statusCode;
+
+    Error.captureStackTrace?.(this, AppError);
   }
 }
 
-/**
- * Export custom error class
- */
 module.exports = AppError;

@@ -15,7 +15,6 @@
  * IMPORTANT:
  * - Uses better-sqlite3 (synchronous SQLite client)
  * - All repositories use this shared instance
- *
  * ============================================================
  */
 
@@ -23,48 +22,27 @@ const Database = require("better-sqlite3");
 const path = require("path");
 
 /**
- * ============================================================
- * Database file path
- * ============================================================
+ * Absolute path to the SQLite database file.
  *
- * Resolves the database file location relative to this directory
+ * @type {string}
  */
 const dbPath = path.join(__dirname, "database.sqlite");
 
 /**
- * ============================================================
- * Create database instance
- * ============================================================
+ * Shared SQLite database connection.
  *
- * Behaviour:
- * - If file exists → opens existing DB
- * - If file does not exist → creates new DB file
+ * If the database file exists it is opened.
+ * If it does not exist it will be created automatically.
+ *
+ * @type {import("better-sqlite3").Database}
  */
 const db = new Database(dbPath);
 
 /**
- * ============================================================
- * Enable Foreign Key Constraints
- * ============================================================
+ * Enable foreign key enforcement.
  *
- * SQLite does NOT enforce foreign keys by default.
- *
- * This ensures:
- * ✅ Referential integrity
- * ✅ Prevents invalid relationships between tables
- *
- * Example:
- * - Cannot insert a child record that references a non-existent parent
+ * SQLite does not enforce foreign keys by default.
  */
 db.pragma("foreign_keys = ON");
 
-/**
- * ============================================================
- * Export shared database instance
- * ============================================================
- *
- * This ensures:
- * ✅ Single connection across application
- * ✅ Consistent DB usage in all repositories
- */
 module.exports = db;
