@@ -5,97 +5,76 @@
  *
  * Purpose:
  * - Matches incoming requests to routes
- * - Executes global middleware (router.use)
+ * - Executes global middleware
  * - Executes route-specific middleware/handlers
  * - Handles errors centrally
- *
- * Responsibilities:
- * Route matching (method + path)
- * Parameter extraction (e.g. /:id)
- * Middleware pipeline execution
- * Controller execution
- * Error handling
- *
- * This acts as the core of the backend framework.
  * ============================================================
  */
 
-const authRoutes = require("./routes/authRoutes.js");
-const viewRoutes = require("./routes/viewRoutes.js");
-const incidentTypeRoutes = require("./routes/incidentTypeRoutes.js");
-const planTemplateRoutes = require("./routes/planTemplateRoutes.js");
-const planStageRoutes = require("./routes/planStageRoutes.js");
-const planRoutes = require("./routes/planRoutes.js");
-const roleRoutes = require("./routes/roleRoutes.js");
-const planStageActionRoutes = require("./routes/planStageActionRoutes.js");
-const incidentRoutes = require("./routes/incidentRoutes.js");
-const incidentActionRoutes = require("./routes/incidentActionRoutes.js");
-const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes.js");
+const authRoutes = require("./routes/authRoutes");
+const viewRoutes = require("./routes/viewRoutes");
+const incidentTypeRoutes = require("./routes/incidentTypeRoutes");
+const planTemplateRoutes = require("./routes/planTemplateRoutes");
+const planStageRoutes = require("./routes/planStageRoutes");
+const planRoutes = require("./routes/planRoutes");
+const roleRoutes = require("./routes/roleRoutes");
+const planStageActionRoutes = require("./routes/planStageActionRoutes");
+const incidentRoutes = require("./routes/incidentRoutes");
+const incidentActionRoutes = require("./routes/incidentActionRoutes");
+const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes");
 const userRoutes = require("./routes/userRoutes");
-const auditLogRoutes = require("./routes/auditLogRoutes.js");
-const userPreferenceRoutes = require("./routes/userPreferenceRoutes.js");
+const auditLogRoutes = require("./routes/auditLogRoutes");
+const userPreferenceRoutes = require("./routes/userPreferenceRoutes");
 
 /**
- * Router class
- * Handles incoming requests and maps them to the correct handler
+ * Registered application routes.
+ *
+ * @type {Array<object>}
+ */
+const ROUTES = [
+  ...authRoutes,
+  ...viewRoutes,
+  ...incidentTypeRoutes,
+  ...planTemplateRoutes,
+  ...planStageRoutes,
+  ...planRoutes,
+  ...roleRoutes,
+  ...planStageActionRoutes,
+  ...incidentRoutes,
+  ...incidentActionRoutes,
+  ...incidentActionUpdateRoutes,
+  ...userRoutes,
+  ...auditLogRoutes,
+  ...userPreferenceRoutes,
+];
+
+/**
+ * Router responsible for request routing,
+ * middleware execution and error handling.
  */
 class Router {
   constructor() {
     /**
-     * ============================================================
-     * Route Definitions
-     * ============================================================
+     * Registered routes.
      *
-     * Each route defines:
-     * - method → HTTP method (GET, POST, etc.)
-     * - path → URL path (supports dynamic params)
-     * - handler → function OR array of middleware/functions
-     *
-     * Handlers can be:
-     * - single function
-     * - array [middleware, middleware, controller]
+     * @type {Array<object>}
      */
-    this.routes = [
-      ...authRoutes,
-      ...viewRoutes,
-      ...incidentTypeRoutes,
-      ...planTemplateRoutes,
-      ...planStageRoutes,
-      ...planRoutes,
-      ...roleRoutes,
-      ...planStageActionRoutes,
-      ...incidentRoutes,
-      ...incidentActionRoutes,
-      ...incidentActionUpdateRoutes,
-      ...userRoutes,
-      ...auditLogRoutes,
-      ...userPreferenceRoutes,
-    ];
+    this.routes = ROUTES;
 
     /**
-     * ============================================================
-     * Global Middleware Stack
-     * ============================================================
+     * Global middleware stack.
      *
-     * Middleware registered via:
-     *   router.use(fn) in app.js
-     *
-     * These run BEFORE route matching
+     * @type {Function[]}
      */
     this.middlewares = [];
   }
 
   /**
-   * ============================================================
-   * Main Request Handler
-   * ============================================================
+   * Handles an incoming request.
    *
-   * Flow:
-   * 1. Parse URL + pathname
-   * 2. Run global middleware
-   * 3. Match route
-   * 4. Execute route middleware/handlers
-   * 5. Handle errors
+   * @param {import("http").IncomingMessage} req
+   * @param {import("http").ServerResponse} res
+   * @returns {Promise<boolean>}
    */
   async handleRequest(req, res) {
     try {
@@ -106,11 +85,6 @@ class Router {
 
       const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
-      /**
-       * ========================================================
-       * 1. Run Global Middleware
-       * ========================================================
-       */
       const middlewareResult = await this._runMiddlewares(req, res);
 
       if (middlewareResult === false) {
@@ -121,76 +95,49 @@ class Router {
         return this._handleError(middlewareResult, req, res);
       }
 
-      /**
-       * ========================================================
-       * 2. Match Route
-       * ========================================================
-       */
       const match = this._matchRoute(req.method, pathname);
 
-      if (match) {
-        /**
-         * Attach route parameters to request
-         * Example: /trains/1 → req.params.id = "1"
-         */
-        req.params = match.params;
-
-        try {
-          /**
-           * Support both:
-           * - single handler
-           * - array of handlers (middleware chain)
-           */
-          const handlers = Array.isArray(match.handler)
-            ? match.handler
-            : [match.handler];
-
-          /**
-           * ====================================================
-           * 3. Execute Handler Chain
-           * ====================================================
-           */
-          for (const fn of handlers) {
-            await fn(req, res);
-          }
-
-          return true;
-        } catch (err) {
-          return this._handleError(err, req, res);
-        }
+      if (!match) {
+        return false;
       }
 
-      /**
-       * ========================================================
-       * 4. No Route Matched
-       * ========================================================
-       */
-      return false;
-    } catch (err) {
-      return this._handleError(err, req, res);
+      req.params = match.params;
+
+      try {
+        const handlers = Array.isArray(match.handler)
+          ? match.handler
+          : [match.handler];
+
+        for (const handler of handlers) {
+          await handler(req, res);
+        }
+
+        return true;
+      } catch (error) {
+        return this._handleError(error, req, res);
+      }
+    } catch (error) {
+      return this._handleError(error, req, res);
     }
   }
 
   /**
-   * ============================================================
-   * Execute Global Middleware Stack
-   * ============================================================
+   * Executes all registered global middleware.
    *
-   * Runs middleware in order of registration
+   * @param {import("http").IncomingMessage} req
+   * @param {import("http").ServerResponse} res
+   * @returns {Promise<boolean|Error>}
    */
   async _runMiddlewares(req, res) {
     for (const middleware of this.middlewares) {
       try {
         const result = await middleware(req, res);
 
-        /**
-         * Middleware can stop execution by returning false
-         */
         if (result === false) {
           return false;
         }
-      } catch (err) {
-        return err;
+      } catch (error) {
+        return error;
       }
     }
 
@@ -198,35 +145,38 @@ class Router {
   }
 
   /**
-   * ============================================================
-   * Register Middleware
-   * ============================================================
+   * Registers a middleware function.
    *
-   * Adds middleware to global stack
+   * @param {Function} fn
+   * @returns {void}
    */
   use(fn) {
     this.middlewares.push(fn);
   }
 
   /**
-   * ============================================================
-   * Central Error Handler
-   * ============================================================
+   * Sends a standardised error response.
    *
-   * Ensures all errors return consistent JSON responses
+   * @param {Error & {statusCode?: number}} error
+   * @param {import("http").IncomingMessage} req
+   * @param {import("http").ServerResponse} res
+   * @returns {boolean}
    */
-  _handleError(err, req, res) {
-    console.error("💥 Error:", err);
+  _handleError(error, req, res) {
+    console.error("Router Error:", error);
 
     if (res.headersSent) {
       return true;
     }
 
     const status =
-      err && typeof err.statusCode === "number" ? err.statusCode : 500;
-    const message = err && err.message ? err.message : "Internal Server Error";
+      typeof error?.statusCode === "number" ? error.statusCode : 500;
 
-    res.writeHead(status, { "Content-Type": "application/json" });
+    const message = error?.message ?? "Internal Server Error";
+
+    res.writeHead(status, {
+      "Content-Type": "application/json",
+    });
 
     res.end(
       JSON.stringify({
@@ -239,24 +189,27 @@ class Router {
   }
 
   /**
-   * ============================================================
-   * Route Matching (supports dynamic params)
-   * ============================================================
+   * Matches a request to a route definition.
    *
-   * Example:
-   * /api/trains/:id
+   * Supports dynamic route parameters:
+   * /users/:id
    *
-   * Matches:
-   * /api/trains/5 → { id: "5" }
+   * @param {string} method
+   * @param {string} pathname
+   * @returns {{handler: Function|Function[], params: Object}|null}
    */
   _matchRoute(method, pathname) {
     for (const route of this.routes) {
-      if (route.method !== method) continue;
+      if (route.method !== method) {
+        continue;
+      }
 
       const routeParts = route.path.split("/").filter(Boolean);
       const urlParts = pathname.split("/").filter(Boolean);
 
-      if (routeParts.length !== urlParts.length) continue;
+      if (routeParts.length !== urlParts.length) {
+        continue;
+      }
 
       const params = {};
       let match = true;
@@ -266,12 +219,11 @@ class Router {
         const urlPart = urlParts[i];
 
         if (routePart.startsWith(":")) {
-          /**
-           * Dynamic param
-           */
-          const key = routePart.slice(1);
-          params[key] = urlPart;
-        } else if (routePart !== urlPart) {
+          params[routePart.slice(1)] = urlPart;
+          continue;
+        }
+
+        if (routePart !== urlPart) {
           match = false;
           break;
         }

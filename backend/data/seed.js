@@ -388,50 +388,52 @@ function seedDatabase() {
      * ========================================
      */
     const insertAudit = db.prepare(`
-    INSERT INTO audit_log
-    (
-      user_id,
-      entity_type,
-      entity_id,
-      action,
-      field_name,
-      old_value,
-      new_value
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
+  INSERT INTO audit_logs
+  (
+    user_id,
+    action,
+    entity_type,
+    entity_id,
+    details
+  )
+  VALUES (?, ?, ?, ?, ?)
+`);
 
     insertAudit.run(
       adminUser.id,
+      "create",
       "incident",
       incidentId,
-      "create",
-      null,
-      null,
-      "active",
+      JSON.stringify({
+        status: "active",
+      }),
     );
 
     if (incidentActionIds.length > 0) {
       insertAudit.run(
         adminUser.id,
+        "update_status",
         "incident_action",
         incidentActionIds[0],
-        "update_status",
-        "status",
-        "pending",
-        "completed",
+        JSON.stringify({
+          field: "status",
+          from: "pending",
+          to: "completed",
+        }),
       );
     }
 
     if (incidentActionIds.length > 1) {
       insertAudit.run(
         adminUser.id,
+        "update_status",
         "incident_action",
         incidentActionIds[1],
-        "update_status",
-        "status",
-        "pending",
-        "in_progress",
+        JSON.stringify({
+          field: "status",
+          from: "pending",
+          to: "in_progress",
+        }),
       );
 
       console.log("✅ Live incident seeded");

@@ -6,6 +6,40 @@
 
 const db = require("./db");
 
+/**
+ * Ensures the roles table contains all required columns.
+ *
+ * Existing databases may have been created before the
+ * active column was introduced.
+ *
+ * @returns {void}
+ */
+function ensureRolesActiveColumn() {
+  const columns = db
+    .prepare("PRAGMA table_info(roles)")
+    .all()
+    .map((column) => column.name);
+
+  if (!columns.includes("active")) {
+    db.exec(`
+      ALTER TABLE roles
+      ADD COLUMN active INTEGER NOT NULL DEFAULT 1;
+    `);
+  }
+}
+
+/**
+ * Creates and updates the application database schema.
+ *
+ * Responsibilities:
+ * - Create tables if they do not exist
+ * - Apply lightweight schema migrations
+ * - Ensure required database structures exist
+ *
+ * Safe to run multiple times.
+ *
+ * @returns {void}
+ */
 function initialiseDatabase() {
   console.log("Initialising database...");
 
@@ -67,14 +101,7 @@ function initialiseDatabase() {
     );
   `);
 
-  const roleColumns = db
-    .prepare("PRAGMA table_info(roles)")
-    .all()
-    .map((column) => column.name);
-
-  if (!roleColumns.includes("active")) {
-    db.exec(`ALTER TABLE roles ADD COLUMN active INTEGER NOT NULL DEFAULT 1;`);
-  }
+  ensureRolesActiveColumn();
 
   /**
    * ============================================================
@@ -175,33 +202,21 @@ function initialiseDatabase() {
    * ============================================================
    * Plan Stage Action Roles
    * ============================================================
-   *
-   * Supports:
-   *
-   * Action:
-   * Notify Signaller
-   *
-   * Roles:
-   * Controller
-   * Duty Manager
-   *
-   * Stored as:
-   * action_id | role_id
-   * ----------|--------
-   *     1      |    1
-   *     1      |    2
    */
   db.exec(`
     CREATE TABLE IF NOT EXISTS plan_stage_action_roles (
       plan_stage_action_id INTEGER NOT NULL,
       role_id INTEGER NOT NULL,
+
       PRIMARY KEY (
         plan_stage_action_id,
         role_id
       ),
+
       FOREIGN KEY (plan_stage_action_id)
         REFERENCES plan_stage_actions(id)
         ON DELETE CASCADE,
+
       FOREIGN KEY (role_id)
         REFERENCES roles(id)
         ON DELETE CASCADE
@@ -221,12 +236,16 @@ function initialiseDatabase() {
       closed_at DATETIME,
       created_by INTEGER NOT NULL,
       incident_manager_id INTEGER,
+
       FOREIGN KEY (incident_type_id)
         REFERENCES incident_types(id),
+
       FOREIGN KEY (plan_template_id)
         REFERENCES plan_templates(id),
+
       FOREIGN KEY (created_by)
         REFERENCES users(id),
+
       FOREIGN KEY (incident_manager_id)
         REFERENCES users(id)
     );
@@ -249,31 +268,35 @@ function initialiseDatabase() {
       assigned_user_id INTEGER,
       started_at DATETIME,
       completed_at DATETIME,
+
       FOREIGN KEY (incident_id)
         REFERENCES incidents(id)
         ON DELETE CASCADE,
+
       FOREIGN KEY (assigned_user_id)
         REFERENCES users(id)
-  );
-`);
+    );
+  `);
 
   db.exec(`
-  CREATE TABLE IF NOT EXISTS incident_action_updates (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    incident_action_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    update_type TEXT NOT NULL,
-    note TEXT,
-    previous_status TEXT,
-    new_status TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (incident_action_id)
-      REFERENCES incident_actions(id)
-      ON DELETE CASCADE,
-    FOREIGN KEY (user_id)
-      REFERENCES users(id)
-  );
-`);
+    CREATE TABLE IF NOT EXISTS incident_action_updates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      incident_action_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      update_type TEXT NOT NULL,
+      note TEXT,
+      previous_status TEXT,
+      new_status TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (incident_action_id)
+        REFERENCES incident_actions(id)
+        ON DELETE CASCADE,
+
+      FOREIGN KEY (user_id)
+        REFERENCES users(id)
+    );
+  `);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_logs (
@@ -284,7 +307,8 @@ function initialiseDatabase() {
       entity_id INTEGER,
       details TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id)
+
+      FOREIGN KEY (user_id)
         REFERENCES users(id)
     );
   `);
