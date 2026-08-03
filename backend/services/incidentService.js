@@ -6,24 +6,21 @@ const planTemplateRepository = require("../data/repositories/planTemplateReposit
 const planStageRepository = require("../data/repositories/planStageRepository");
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 const incidentActionRepository = require("../data/repositories/incidentActionRepository");
-// const auditLogRepository = require("../data/repositories/auditLogRepository");
 
 class IncidentService {
   /**
-   * Convert DB row to API DTO
+   * Converts a database row into an API DTO.
+   *
+   * @param {object} row
+   * @returns {object}
    */
   _toDTO(row) {
     return {
       id: row.id,
-
       title: row.title,
-
       description: row.description,
-
       status: row.status,
-
       started_at: row.started_at,
-
       closed_at: row.closed_at,
 
       incident_type: {
@@ -44,7 +41,102 @@ class IncidentService {
   }
 
   /**
-   * Get all incidents
+   * Validates an incident type exists.
+   *
+   * @param {number} incidentTypeId
+   * @returns {object}
+   */
+  _validateIncidentType(incidentTypeId) {
+    const incidentType = incidentTypeRepository.findById(incidentTypeId);
+
+    if (!incidentType) {
+      throw new AppError("Incident type not found", 404);
+    }
+
+    return incidentType;
+  }
+
+  /**
+   * Retrieves the latest approved template.
+   *
+   * @param {number} incidentTypeId
+   * @returns {object}
+   */
+  _getLatestApprovedTemplate(incidentTypeId) {
+    const template =
+      planTemplateRepository.findLatestApprovedVersionByIncidentType(
+        incidentTypeId,
+      );
+
+    if (!template) {
+      throw new AppError(
+        "No approved template exists for this incident type",
+        400,
+      );
+    }
+
+    return template;
+  }
+
+  /**
+   * Retrieves an incident or throws.
+   *
+   * @param {number} id
+   * @returns {object}
+   */
+  _getIncidentOrThrow(id) {
+    const incident = incidentRepository.findById(id);
+
+    if (!incident) {
+      throw new AppError("Incident not found", 404);
+    }
+
+    return incident;
+  }
+
+  /**
+   * Gets summary statistics for actions.
+   *
+   * @param {Array<object>} actions
+   * @returns {object}
+   */
+  _getActionSummary(actions) {
+    let completed = 0;
+    let inProgress = 0;
+    let pending = 0;
+
+    for (const action of actions) {
+      switch (action.status) {
+        case "completed":
+          completed++;
+          break;
+
+        case "in_progress":
+          inProgress++;
+          break;
+
+        default:
+          pending++;
+      }
+    }
+
+    return {
+      total_actions: actions.length,
+      completed_actions: completed,
+      in_progress_actions: inProgress,
+      pending_actions: pending,
+      completion_percentage:
+        actions.length === 0
+          ? 0
+          : Math.round((completed / actions.length) * 100),
+    };
+  }
+
+  /**
+   * Gets all incidents.
+   *
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
    */
   getAllIncidents(options = {}) {
     const result = incidentRepository.findAllWithDetailsQuery(options);
@@ -53,6 +145,11 @@ class IncidentService {
       rows: result.rows.map((incident) => {
         const dto = this._toDTO(incident);
 
+        /**
+         * NOTE:
+         * Potential N+1 query pattern.
+         * Optimise if incident volumes become large.
+         */
         const actions = incidentActionRepository.findByIncidentIdWithRoles(
           incident.id,
         );
@@ -61,12 +158,16 @@ class IncidentService {
 
         return dto;
       }),
+
       meta: result.meta,
     };
   }
 
   /**
-   * Get incident by id
+   * Gets an incident by ID.
+   *
+   * @param {number} id
+   * @returns {object|null}
    */
   getIncidentById(id) {
     const incident = incidentRepository.findByIdWithDetails(id);
@@ -79,33 +180,17 @@ class IncidentService {
   }
 
   /**
-   * Create incident
+   * Creates a new incident.
+   *
+   * @param {object} data
+   * @param {number} userId
+   * @returns {object|null}
    */
   createIncident(data, userId) {
-    const incidentType = incidentTypeRepository.findById(data.incident_type_id);
+    this._validateIncidentType(data.incident_type_id);
 
-    if (!incidentType) {
-      throw new AppError("Incident type not found", 404);
-    }
+    const template = this._getLatestApprovedTemplate(data.incident_type_id);
 
-    /**
-     * Find latest approved template
-     */
-    const template =
-      planTemplateRepository.findLatestApprovedVersionByIncidentType(
-        data.incident_type_id,
-      );
-
-    if (!template) {
-      throw new AppError(
-        "No approved template exists for this incident type",
-        400,
-      );
-    }
-
-    /**
-     * Create Incident
-     */
     const result = incidentRepository.insertIncident({
       incident_type_id: data.incident_type_id,
       plan_template_id: template.id,
@@ -119,31 +204,17 @@ class IncidentService {
 
     const incidentId = result.lastInsertRowid;
 
-    /**
-     * Create action snapshots
-     */
     this._createIncidentActions(incidentId, template.id);
-
-    /**
-     * Audit record
-     */
-    // if (auditLogRepository?.insert) {
-    //   auditLogRepository.insert({
-    //     user_id: userId,
-    //     entity_type: "incident",
-    //     entity_id: incidentId,
-    //     action: "create",
-    //     field_name: null,
-    //     old_value: null,
-    //     new_value: "active",
-    //   });
-    // }
 
     return this.getIncidentById(incidentId);
   }
 
   /**
-   * Create runtime incident action snapshots
+   * Creates runtime incident action snapshots.
+   *
+   * @param {number} incidentId
+   * @param {number} templateId
+   * @returns {void}
    */
   _createIncidentActions(incidentId, templateId) {
     const stages = planStageRepository.findByTemplateId(templateId);
@@ -172,12 +243,15 @@ class IncidentService {
     }
   }
 
+  /**
+   * Closes an incident.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {object|null}
+   */
   closeIncident(id, userId) {
-    const incident = incidentRepository.findById(id);
-
-    if (!incident) {
-      throw new AppError("Incident not found", 404);
-    }
+    const incident = this._getIncidentOrThrow(id);
 
     if (incident.status === "closed") {
       return this.getIncidentById(id);
@@ -191,6 +265,12 @@ class IncidentService {
     return this.getIncidentById(id);
   }
 
+  /**
+   * Gets dashboard data for an incident.
+   *
+   * @param {number} id
+   * @returns {object|null}
+   */
   getIncidentDashboard(id) {
     const incident = this.getIncidentById(id);
 
@@ -204,26 +284,6 @@ class IncidentService {
       incident,
       summary: this._getActionSummary(actions),
       actions,
-    };
-  }
-
-  _getActionSummary(actions) {
-    const completed = actions.filter((a) => a.status === "completed").length;
-
-    const inProgress = actions.filter((a) => a.status === "in_progress").length;
-
-    const pending = actions.filter((a) => a.status === "pending").length;
-
-    return {
-      total_actions: actions.length,
-      completed_actions: completed,
-      in_progress_actions: inProgress,
-      pending_actions: pending,
-
-      completion_percentage:
-        actions.length === 0
-          ? 0
-          : Math.round((completed / actions.length) * 100),
     };
   }
 }

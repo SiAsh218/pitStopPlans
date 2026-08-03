@@ -6,35 +6,35 @@ const incidentActionUpdateService = require("./incidentActionUpdateService");
 
 class IncidentActionService {
   /**
-   * ============================================================
-   * Get Actions For Incident
-   * ============================================================
+   * Get action or throw.
+   *
+   * @param {number} id
+   * @returns {object}
    */
-  getByIncident(incidentId, options = {}) {
-    return incidentActionRepository.findByIncidentIdWithRolesQuery(
-      incidentId,
-      options,
-    );
+  _getActionOrThrow(id) {
+    const action = incidentActionRepository.findById(id);
+
+    if (!action) {
+      throw new AppError("Action not found", 404);
+    }
+
+    return action;
   }
 
   /**
-   * ============================================================
-   * Get Action By ID
-   * ============================================================
+   * Validates user can update an action.
+   *
+   * @param {number} actionId
+   * @param {object} user
+   * @returns {void}
    */
-  getById(id) {
-    return incidentActionRepository.findByIdWithDetails(id);
-  }
-
-  validateUserCanUpdateAction(actionId, user) {
-    // Admins can do everything
+  _validateUserCanUpdateAction(actionId, user) {
     if (user.role === "admin") {
       return;
     }
 
     const actionRoles = incidentActionRepository.getRoles(actionId);
 
-    // No roles assigned to action
     if (actionRoles.length === 0) {
       throw new AppError("Action has no assigned roles", 403);
     }
@@ -50,19 +50,21 @@ class IncidentActionService {
     }
   }
 
-  /**
-   * ============================================================
-   * Start Action
-   * ============================================================
-   */
+  getByIncident(incidentId, options = {}) {
+    return incidentActionRepository.findByIncidentIdWithRolesQuery(
+      incidentId,
+      options,
+    );
+  }
+
+  getById(id) {
+    return incidentActionRepository.findByIdWithDetails(id);
+  }
+
   startAction(id, user) {
-    const action = incidentActionRepository.findById(id);
+    const action = this._getActionOrThrow(id);
 
-    if (!action) {
-      throw new AppError("Action not found", 404);
-    }
-
-    this.validateUserCanUpdateAction(id, user);
+    this._validateUserCanUpdateAction(id, user);
 
     if (action.status === "completed") {
       throw new AppError("Completed actions cannot be restarted", 400);
@@ -78,9 +80,6 @@ class IncidentActionService {
       started_at: new Date().toISOString(),
     });
 
-    /**
-     * Create action history entry
-     */
     incidentActionUpdateService.addStatusUpdate(
       id,
       user.id,
@@ -92,19 +91,10 @@ class IncidentActionService {
     return this.getById(id);
   }
 
-  /**
-   * ============================================================
-   * Complete Action
-   * ============================================================
-   */
   completeAction(id, user) {
-    const action = incidentActionRepository.findById(id);
+    const action = this._getActionOrThrow(id);
 
-    if (!action) {
-      throw new AppError("Action not found", 404);
-    }
-
-    this.validateUserCanUpdateAction(id, user);
+    this._validateUserCanUpdateAction(id, user);
 
     if (action.status === "completed") {
       return this.getById(id);
@@ -124,9 +114,6 @@ class IncidentActionService {
       completed_at: new Date().toISOString(),
     });
 
-    /**
-     * Create action history entry
-     */
     incidentActionUpdateService.addStatusUpdate(
       id,
       user.id,
@@ -138,19 +125,10 @@ class IncidentActionService {
     return this.getById(id);
   }
 
-  /**
-   * ============================================================
-   * Reopen Action
-   * ============================================================
-   */
   reopenAction(id, user) {
-    const action = incidentActionRepository.findById(id);
+    const action = this._getActionOrThrow(id);
 
-    if (!action) {
-      throw new AppError("Action not found", 404);
-    }
-
-    this.validateUserCanUpdateAction(id, user);
+    this._validateUserCanUpdateAction(id, user);
 
     if (action.status !== "completed") {
       throw new AppError("Only completed actions can be reopened", 400);
@@ -173,17 +151,8 @@ class IncidentActionService {
     return this.getById(id);
   }
 
-  /**
-   * ============================================================
-   * Assign Action
-   * ============================================================
-   */
   assignAction(id, userId) {
-    const action = incidentActionRepository.findById(id);
-
-    if (!action) {
-      throw new AppError("Action not found", 404);
-    }
+    this._getActionOrThrow(id);
 
     incidentActionRepository.updateById(id, {
       assigned_user_id: userId,

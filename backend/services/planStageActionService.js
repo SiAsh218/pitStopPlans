@@ -1,57 +1,91 @@
 const AppError = require("../utils/AppError");
 
 const roleRepository = require("../data/repositories/roleRepository");
-
 const planTemplateRepository = require("../data/repositories/planTemplateRepository");
-
 const planStageRepository = require("../data/repositories/planStageRepository");
-
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 
 class PlanStageActionService {
   /**
-   * ============================================================
-   * Get Actions By Stage
-   * ============================================================
+   * Gets a stage or throws.
+   *
+   * @param {number} stageId
+   * @returns {object}
    */
-  getActionsByStage(stageId, options = {}) {
-    const result = planStageActionRepository.findByStageIdWithRolesQuery(
-      stageId,
-      options,
-    );
+  _getStageOrThrow(stageId) {
+    const stage = planStageRepository.findById(stageId);
 
-    return {
-      rows: result.rows,
-      meta: result.meta,
-    };
+    if (!stage) {
+      throw new AppError("Stage not found", 404);
+    }
+
+    return stage;
   }
 
   /**
-   * ============================================================
-   * Get Action By ID
-   * ============================================================
+   * Ensures a template can still be modified.
+   *
+   * @param {number} templateId
+   * @returns {void}
+   */
+  _ensureTemplateEditable(templateId) {
+    const template = planTemplateRepository.findById(templateId);
+
+    if (template?.status === "approved") {
+      throw new AppError("Approved templates cannot be modified", 400);
+    }
+  }
+
+  /**
+   * Validates role IDs.
+   *
+   * @param {number[]} roleIds
+   * @returns {void}
+   */
+  _validateRoles(roleIds = []) {
+    for (const roleId of roleIds) {
+      const role = roleRepository.findById(roleId);
+
+      if (!role) {
+        throw new AppError(`Role ${roleId} not found`, 404);
+      }
+    }
+  }
+
+  /**
+   * Gets actions for a stage.
+   *
+   * @param {number} stageId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
+  getActionsByStage(stageId, options = {}) {
+    return planStageActionRepository.findByStageIdWithRolesQuery(
+      stageId,
+      options,
+    );
+  }
+
+  /**
+   * Gets an action by ID.
+   *
+   * @param {number} id
+   * @returns {object|null}
    */
   getActionById(id) {
     return planStageActionRepository.getWithRoles(id);
   }
 
   /**
-   * ============================================================
-   * Create Action
-   * ============================================================
+   * Creates a stage action.
+   *
+   * @param {object} data
+   * @returns {object}
    */
   createAction(data) {
-    const stage = planStageRepository.findById(data.plan_stage_id);
+    const stage = this._getStageOrThrow(data.plan_stage_id);
 
-    if (!stage) {
-      throw new AppError("Stage not found", 404);
-    }
-
-    const template = planTemplateRepository.findById(stage.plan_template_id);
-
-    if (template && template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._ensureTemplateEditable(stage.plan_template_id);
 
     const duplicate = planStageActionRepository.findByStageAndActionNumber(
       data.plan_stage_id,
@@ -62,25 +96,14 @@ class PlanStageActionService {
       throw new AppError("Action number already exists", 409);
     }
 
-    for (const roleId of data.role_ids) {
-      const role = roleRepository.findById(roleId);
-
-      if (!role) {
-        throw new AppError(`Role ${roleId} not found`, 404);
-      }
-    }
+    this._validateRoles(data.role_ids);
 
     const result = planStageActionRepository.insert({
       plan_stage_id: data.plan_stage_id,
-
       action_number: data.action_number,
-
       title: data.title,
-
       description: data.description,
-
       due_from_stage_start: data.due_from_stage_start,
-
       due_from_incident_start: data.due_from_incident_start,
     });
 
@@ -90,9 +113,11 @@ class PlanStageActionService {
   }
 
   /**
-   * ============================================================
-   * Update Action
-   * ============================================================
+   * Updates a stage action.
+   *
+   * @param {number} id
+   * @param {object} updates
+   * @returns {object|null}
    */
   updateAction(id, updates) {
     const existing = planStageActionRepository.findById(id);
@@ -101,13 +126,9 @@ class PlanStageActionService {
       return null;
     }
 
-    const stage = planStageRepository.findById(existing.plan_stage_id);
+    const stage = this._getStageOrThrow(existing.plan_stage_id);
 
-    const template = planTemplateRepository.findById(stage.plan_template_id);
-
-    if (template && template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._ensureTemplateEditable(stage.plan_template_id);
 
     planStageActionRepository.updateById(id, {
       action_number: updates.action_number ?? existing.action_number,
@@ -124,13 +145,7 @@ class PlanStageActionService {
     });
 
     if (Array.isArray(updates.role_ids)) {
-      for (const roleId of updates.role_ids) {
-        const role = roleRepository.findById(roleId);
-
-        if (!role) {
-          throw new AppError(`Role ${roleId} not found`, 404);
-        }
-      }
+      this._validateRoles(updates.role_ids);
 
       planStageActionRepository.setRoles(id, updates.role_ids);
     }
@@ -139,9 +154,10 @@ class PlanStageActionService {
   }
 
   /**
-   * ============================================================
-   * Delete Action
-   * ============================================================
+   * Deletes a stage action.
+   *
+   * @param {number} id
+   * @returns {boolean}
    */
   deleteAction(id) {
     const existing = planStageActionRepository.findById(id);
@@ -150,13 +166,9 @@ class PlanStageActionService {
       return false;
     }
 
-    const stage = planStageRepository.findById(existing.plan_stage_id);
+    const stage = this._getStageOrThrow(existing.plan_stage_id);
 
-    const template = planTemplateRepository.findById(stage.plan_template_id);
-
-    if (template && template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._ensureTemplateEditable(stage.plan_template_id);
 
     return planStageActionRepository.deleteById(id).changes > 0;
   }

@@ -1,29 +1,13 @@
 const incidentTypeRepository = require("../data/repositories/incidentTypeRepository");
 
 class IncidentTypeService {
-  constructor() {}
-
-  getAllIncidentTypes(options = {}) {
-    const result = incidentTypeRepository.findAllWithQuery(options);
-
-    return {
-      rows: result.rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-      })),
-      meta: result.meta,
-    };
-  }
-
-  getIncidentTypeById(id) {
-    const row = incidentTypeRepository.findById(id);
-
-    /**
-     * Return null if not found (controller handles error)
-     */
-    if (!row) return null;
-
+  /**
+   * Converts a database row into an API DTO.
+   *
+   * @param {object} row
+   * @returns {object}
+   */
+  _toDTO(row) {
     return {
       id: row.id,
       name: row.name,
@@ -31,18 +15,49 @@ class IncidentTypeService {
     };
   }
 
+  /**
+   * Retrieves all incident types.
+   *
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
+   */
+  getAllIncidentTypes(options = {}) {
+    const result = incidentTypeRepository.findAllWithQuery(options);
+
+    return {
+      rows: result.rows.map((row) => this._toDTO(row)),
+      meta: result.meta,
+    };
+  }
+
+  /**
+   * Retrieves an incident type by ID.
+   *
+   * @param {number} id
+   * @returns {object|null}
+   */
+  getIncidentTypeById(id) {
+    const row = incidentTypeRepository.findById(id);
+
+    if (!row) {
+      return null;
+    }
+
+    return this._toDTO(row);
+  }
+
+  /**
+   * Creates a new incident type.
+   *
+   * @param {{name: string, description: string}} data
+   * @returns {object}
+   */
   createIncidentType(data) {
-    /**
-     * Convert API structure → DB structure
-     */
     const result = incidentTypeRepository.insert({
       name: data.name,
       description: data.description,
     });
 
-    /**
-     * Return API representation of new incident type
-     */
     return {
       id: result.lastInsertRowid,
       name: data.name,
@@ -50,50 +65,49 @@ class IncidentTypeService {
     };
   }
 
+  /**
+   * Updates an incident type.
+   *
+   * @param {number} id
+   * @param {object} updates
+   * @returns {object|null}
+   */
   updateIncidentType(id, updates) {
     const row = incidentTypeRepository.findById(id);
 
-    if (!row) return null;
+    if (!row) {
+      return null;
+    }
 
-    const updatedData = {
+    const updatedRow = {
+      ...row,
       name: updates.name ?? row.name,
       description: updates.description ?? row.description,
     };
 
-    /**
-     * Update database
-     */
     incidentTypeRepository.updateById(id, {
-      name: updatedData.name,
-      description: updatedData.description,
+      name: updatedRow.name,
+      description: updatedRow.description,
     });
 
-    /**
-     * Return updated object in API format
-     */
-    return {
-      id,
-      name: updatedData.name,
-      description: updatedData.description,
-    };
+    return this._toDTO(updatedRow);
   }
 
+  /**
+   * Deletes an incident type.
+   *
+   * @param {number} id
+   * @returns {boolean}
+   */
   deleteIncidentType(id) {
-    /**
-     * Check existence first
-     */
     const existing = incidentTypeRepository.findById(id);
 
-    if (!existing) return false;
+    if (!existing) {
+      return false;
+    }
 
-    /**
-     * Delete from DB
-     */
     const result = incidentTypeRepository.deleteById(id);
 
-    /**
-     * result.changes indicates rows affected
-     */
     return result.changes > 0;
   }
 }

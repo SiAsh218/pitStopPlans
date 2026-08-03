@@ -1,33 +1,26 @@
-const planTemplateRepository = require("../data/repositories/planTemplateRepository.js");
-
-const incidentTypeRepository = require("../data/repositories/incidentTypeRepository.js");
-
+const planTemplateRepository = require("../data/repositories/planTemplateRepository");
+const incidentTypeRepository = require("../data/repositories/incidentTypeRepository");
 const planStageRepository = require("../data/repositories/planStageRepository");
-
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 
-const auditService = require("../services/auditLogService.js");
+const auditService = require("../services/auditLogService");
 
 const AppError = require("../utils/AppError");
 
 class PlanTemplateService {
   /**
-   * ============================================================
-   * Map Database Row -> DTO
-   * ============================================================
+   * Converts a database row into a DTO.
+   *
+   * @param {object} row
+   * @returns {object}
    */
   _toDTO(row) {
     return {
       id: row.id,
-
       title: row.title,
-
       version: row.version,
-
       status: row.status,
-
       created_at: row.created_at,
-
       approved_at: row.approved_at,
 
       incident_type: {
@@ -38,9 +31,57 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Get All Templates
-   * ============================================================
+   * Gets a template or throws.
+   *
+   * @param {number} id
+   * @returns {object}
+   */
+  _getTemplateOrThrow(id) {
+    const template = planTemplateRepository.findById(id);
+
+    if (!template) {
+      throw new AppError("Template not found", 404);
+    }
+
+    return template;
+  }
+
+  /**
+   * Gets an incident type or throws.
+   *
+   * @param {number} incidentTypeId
+   * @returns {object}
+   */
+  _getIncidentTypeOrThrow(incidentTypeId) {
+    const incidentType = incidentTypeRepository.findById(incidentTypeId);
+
+    if (!incidentType) {
+      throw new AppError("Incident type not found", 404);
+    }
+
+    return incidentType;
+  }
+
+  /**
+   * Ensures template is editable.
+   *
+   * @param {object} template
+   * @returns {void}
+   */
+  _ensureEditable(template) {
+    if (template.status === "approved") {
+      throw new AppError(
+        "Approved templates cannot be edited. Create a new version instead.",
+        400,
+      );
+    }
+  }
+
+  /**
+   * Gets all templates.
+   *
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
    */
   getAllPlanTemplates(options = {}) {
     const result = planTemplateRepository.findAllWithQuery(options);
@@ -52,9 +93,10 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Get Template By ID
-   * ============================================================
+   * Gets a template by ID.
+   *
+   * @param {number} id
+   * @returns {object|null}
    */
   getPlanTemplateById(id) {
     const row = planTemplateRepository.findByIdWithIncidentType(id);
@@ -67,9 +109,11 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Create Template
-   * ============================================================
+   * Creates a template.
+   *
+   * @param {object} data
+   * @param {number} userId
+   * @returns {object}
    */
   createPlanTemplate(data, userId) {
     const incidentTypeId = Number(data.incident_type_id);
@@ -78,11 +122,7 @@ class PlanTemplateService {
       throw new AppError("Invalid incident type id", 400);
     }
 
-    const incidentType = incidentTypeRepository.findById(incidentTypeId);
-
-    if (!incidentType) {
-      throw new AppError("Incident type not found", 404);
-    }
+    this._getIncidentTypeOrThrow(incidentTypeId);
 
     const latestVersion =
       planTemplateRepository.findLatestVersionByIncidentType(incidentTypeId);
@@ -91,13 +131,9 @@ class PlanTemplateService {
 
     const result = planTemplateRepository.insert({
       incident_type_id: incidentTypeId,
-
       version: nextVersion,
-
       title: data.title,
-
       status: "draft",
-
       created_by: userId,
     });
 
@@ -121,9 +157,12 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Update Draft Template
-   * ============================================================
+   * Updates a draft template.
+   *
+   * @param {number} id
+   * @param {object} updates
+   * @param {number} userId
+   * @returns {object|null}
    */
   updatePlanTemplate(id, updates, userId) {
     const template = planTemplateRepository.findById(id);
@@ -132,12 +171,7 @@ class PlanTemplateService {
       return null;
     }
 
-    if (template.status === "approved") {
-      throw new AppError(
-        "Approved templates cannot be edited. Create a new version instead.",
-        400,
-      );
-    }
+    this._ensureEditable(template);
 
     const beforeTemplate = this.getPlanTemplateById(id);
 
@@ -151,39 +185,37 @@ class PlanTemplateService {
       fields.status = updates.status;
     }
 
-    if (Object.keys(fields).length > 0) {
-      planTemplateRepository.updateById(id, fields);
-
-      const afterTemplate = this.getPlanTemplateById(id);
-
-      auditService.log(userId, "UPDATE_TEMPLATE", "plan_template", id, {
-        before: {
-          title: beforeTemplate.title,
-          status: beforeTemplate.status,
-        },
-        after: {
-          title: afterTemplate.title,
-          status: afterTemplate.status,
-        },
-      });
-
-      return afterTemplate;
+    if (Object.keys(fields).length === 0) {
+      return beforeTemplate;
     }
 
-    return beforeTemplate;
+    planTemplateRepository.updateById(id, fields);
+
+    const afterTemplate = this.getPlanTemplateById(id);
+
+    auditService.log(userId, "UPDATE_TEMPLATE", "plan_template", id, {
+      before: {
+        title: beforeTemplate.title,
+        status: beforeTemplate.status,
+      },
+      after: {
+        title: afterTemplate.title,
+        status: afterTemplate.status,
+      },
+    });
+
+    return afterTemplate;
   }
 
   /**
-   * ============================================================
-   * Remove Draft Template
-   * ============================================================
+   * Removes a draft template.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {object}
    */
   removeDraftTemplate(id, userId) {
-    const template = planTemplateRepository.findById(id);
-
-    if (!template) {
-      throw new AppError("Template not found", 404);
-    }
+    const template = this._getTemplateOrThrow(id);
 
     if (template.status !== "draft") {
       throw new AppError("Only draft templates can be removed", 400);
@@ -215,16 +247,14 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Approve Template
-   * ============================================================
+   * Approves a template.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {object}
    */
   approveTemplate(id, userId) {
-    const template = planTemplateRepository.findById(id);
-
-    if (!template) {
-      throw new AppError("Template not found", 404);
-    }
+    const template = this._getTemplateOrThrow(id);
 
     if (template.status === "approved") {
       throw new AppError("Template already approved", 400);
@@ -234,9 +264,7 @@ class PlanTemplateService {
 
     planTemplateRepository.updateById(id, {
       status: "approved",
-
       approved_by: userId,
-
       approved_at: new Date().toISOString().replace("T", " ").substring(0, 19),
     });
 
@@ -256,22 +284,10 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Clone Template
-   * ============================================================
-   *
-   * Creates:
-   * - New template version
-   * - Copies stages
-   * - Copies actions
-   * - Copies role assignments
+   * Clone template.
    */
   cloneTemplate(id, userId) {
-    const template = planTemplateRepository.findById(id);
-
-    if (!template) {
-      throw new AppError("Template not found", 404);
-    }
+    const template = this._getTemplateOrThrow(id);
 
     const existingDrafts = planTemplateRepository.findByIncidentTypeAndStatus(
       template.incident_type_id,
@@ -290,18 +306,13 @@ class PlanTemplateService {
         template.incident_type_id,
       );
 
-    /**
-     * Create new template
-     */
+    const nextVersion = latestVersion.version + 1;
+
     const templateResult = planTemplateRepository.insert({
       incident_type_id: template.incident_type_id,
-
-      version: latestVersion.version + 1,
-
+      version: nextVersion,
       title: template.title,
-
       status: "draft",
-
       created_by: userId,
     });
 
@@ -311,20 +322,14 @@ class PlanTemplateService {
       sourceTemplateId: template.id,
       sourceTitle: template.title,
       sourceVersion: template.version,
-      newVersion: latestVersion.version + 1,
+      newVersion: nextVersion,
     });
 
-    /**
-     * Clone stages
-     */
     const stages = planStageRepository.findByTemplateId(template.id);
 
     for (const stage of stages) {
       const newStage = planStageRepository.cloneStage(stage.id, newTemplateId);
 
-      /**
-       * Clone actions
-       */
       const actions = planStageActionRepository.findByStageId(stage.id);
 
       for (const action of actions) {
@@ -336,9 +341,11 @@ class PlanTemplateService {
   }
 
   /**
-   * ============================================================
-   * Retire Template
-   * ============================================================
+   * Retires a template.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {boolean}
    */
   retireTemplate(id, userId) {
     const template = planTemplateRepository.findById(id);

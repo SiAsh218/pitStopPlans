@@ -1,14 +1,14 @@
 const planStageRepository = require("../data/repositories/planStageRepository");
-
 const planTemplateRepository = require("../data/repositories/planTemplateRepository");
 
 const AppError = require("../utils/AppError");
 
 class PlanStageService {
   /**
-   * ============================================================
-   * Map Row -> DTO
-   * ============================================================
+   * Converts a database row into an API DTO.
+   *
+   * @param {object} row
+   * @returns {object}
    */
   _toDTO(row) {
     return {
@@ -21,9 +21,31 @@ class PlanStageService {
   }
 
   /**
-   * ============================================================
-   * Get Stages By Template
-   * ============================================================
+   * Retrieves a template and ensures it can be modified.
+   *
+   * @param {number} templateId
+   * @returns {object}
+   */
+  _getEditableTemplateOrThrow(templateId) {
+    const template = planTemplateRepository.findById(templateId);
+
+    if (!template) {
+      throw new AppError("Plan template not found", 404);
+    }
+
+    if (template.status === "approved") {
+      throw new AppError("Approved templates cannot be modified", 400);
+    }
+
+    return template;
+  }
+
+  /**
+   * Gets stages for a template.
+   *
+   * @param {number} templateId
+   * @param {object} [options={}]
+   * @returns {{rows: object[], meta: object}}
    */
   getStagesByTemplate(templateId, options = {}) {
     const result = planStageRepository.findByTemplateIdWithQuery(
@@ -38,9 +60,10 @@ class PlanStageService {
   }
 
   /**
-   * ============================================================
-   * Get Stage By ID
-   * ============================================================
+   * Gets a stage by ID.
+   *
+   * @param {number} id
+   * @returns {object|null}
    */
   getStageById(id) {
     const row = planStageRepository.findById(id);
@@ -53,20 +76,13 @@ class PlanStageService {
   }
 
   /**
-   * ============================================================
-   * Create Stage
-   * ============================================================
+   * Creates a stage.
+   *
+   * @param {object} data
+   * @returns {object}
    */
   createStage(data) {
-    const template = planTemplateRepository.findById(data.plan_template_id);
-
-    if (!template) {
-      throw new AppError("Plan template not found", 404);
-    }
-
-    if (template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._getEditableTemplateOrThrow(data.plan_template_id);
 
     const existing = planStageRepository.findByTemplateAndStageNumber(
       data.plan_template_id,
@@ -79,31 +95,26 @@ class PlanStageService {
 
     const result = planStageRepository.insert({
       plan_template_id: data.plan_template_id,
-
       stage_number: data.stage_number,
-
       name: data.name,
-
       due_from_incident_start: data.due_from_incident_start,
     });
 
-    return {
+    return this._toDTO({
       id: result.lastInsertRowid,
-
       plan_template_id: data.plan_template_id,
-
       stage_number: data.stage_number,
-
       name: data.name,
-
       due_from_incident_start: data.due_from_incident_start,
-    };
+    });
   }
 
   /**
-   * ============================================================
-   * Update Stage
-   * ============================================================
+   * Updates a stage.
+   *
+   * @param {number} id
+   * @param {object} updates
+   * @returns {object|null}
    */
   updateStage(id, updates) {
     const stage = planStageRepository.findById(id);
@@ -112,11 +123,7 @@ class PlanStageService {
       return null;
     }
 
-    const template = planTemplateRepository.findById(stage.plan_template_id);
-
-    if (template && template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._getEditableTemplateOrThrow(stage.plan_template_id);
 
     const updated = {
       stage_number: updates.stage_number ?? stage.stage_number,
@@ -142,9 +149,10 @@ class PlanStageService {
   }
 
   /**
-   * ============================================================
-   * Delete Stage
-   * ============================================================
+   * Deletes a stage.
+   *
+   * @param {number} id
+   * @returns {boolean}
    */
   deleteStage(id) {
     const stage = planStageRepository.findById(id);
@@ -153,11 +161,7 @@ class PlanStageService {
       return false;
     }
 
-    const template = planTemplateRepository.findById(stage.plan_template_id);
-
-    if (template && template.status === "approved") {
-      throw new AppError("Approved templates cannot be modified", 400);
-    }
+    this._getEditableTemplateOrThrow(stage.plan_template_id);
 
     const result = planStageRepository.deleteById(id);
 

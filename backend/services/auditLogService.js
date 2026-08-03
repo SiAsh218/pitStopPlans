@@ -1,6 +1,19 @@
 const auditLogRepository = require("../data/repositories/auditLogRepository");
 
-class AuditService {
+/**
+ * Handles audit log business operations.
+ */
+class AuditLogService {
+  /**
+   * Creates an audit log entry.
+   *
+   * @param {number} userId
+   * @param {string} action
+   * @param {string} entityType
+   * @param {number|null} entityId
+   * @param {object} [details={}]
+   * @returns {object}
+   */
   log(userId, action, entityType, entityId, details = {}) {
     return auditLogRepository.create({
       user_id: userId,
@@ -11,6 +24,12 @@ class AuditService {
     });
   }
 
+  /**
+   * Retrieves recent audit logs.
+   *
+   * @param {object|number} [options={}]
+   * @returns {object}
+   */
   getRecent(options = {}) {
     if (typeof options === "number") {
       return auditLogRepository.getRecent(options);
@@ -20,4 +39,4 @@ class AuditService {
   }
 }
 
-module.exports = new AuditService();
+module.exports = new AuditLogService();
