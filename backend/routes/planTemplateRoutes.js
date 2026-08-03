@@ -84,6 +84,16 @@ module.exports = [
     ],
   },
 
+  {
+    method: "DELETE",
+    path: "/api/plan_templates/:id",
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      planTemplateController.removeDraft.bind(planTemplateController),
+    ],
+  },
+
   /**
    * ============================================================
    * Approve Template

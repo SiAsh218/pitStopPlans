@@ -2,6 +2,7 @@ import {
   getTemplate,
   approveTemplate,
   retireTemplate,
+  deleteDraftTemplate,
   getTemplateHistory,
 } from "../services/planTemplateService.js";
 import { getPlan } from "../services/planService.js";
@@ -56,6 +57,7 @@ export async function initPlanTemplatePage() {
       wireAddStageButton(plan);
 
       wireApproveTemplateButton(template.id);
+      wireDeleteDraftButton(template.id);
     }
 
     if (template.status === "approved") {
@@ -103,6 +105,10 @@ function renderTemplateMeta(template, isDraft) {
 
               <button id="btn-approve-template" class="btn btn-primary">
                 Approve Template
+              </button>
+
+              <button id="btn-delete-draft" class="btn btn-secondary btn-danger">
+                Discard Draft
               </button>
             `
             : ""
@@ -633,6 +639,37 @@ function wireApproveTemplateButton(templateId) {
       console.error(err);
 
       showError("Failed to approve template");
+    }
+  });
+}
+
+function wireDeleteDraftButton(templateId) {
+  const button = document.getElementById("btn-delete-draft");
+
+  button?.addEventListener("click", async () => {
+    const confirmed = await showConfirm(
+      "Discard Draft",
+      "Are you sure you want to delete this draft? This cannot be undone.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const result = await deleteDraftTemplate(templateId);
+
+      showSuccess("Draft removed successfully");
+
+      if (result.redirectTemplateId) {
+        window.location.href = `/templates/${result.redirectTemplateId}`;
+      } else {
+        window.location.href = "/templates";
+      }
+    } catch (err) {
+      console.error(err);
+
+      showError("Failed to remove draft");
     }
   });
 }

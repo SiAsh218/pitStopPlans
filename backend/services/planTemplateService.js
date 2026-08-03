@@ -175,6 +175,47 @@ class PlanTemplateService {
 
   /**
    * ============================================================
+   * Remove Draft Template
+   * ============================================================
+   */
+  removeDraftTemplate(id, userId) {
+    const template = planTemplateRepository.findById(id);
+
+    if (!template) {
+      throw new AppError("Template not found", 404);
+    }
+
+    if (template.status !== "draft") {
+      throw new AppError("Only draft templates can be removed", 400);
+    }
+
+    const incidentType = incidentTypeRepository.findById(
+      template.incident_type_id,
+    );
+
+    const activeTemplate = planTemplateRepository.findByIncidentTypeAndStatus(
+      template.incident_type_id,
+      "approved",
+    )[0];
+
+    planTemplateRepository.deleteById(id);
+
+    auditService.log(userId, "DELETE_DRAFT_TEMPLATE", "plan_template", id, {
+      title: template.title,
+      version: template.version,
+      incidentTypeId: template.incident_type_id,
+      incidentTypeName: incidentType?.name,
+      redirectedToTemplateId: activeTemplate?.id || null,
+    });
+
+    return {
+      deletedTemplateId: id,
+      redirectTemplateId: activeTemplate?.id ?? null,
+    };
+  }
+
+  /**
+   * ============================================================
    * Approve Template
    * ============================================================
    */

@@ -16,6 +16,10 @@ export function approveTemplate(id) {
   return api.post(`/api/plan_templates/${id}/approve`);
 }
 
+export function deleteDraftTemplate(id) {
+  return api.delete(`/api/plan_templates/${id}`);
+}
+
 export function retireTemplate(id) {
   return api.post(`/api/plan_templates/${id}/retire`);
 }

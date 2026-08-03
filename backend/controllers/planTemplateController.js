@@ -133,6 +133,27 @@ class PlanTemplateController {
 
   /**
    * ============================================================
+   * Remove Draft Template
+   * ============================================================
+   */
+  removeDraft(req, res) {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      throw new AppError("Invalid ID", 400);
+    }
+
+    const result = planTemplateService.removeDraftTemplate(id, req.user.id);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      message: "Draft template removed",
+      data: result,
+    });
+  }
+
+  /**
+   * ============================================================
    * Approve Template
    * ============================================================
    */
