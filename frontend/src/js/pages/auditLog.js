@@ -4,6 +4,7 @@ import { formatDateTime } from "../utils/dateHandler.js";
 const state = {
   search: "",
   entityType: "",
+  actionType: "",
   page: 1,
   limit: 25,
 };
@@ -37,6 +38,7 @@ async function loadAuditLogs() {
     const response = await getAuditLogs({
       search: state.search,
       entity_type: state.entityType || undefined,
+      action: state.actionType || undefined,
       limit: state.limit,
       page: state.page,
     });
@@ -59,6 +61,7 @@ async function loadAuditLogs() {
 function wireAuditLogControls() {
   const searchInput = document.getElementById("audit-log-search");
   const entityTypeSelect = document.getElementById("audit-log-entity-type");
+  const actionTypeSelect = document.getElementById("audit-log-action-type");
   const pageSizeSelect = document.getElementById("audit-log-page-size");
   const refreshButton = document.getElementById("audit-log-refresh");
 
@@ -70,6 +73,12 @@ function wireAuditLogControls() {
 
   entityTypeSelect?.addEventListener("change", async (event) => {
     state.entityType = event.target.value;
+    state.page = 1;
+    await loadAuditLogs();
+  });
+
+  actionTypeSelect?.addEventListener("change", async (event) => {
+    state.actionType = event.target.value;
     state.page = 1;
     await loadAuditLogs();
   });

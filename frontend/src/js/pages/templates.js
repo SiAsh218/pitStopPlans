@@ -6,6 +6,13 @@ import {
 
 import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
 
+let templatesData = [];
+const templateState = {
+  search: "",
+  type: "all",
+  status: "all",
+};
+
 export async function initTemplatesPage() {
   const container = document.getElementById("template-list");
 
@@ -14,9 +21,11 @@ export async function initTemplatesPage() {
   }
 
   try {
-    const templates = await getTemplateSummary();
+    templatesData = await getTemplateSummary();
 
-    renderTemplates(templates);
+    populateTemplateTypeFilter(templatesData);
+    renderTemplates(filterTemplates());
+    wireTemplateFilters();
     wireCreateTemplateButton();
   } catch (err) {
     console.error(err);
@@ -131,6 +140,68 @@ function wireTemplateButtons() {
         showWarning(err.message || "A draft already exists");
       }
     });
+  });
+}
+
+function wireTemplateFilters() {
+  const searchInput = document.getElementById("template-search");
+  const typeSelect = document.getElementById("template-type-filter");
+  const statusSelect = document.getElementById("template-status-filter");
+
+  if (!searchInput || !typeSelect || !statusSelect) {
+    return;
+  }
+
+  searchInput.addEventListener("input", () => {
+    templateState.search = searchInput.value.trim().toLowerCase();
+    renderTemplates(filterTemplates());
+  });
+
+  typeSelect.addEventListener("change", () => {
+    templateState.type = typeSelect.value;
+    renderTemplates(filterTemplates());
+  });
+
+  statusSelect.addEventListener("change", () => {
+    templateState.status = statusSelect.value;
+    renderTemplates(filterTemplates());
+  });
+}
+
+function populateTemplateTypeFilter(templates) {
+  const select = document.getElementById("template-type-filter");
+
+  if (!select) {
+    return;
+  }
+
+  const types = Array.from(
+    new Set(templates.map((template) => template.incident_type.name)),
+  ).sort();
+
+  select.innerHTML = `
+    <option value="all">All</option>
+    ${types.map((type) => `<option value="${type}">${type}</option>`).join("\n")}
+  `;
+}
+
+function filterTemplates() {
+  return templatesData.filter((template) => {
+    const matchesSearch =
+      templateState.search.length === 0 ||
+      [template.title, template.incident_type.name]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(templateState.search));
+
+    const matchesType =
+      templateState.type === "all" ||
+      template.incident_type.name === templateState.type;
+
+    const matchesStatus =
+      templateState.status === "all" ||
+      template.status === templateState.status;
+
+    return matchesSearch && matchesType && matchesStatus;
   });
 }
 

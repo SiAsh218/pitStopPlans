@@ -22,6 +22,35 @@
           </button>
         </div>
 
+        <section class="dashboard-toolbar">
+          <div class="dashboard-toolbar__controls">
+            <label class="dashboard-filter">
+              <span>Search</span>
+              <input
+                id="template-search"
+                type="search"
+                placeholder="Search by template title or incident type"
+              />
+            </label>
+
+            <label class="dashboard-filter">
+              <span>Incident type</span>
+              <select id="template-type-filter">
+                <option value="all">All</option>
+              </select>
+            </label>
+
+            <label class="dashboard-filter">
+              <span>Status</span>
+              <select id="template-status-filter">
+                <option value="all">All</option>
+                <option value="approved">Approved</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
         <div id="template-list"></div>
       </section>
     </main>

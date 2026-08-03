@@ -2,6 +2,7 @@
 // Dependencies
 // -----------------------------------------------------------------------------
 
+import { getIncidentTypes } from "../services/incidentTypeService.js";
 import { getIncidents } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
 
@@ -13,6 +14,7 @@ let allIncidents = [];
 const state = {
   search: "",
   status: "active",
+  incidentType: "all",
   page: 1,
   limit: 10,
 };
@@ -30,7 +32,11 @@ export async function loadIncidents() {
 
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
-    const incidents = await getIncidents();
+    const [incidents] = await Promise.all([
+      getIncidents(),
+      loadIncidentTypes(),
+    ]);
+
     allIncidents = incidents.sort(
       (a, b) => new Date(b.started_at) - new Date(a.started_at),
     );
@@ -49,15 +55,23 @@ export async function loadIncidents() {
 function bindDashboardControls() {
   const searchInput = document.getElementById("incident-search");
   const statusFilter = document.getElementById("incident-status-filter");
+  const incidentTypeFilter = document.getElementById("incident-type-filter");
   const pageSizeSelect = document.getElementById("incident-page-size");
   const refreshButton = document.getElementById("btn-refresh-incidents");
 
-  if (!searchInput || !statusFilter || !pageSizeSelect || !refreshButton) {
+  if (
+    !searchInput ||
+    !statusFilter ||
+    !incidentTypeFilter ||
+    !pageSizeSelect ||
+    !refreshButton
+  ) {
     return;
   }
 
   searchInput.value = state.search;
   statusFilter.value = state.status;
+  incidentTypeFilter.value = state.incidentType;
   pageSizeSelect.value = String(state.limit);
 
   searchInput.oninput = (event) => {
@@ -68,6 +82,12 @@ function bindDashboardControls() {
 
   statusFilter.onchange = (event) => {
     state.status = event.target.value;
+    state.page = 1;
+    renderCurrentPage();
+  };
+
+  incidentTypeFilter.onchange = (event) => {
+    state.incidentType = event.target.value;
     state.page = 1;
     renderCurrentPage();
   };
@@ -91,6 +111,9 @@ function getFilteredIncidents() {
   return allIncidents.filter((incident) => {
     const matchesStatus =
       state.status === "all" || incident.status === state.status;
+    const matchesType =
+      state.incidentType === "all" ||
+      String(incident.incident_type?.id) === state.incidentType;
     const searchTerm = state.search;
     const matchesSearch =
       searchTerm.length === 0 ||
@@ -98,7 +121,7 @@ function getFilteredIncidents() {
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(searchTerm));
 
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesType && matchesSearch;
   });
 }
 
@@ -215,6 +238,33 @@ function renderCurrentPage() {
   updateStatistics(filtered);
   renderIncidents(rows);
   renderPagination(meta);
+}
+
+async function loadIncidentTypes() {
+  const select = document.getElementById("incident-type-filter");
+
+  if (!select) {
+    return [];
+  }
+
+  try {
+    const types = await getIncidentTypes();
+
+    select.innerHTML = `
+      <option value="all">All types</option>
+      ${types
+        .map((type) => `<option value="${type.id}">${type.name}</option>`)
+        .join("\n")}
+    `;
+
+    return types;
+  } catch (err) {
+    console.error(err);
+    select.innerHTML = `
+      <option value="all">All types</option>
+    `;
+    return [];
+  }
 }
 
 // -----------------------------------------------------------------------------

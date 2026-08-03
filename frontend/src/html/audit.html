@@ -35,6 +35,22 @@
           </label>
 
           <label class="dashboard-filter">
+            <span>Action</span>
+            <select id="audit-log-action-type">
+              <option value="">All</option>
+              <option value="CREATE_USER">Create User</option>
+              <option value="UPDATE_USER">Update User</option>
+              <option value="ENABLE_USER">Enable User</option>
+              <option value="DISABLE_USER">Disable User</option>
+              <option value="CREATE_TEMPLATE">Create Template</option>
+              <option value="UPDATE_TEMPLATE">Update Template</option>
+              <option value="APPROVE_TEMPLATE">Approve Template</option>
+              <option value="CLONE_TEMPLATE">Clone Template</option>
+              <option value="RETIRE_TEMPLATE">Retire Template</option>
+            </select>
+          </label>
+
+          <label class="dashboard-filter">
             <span>Page size</span>
             <select id="audit-log-page-size">
               <option value="25">25</option>
