@@ -24,10 +24,8 @@ function seedDatabase() {
   const adminPassword = process.env.ADMIN_PASSWORD;
   const sndmEmail = process.env.TEST_USER_EMAIL || "sndm@test.com";
   const sndmPassword = process.env.TEST_USER_PASSWORD;
-
-  if (!adminPassword) {
-    console.warn("ADMIN_PASSWORD not set. Skipping admin user seed.");
-  }
+  const basicEmail = process.env.BASIC_USER_EMAIL || "basic@test.com";
+  const basicPassword = process.env.BASIC_USER_PASSWORD;
 
   /**
    * ============================================================
@@ -36,16 +34,17 @@ function seedDatabase() {
    */
   const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 
-  if (userCount.count === 0 && adminPassword) {
+  if (userCount.count === 0) {
     console.log("🌱 Seeding users...");
 
-    const passwordHash = bcrypt.hashSync(
-      adminPassword,
-      Number(process.env.BCRYPT_SALT || 10),
-    );
+    if (adminPassword) {
+      const passwordHash = bcrypt.hashSync(
+        adminPassword,
+        Number(process.env.BCRYPT_SALT || 10),
+      );
 
-    db.prepare(
-      `
+      db.prepare(
+        `
       INSERT INTO users
       (
         email,
@@ -54,17 +53,19 @@ function seedDatabase() {
       )
       VALUES (?, ?, ?)
     `,
-    ).run(adminEmail, passwordHash, "admin");
+      ).run(adminEmail, passwordHash, "admin");
 
-    console.log("✅ Admin user seeded");
+      console.log("✅ Admin user seeded");
+    }
 
-    const sndmPasswordHash = bcrypt.hashSync(
-      sndmPassword,
-      Number(process.env.BCRYPT_SALT || 10),
-    );
+    if (sndmPassword) {
+      const sndmPasswordHash = bcrypt.hashSync(
+        sndmPassword,
+        Number(process.env.BCRYPT_SALT || 10),
+      );
 
-    db.prepare(
-      `
+      db.prepare(
+        `
     INSERT INTO users
     (
       email,
@@ -73,9 +74,31 @@ function seedDatabase() {
     )
     VALUES (?, ?, ?)
   `,
-    ).run(sndmEmail, sndmPasswordHash, "user");
+      ).run(sndmEmail, sndmPasswordHash, "editor");
 
-    console.log("✅ Test user seeded");
+      console.log("✅ SNDM user seeded");
+    }
+
+    if (basicPassword) {
+      const basicPasswordHash = bcrypt.hashSync(
+        basicPassword,
+        Number(process.env.BCRYPT_SALT || 10),
+      );
+
+      db.prepare(
+        `
+    INSERT INTO users
+    (
+      email,
+      password,
+      role
+    )
+    VALUES (?, ?, ?)
+  `,
+      ).run(basicEmail, basicPasswordHash, "user");
+
+      console.log("✅ BASIC user seeded");
+    }
   }
 
   /**

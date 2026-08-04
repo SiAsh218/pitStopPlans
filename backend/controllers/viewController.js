@@ -60,7 +60,7 @@ class ViewController {
    */
   async home(req, res) {
     return this._render(res, "home.html", {
-      title: "Home",
+      title: "Dashboard",
       isLoggedIn: false,
       hasNotifications: false,
       user: null,
@@ -90,7 +90,7 @@ class ViewController {
    */
   async createPlanTemplate(req, res) {
     return this._render(res, "templates.html", {
-      title: "Create Plan Template",
+      title: "Manage Templates",
       isLoggedIn: true,
       formMode: "new",
     });
