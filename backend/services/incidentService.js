@@ -282,6 +282,7 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-closed",
       incidentId: id,
+      userId,
     });
 
     return updatedIncident;

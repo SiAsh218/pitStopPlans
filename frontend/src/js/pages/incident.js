@@ -5,6 +5,7 @@ import { getDashboard, closeIncident } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
+import { getCurrentUser } from "../auth.js";
 
 import {
   getPreferences,
@@ -34,6 +35,7 @@ let saveTimeout;
 let incidentTimerInterval;
 let incidentTimerTimeout;
 let sseListenersRegistered = false;
+let currentUser = null;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -59,6 +61,7 @@ export async function initIncidentPage() {
     renderIncidentMeta(dashboard);
     renderActions(dashboard.actions);
     renderSummary(dashboard.summary);
+    currentUser = getCurrentUser();
   } catch (err) {
     showUnexpectedError(err);
 
@@ -878,6 +881,10 @@ async function handleIncidentClosed(event) {
 
   if (event.detail.incidentId !== currentIncidentId) {
     return;
+  }
+
+  if (event.detail.userId !== currentUser.id) {
+    showConfirm("This incident was closed by another user.");
   }
 
   await refreshIncidentPage();
