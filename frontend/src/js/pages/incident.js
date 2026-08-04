@@ -49,6 +49,8 @@ export async function initIncidentPage() {
     return;
   }
 
+  registerLiveUpdateListeners();
+
   try {
     const incidentId = window.location.pathname.split("/").pop();
     const dashboard = await getDashboard(incidentId);
@@ -65,7 +67,7 @@ export async function initIncidentPage() {
   }
 }
 
-async function refreshIncidentPage() {
+export async function refreshIncidentPage() {
   const incidentId = window.location.pathname.split("/").pop();
   const dashboard = await getDashboard(incidentId);
 
@@ -842,4 +844,36 @@ function buildMatrixTable(actions, roles, stages) {
   `;
 
   return html;
+}
+
+// -----------------------------------------------------------------------------
+// Live Updates
+// -----------------------------------------------------------------------------
+
+function registerLiveUpdateListeners() {
+  window.addEventListener("incident-action-updated", handleIncidentUpdate);
+
+  window.addEventListener("incident-action-assigned", handleIncidentUpdate);
+
+  window.addEventListener("incident-closed", handleIncidentClosed);
+}
+
+async function handleIncidentUpdate(event) {
+  const currentIncidentId = Number(window.location.pathname.split("/").pop());
+
+  if (event.detail.incidentId !== currentIncidentId) {
+    return;
+  }
+
+  await refreshIncidentPage();
+}
+
+async function handleIncidentClosed(event) {
+  const currentIncidentId = Number(window.location.pathname.split("/").pop());
+
+  if (event.detail.incidentId !== currentIncidentId) {
+    return;
+  }
+
+  await refreshIncidentPage();
 }

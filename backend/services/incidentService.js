@@ -1,11 +1,13 @@
 const AppError = require("../utils/AppError");
 
-const incidentRepository = require("../data/repositories/incidentRepository");
-const incidentTypeRepository = require("../data/repositories/incidentTypeRepository");
-const planTemplateRepository = require("../data/repositories/planTemplateRepository");
-const planStageRepository = require("../data/repositories/planStageRepository");
-const planStageActionRepository = require("../data/repositories/planStageActionRepository");
-const incidentActionRepository = require("../data/repositories/incidentActionRepository");
+const incidentRepository = require("../data/repositories/incidentRepository.js");
+const incidentTypeRepository = require("../data/repositories/incidentTypeRepository.js");
+const planTemplateRepository = require("../data/repositories/planTemplateRepository.js");
+const planStageRepository = require("../data/repositories/planStageRepository.js");
+const planStageActionRepository = require("../data/repositories/planStageActionRepository.js");
+const incidentActionRepository = require("../data/repositories/incidentActionRepository.js");
+
+const eventService = require("../services/eventService.js");
 
 class IncidentService {
   /**
@@ -212,7 +214,14 @@ class IncidentService {
 
     transaction();
 
-    return this.getIncidentById(incidentId);
+    const incident = this.getIncidentById(incidentId);
+
+    eventService.broadcast({
+      type: "incident-created",
+      incidentId: incident.id,
+    });
+
+    return incident;
   }
 
   /**
@@ -268,7 +277,14 @@ class IncidentService {
       closed_at: new Date().toISOString(),
     });
 
-    return this.getIncidentById(id);
+    const updatedIncident = this.getIncidentById(id);
+
+    eventService.broadcast({
+      type: "incident-closed",
+      incidentId: id,
+    });
+
+    return updatedIncident;
   }
 
   /**

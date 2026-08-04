@@ -30,6 +30,22 @@ export async function loadIncidents() {
     return;
   }
 
+  window.addEventListener("incident-created", async () => {
+    await loadIncidents();
+  });
+
+  window.addEventListener("incident-closed", async () => {
+    await loadIncidents();
+  });
+
+  window.addEventListener("incident-action-updated", async () => {
+    await loadIncidents();
+  });
+
+  window.addEventListener("incident-action-assigned", async () => {
+    await loadIncidents();
+  });
+
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
     const [incidents] = await Promise.all([
@@ -390,4 +406,14 @@ function buildIncidentCard(incident) {
 
 function openIncident(incidentId) {
   window.location.href = `/incidents/${incidentId}`;
+}
+
+export function registerDashboardLiveUpdates() {
+  window.addEventListener("incident-created", loadIncidents);
+
+  window.addEventListener("incident-closed", loadIncidents);
+
+  window.addEventListener("incident-action-updated", loadIncidents);
+
+  window.addEventListener("incident-action-assigned", loadIncidents);
 }

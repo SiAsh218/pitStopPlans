@@ -4,6 +4,8 @@ const incidentActionRepository = require("../data/repositories/incidentActionRep
 
 const incidentActionUpdateService = require("./incidentActionUpdateService");
 
+const eventService = require("../services/eventService.js");
+
 class IncidentActionService {
   /**
    * Get action or throw.
@@ -88,6 +90,13 @@ class IncidentActionService {
       "in_progress",
     );
 
+    eventService.broadcast({
+      type: "incident-action-updated",
+      incidentId: action.incident_id,
+      actionId: id,
+      status: "in_progress",
+    });
+
     return this.getById(id);
   }
 
@@ -122,6 +131,13 @@ class IncidentActionService {
       "completed",
     );
 
+    eventService.broadcast({
+      type: "incident-action-updated",
+      incidentId: action.incident_id,
+      actionId: id,
+      status: "completed",
+    });
+
     return this.getById(id);
   }
 
@@ -148,14 +164,28 @@ class IncidentActionService {
       "in_progress",
     );
 
+    eventService.broadcast({
+      type: "incident-action-updated",
+      incidentId: action.incident_id,
+      actionId: id,
+      status: "in_progress",
+    });
+
     return this.getById(id);
   }
 
   assignAction(id, userId) {
-    this._getActionOrThrow(id);
+    const action = this._getActionOrThrow(id);
 
     incidentActionRepository.updateById(id, {
       assigned_user_id: userId,
+    });
+
+    eventService.broadcast({
+      type: "incident-action-assigned",
+      incidentId: action.incident_id,
+      actionId: id,
+      assignedUserId: userId,
     });
 
     return this.getById(id);

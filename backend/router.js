@@ -25,6 +25,7 @@ const incidentActionUpdateRoutes = require("./routes/incidentActionUpdateRoutes"
 const userRoutes = require("./routes/userRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
 const userPreferenceRoutes = require("./routes/userPreferenceRoutes");
+const eventRoutes = require("./routes/eventRoutes");
 
 /**
  * Registered application routes.
@@ -46,6 +47,7 @@ const ROUTES = [
   ...userRoutes,
   ...auditLogRoutes,
   ...userPreferenceRoutes,
+  ...eventRoutes,
 ];
 
 /**

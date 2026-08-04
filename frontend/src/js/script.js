@@ -23,14 +23,19 @@ import { initHeader } from "./components/header.js";
 import { initModal } from "./components/modal.js";
 
 // PAGES
-import { loadIncidents } from "./pages/dashboard.js";
+import {
+  loadIncidents,
+  registerDashboardLiveUpdates,
+} from "./pages/dashboard.js";
 import { initTemplatesPage } from "./pages/templates.js";
-import { initIncidentPage } from "./pages/incident.js";
+import { initIncidentPage, refreshIncidentPage } from "./pages/incident.js";
 import { initCreateIncidentPage } from "./pages/createIncident.js";
 import { initPlanTemplatePage } from "./pages/planTemplate.js";
 import { initUsersPage } from "./pages/users.js";
 import { initRolesPage } from "./pages/roles.js";
 import { initAuditLogsPage } from "./pages/auditLog.js";
+
+import { initialiseLiveUpdates } from "./services/liveUpdates.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!(await requireAuth())) {
@@ -47,4 +52,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   initUsersPage();
   initRolesPage();
   initAuditLogsPage();
+
+  initialiseLiveUpdates();
+
+  loadIncidents();
+
+  registerDashboardLiveUpdates();
 });
