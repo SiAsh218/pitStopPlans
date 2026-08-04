@@ -42,8 +42,6 @@ export async function initPlanTemplatePage() {
 
     const history = await getTemplateHistory(templateId);
 
-    console.log("History:", history);
-
     const isDraft = template.status === "draft";
 
     renderTemplateMeta(template, isDraft);
