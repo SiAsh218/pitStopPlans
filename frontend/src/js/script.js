@@ -55,7 +55,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initialiseLiveUpdates();
 
-  loadIncidents();
-
   registerDashboardLiveUpdates();
 });

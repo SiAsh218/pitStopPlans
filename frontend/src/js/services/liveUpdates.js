@@ -1,21 +1,19 @@
-export function initialiseLiveUpdates() {
-  const events = new EventSource("/events");
+let connectionCount = 0;
 
-  // console.log("[SSE] Initialising");
+export function initialiseLiveUpdates() {
+  connectionCount++;
+
+  // console.log("[SSE] Initialising connection", connectionCount);
+
+  const events = new EventSource("/events");
 
   events.onmessage = (event) => {
     const payload = JSON.parse(event.data);
-
-    // console.log("[SSE] Received:", payload);
 
     window.dispatchEvent(
       new CustomEvent(payload.type, {
         detail: payload,
       }),
     );
-  };
-
-  events.onerror = (err) => {
-    console.error("[SSE] Error:", err);
   };
 }

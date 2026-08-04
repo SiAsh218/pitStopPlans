@@ -8,6 +8,6 @@ export function initModalIncident() {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    console.log("Create Incident");
+    // console.log("Create Incident");
   });
 }

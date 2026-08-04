@@ -48,7 +48,7 @@ export function initModalAction() {
         role_ids,
       };
 
-      console.log(payload);
+      // console.log(payload);
 
       if (actionId) {
         await updateAction(Number(actionId), payload);

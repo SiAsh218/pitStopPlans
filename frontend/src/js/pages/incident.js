@@ -33,6 +33,7 @@ let currentActions = [];
 let saveTimeout;
 let incidentTimerInterval;
 let incidentTimerTimeout;
+let sseListenersRegistered = false;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -851,11 +852,15 @@ function buildMatrixTable(actions, roles, stages) {
 // -----------------------------------------------------------------------------
 
 function registerLiveUpdateListeners() {
+  if (sseListenersRegistered) return;
+
   window.addEventListener("incident-action-updated", handleIncidentUpdate);
 
   window.addEventListener("incident-action-assigned", handleIncidentUpdate);
 
   window.addEventListener("incident-closed", handleIncidentClosed);
+
+  sseListenersRegistered = true;
 }
 
 async function handleIncidentUpdate(event) {

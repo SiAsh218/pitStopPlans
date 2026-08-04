@@ -18,6 +18,7 @@ const state = {
   page: 1,
   limit: 10,
 };
+let sseListenersRegistered = false;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -393,6 +394,8 @@ function openIncident(incidentId) {
 }
 
 export function registerDashboardLiveUpdates() {
+  if (sseListenersRegistered) return;
+
   window.addEventListener("incident-created", loadIncidents);
 
   window.addEventListener("incident-closed", loadIncidents);
@@ -400,4 +403,6 @@ export function registerDashboardLiveUpdates() {
   window.addEventListener("incident-action-updated", loadIncidents);
 
   window.addEventListener("incident-action-assigned", loadIncidents);
+
+  sseListenersRegistered = true;
 }

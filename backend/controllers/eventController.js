@@ -20,13 +20,6 @@ function stream(req, res) {
 
   eventService.addClient(res);
 
-  setTimeout(() => {
-    eventService.broadcast({
-      type: "test",
-      message: "Hello from SSE",
-    });
-  }, 5000);
-
   req.on("close", () => {
     clearInterval(heartbeat);
     eventService.removeClient(res);
