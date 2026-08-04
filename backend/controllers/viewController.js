@@ -17,7 +17,7 @@ const AppError = require("../utils/AppError");
  */
 class ViewController {
   constructor() {
-    this.home = this.home.bind(this);
+    this.dashboard = this.dashboard.bind(this);
     this.login = this.login.bind(this);
     this.createPlanTemplate = this.createPlanTemplate.bind(this);
     this.users = this.users.bind(this);
@@ -52,14 +52,14 @@ class ViewController {
   }
 
   /**
-   * Render home page.
+   * Render dashboard page.
    *
    * @param {object} req
    * @param {import("http").ServerResponse} res
    * @returns {Promise<void>}
    */
-  async home(req, res) {
-    return this._render(res, "home.html", {
+  async dashboard(req, res) {
+    return this._render(res, "dashboard.html", {
       title: "Dashboard",
       isLoggedIn: false,
       hasNotifications: false,

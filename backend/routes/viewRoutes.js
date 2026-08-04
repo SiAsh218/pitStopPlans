@@ -4,7 +4,7 @@ module.exports = [
   {
     method: "GET",
     path: "/",
-    handler: viewController.home,
+    handler: viewController.dashboard,
   },
   {
     method: "GET",
