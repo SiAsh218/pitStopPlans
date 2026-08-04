@@ -6,6 +6,8 @@ import {
 
 import { showWarning, showSuccess, showError } from "../utils/myAlert.js";
 
+import { getCurrentUser } from "../auth.js";
+
 let templatesData = [];
 const templateState = {
   search: "",
@@ -38,6 +40,8 @@ function renderTemplates(templates) {
   if (!container) {
     return;
   }
+
+  const user = getCurrentUser();
 
   const grouped = groupTemplates(templates);
 
@@ -99,7 +103,7 @@ function renderTemplates(templates) {
           }
 
           ${
-            versions.approved && !versions.draft
+            versions.approved && !versions.draft && user?.role !== "user"
               ? `
                 <button
                   class="btn btn-primary btn-clone-template"
@@ -206,7 +210,12 @@ function filterTemplates() {
 }
 
 function wireCreateTemplateButton() {
+  const user = getCurrentUser();
+
   const button = document.getElementById("btn-create-template");
+
+  if (user.role !== "user") button.classList.remove("hidden");
+
   const modal = document.getElementById("modal-form-template-create");
   const form = document.getElementById("form-create-template");
 

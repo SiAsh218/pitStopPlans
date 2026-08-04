@@ -100,7 +100,7 @@ function renderTemplateMeta(template, isDraft) {
 
       <div class="template-page__hero-actions">
         ${
-          isDraft
+          isDraft && user.role !== "user"
             ? `
               <button id="btn-add-stage" class="btn btn-primary">
                 Add Stage
@@ -181,6 +181,8 @@ function renderTemplateMatrix(plan, isDraft) {
     return;
   }
 
+  const user = getCurrentUser();
+
   container.innerHTML = `
     <div class="card template-page__section-card">
       <div class="template-page__section-header">
@@ -255,7 +257,7 @@ function renderTemplateMatrix(plan, isDraft) {
           </small>
 
           ${
-            isDraft
+            isDraft && user.role !== "user"
               ? `
                 <div class="stage-actions">
                   <button
@@ -323,7 +325,7 @@ function renderTemplateMatrix(plan, isDraft) {
           </div>
 
           ${
-            isDraft
+            isDraft && user.role !== "user"
               ? `
                 <div class="matrix-action__buttons">
 
