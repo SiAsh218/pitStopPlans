@@ -22,8 +22,8 @@ function seedDatabase() {
 
   const adminEmail = process.env.ADMIN_EMAIL || "admin@test.com";
   const adminPassword = process.env.ADMIN_PASSWORD;
-  const sndmEmail = process.env.TEST_USER_EMAIL || "sndm@test.com";
-  const sndmPassword = process.env.TEST_USER_PASSWORD;
+  const sndmEmail = process.env.SNDM_USER_EMAIL || "sndm@test.com";
+  const sndmPassword = process.env.SNDM_USER_PASSWORD;
   const basicEmail = process.env.BASIC_USER_EMAIL || "basic@test.com";
   const basicPassword = process.env.BASIC_USER_PASSWORD;
 
