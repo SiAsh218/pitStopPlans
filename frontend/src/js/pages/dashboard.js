@@ -30,22 +30,6 @@ export async function loadIncidents() {
     return;
   }
 
-  window.addEventListener("incident-created", async () => {
-    await loadIncidents();
-  });
-
-  window.addEventListener("incident-closed", async () => {
-    await loadIncidents();
-  });
-
-  window.addEventListener("incident-action-updated", async () => {
-    await loadIncidents();
-  });
-
-  window.addEventListener("incident-action-assigned", async () => {
-    await loadIncidents();
-  });
-
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
     const [incidents] = await Promise.all([

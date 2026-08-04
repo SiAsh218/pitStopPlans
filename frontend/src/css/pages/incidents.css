@@ -484,7 +484,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.45rem 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--border-radius);
   border: 1px solid #dfe5eb;
   background: #f8fafc;
   color: #374151;
