@@ -1,5 +1,6 @@
 import { getAuditLogs } from "../services/auditLogService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
+import { getCurrentUser } from "../auth.js";
 
 const state = {
   entityType: "",
@@ -13,6 +14,12 @@ export async function initAuditLogsPage() {
 
   if (!container) {
     return;
+  }
+
+  const user = getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    window.location.href = "/";
   }
 
   wireAuditLogControls();

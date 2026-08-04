@@ -1,5 +1,6 @@
 import { getRoles, createRole, updateRole } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
+import { getCurrentUser } from "../auth.js";
 
 let allRoles = [];
 
@@ -14,6 +15,12 @@ export async function initRolesPage() {
 
   if (!container) {
     return;
+  }
+
+  const user = getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    window.location.href = "/";
   }
 
   wireSearch();

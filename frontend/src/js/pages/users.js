@@ -8,6 +8,8 @@ import {
 import { getRoles } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
 
+import { getCurrentUser } from "../auth.js";
+
 let allUsers = [];
 let allRoles = [];
 
@@ -27,6 +29,12 @@ export async function initUsersPage() {
 
   if (!container) {
     return;
+  }
+
+  const user = getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    window.location.href = "/";
   }
 
   try {
