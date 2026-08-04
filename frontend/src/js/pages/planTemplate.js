@@ -24,6 +24,7 @@ import {
   updateAction,
   deleteAction,
 } from "../services/planStageActionService.js";
+import { getCurrentUser } from "../auth.js";
 
 export async function initPlanTemplatePage() {
   const container = document.querySelector(".template-meta");
@@ -77,6 +78,8 @@ function renderTemplateMeta(template, isDraft) {
 
   const isApproved = template.status === "approved";
 
+  const user = getCurrentUser();
+
   container.innerHTML = `
     <div class="card template-page__hero">
       <div class="template-page__hero-main">
@@ -113,9 +116,8 @@ function renderTemplateMeta(template, isDraft) {
             `
             : ""
         }
-
         ${
-          isApproved
+          isApproved && user?.role === "admin"
             ? `
               <button id="btn-retire-template" class="btn btn-danger">
                 Retire Template

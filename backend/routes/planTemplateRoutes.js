@@ -73,7 +73,11 @@ module.exports = [
   {
     method: "POST",
     path: "/api/plan_templates/:id/approve",
-    handler: [auth, requireRole("admin"), planTemplateController.approve],
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      planTemplateController.approve,
+    ],
   },
 
   {
