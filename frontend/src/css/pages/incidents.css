@@ -223,6 +223,18 @@
   transform: translateY(-2px);
 }
 
+.matrix-action__overdue {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  height: 15px;
+  margin-top: auto;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -322,7 +334,7 @@
 
 .incident-progress-metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.7rem;
 }
 
@@ -344,6 +356,15 @@
   font-size: 1rem;
   font-weight: 700;
   color: #0f172a;
+}
+
+.incident-progress-metric--overdue {
+  border-left: 4px solid #dc2626;
+}
+
+.incident-progress-metric--overdue span {
+  color: #dc2626;
+  font-weight: 700;
 }
 
 @media (max-width: 800px) {

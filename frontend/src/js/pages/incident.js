@@ -2,7 +2,7 @@
 // Dependencies
 // -----------------------------------------------------------------------------
 import { getDashboard, closeIncident } from "../services/incidentService.js";
-import { formatDateTime } from "../utils/dateHandler.js";
+import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 import { getCurrentUser } from "../auth.js";
@@ -36,6 +36,8 @@ let incidentTimerInterval;
 let incidentTimerTimeout;
 let sseListenersRegistered = false;
 let currentUser = null;
+let incidentStartedAt = null;
+let currentSummary = null;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -57,6 +59,7 @@ export async function initIncidentPage() {
   try {
     const incidentId = window.location.pathname.split("/").pop();
     const dashboard = await getDashboard(incidentId);
+    currentSummary = dashboard.summary;
 
     renderIncidentMeta(dashboard);
     renderActions(dashboard.actions);
@@ -75,6 +78,8 @@ export async function refreshIncidentPage() {
   const incidentId = window.location.pathname.split("/").pop();
   const dashboard = await getDashboard(incidentId);
 
+  currentSummary = dashboard.summary;
+
   renderIncidentMeta(dashboard);
   renderSummary(dashboard.summary);
   renderActions(dashboard.actions);
@@ -86,6 +91,7 @@ export async function refreshIncidentPage() {
 
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
+  incidentStartedAt = incident.started_at;
   const container = document.querySelector(".incident-meta");
 
   if (!container) {
@@ -149,6 +155,8 @@ function renderSummary(summary) {
     return;
   }
 
+  const overdueCount = getOverdueActionCount(currentActions);
+
   container.innerHTML = `
     <div class="card">
       <div class="incident-progress-header">
@@ -180,6 +188,10 @@ function renderSummary(summary) {
         <div class="incident-progress-metric">
           <strong>In Progress</strong>
           <span>${summary.in_progress_actions}</span>
+        </div>
+        <div class="incident-progress-metric ${overdueCount > 0 ? "incident-progress-metric--overdue" : ""}">
+          <strong>Overdue</strong>
+          <span>${overdueCount}</span>
         </div>
         <div class="incident-progress-metric">
           <strong>Pending</strong>
@@ -646,6 +658,14 @@ function startIncidentTimer(startedAt) {
     } else {
       element.textContent = `🕒 Open ${minutes}m`;
     }
+
+    if (currentActions.length) {
+      renderActions(currentActions);
+    }
+
+    if (currentSummary) {
+      renderSummary(currentSummary);
+    }
   };
 
   update();
@@ -694,6 +714,28 @@ function parseUkDateTime(value) {
   return new Date(`${year}-${month}-${day}T${timePart}`);
 }
 
+function isActionOverdue(action) {
+  if (!incidentStartedAt) {
+    return false;
+  }
+
+  if (action.status === "completed") {
+    return false;
+  }
+
+  const incidentStart = parseUtcDate(incidentStartedAt);
+
+  const dueDate = new Date(
+    incidentStart.getTime() + action.due_from_incident_start * 60 * 1000,
+  );
+
+  return Date.now() > dueDate.getTime();
+}
+
+function getOverdueActionCount(actions) {
+  return actions.filter((action) => isActionOverdue(action)).length;
+}
+
 // -----------------------------------------------------------------------------
 // Matrix Helpers
 // -----------------------------------------------------------------------------
@@ -726,6 +768,14 @@ function buildActionCard(action) {
     action.due_from_stage_start != null
       ? `${action.due_from_stage_start} mins from stage start`
       : `${action.due_from_incident_start} mins from incident start`;
+
+  const overdueBadge = isActionOverdue(action)
+    ? `
+      <span class="matrix-action__overdue">
+        ⚠ Overdue
+      </span>
+    `
+    : "";
 
   const actionButton =
     action.status === "pending"
@@ -765,7 +815,7 @@ function buildActionCard(action) {
         <span class="matrix-action__status">
           ${action.status}
         </span>
-
+        
         <span class="matrix-action__due">
           ${dueLabel}
         </span>
@@ -775,7 +825,7 @@ function buildActionCard(action) {
         ${roleNames}
       </div>
 
-      ${actionButton}
+      <div style="display: flex; justify-content: space-between">${actionButton}${overdueBadge}</div>
     </div>
   `;
 }
