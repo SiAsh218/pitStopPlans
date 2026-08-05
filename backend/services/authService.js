@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
 const AppError = require("../utils/AppError");
+const { validatePassword } = require("../utils/validatePassword");
 
 const SECRET = process.env.JWT_SECRET;
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT || 10);
@@ -58,6 +59,8 @@ class AuthService {
    * @returns {object}
    */
   register(email, password) {
+    validatePassword(password);
+
     const existing = userRepository.findByEmail(email);
 
     if (existing) {

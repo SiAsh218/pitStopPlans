@@ -5,6 +5,7 @@ const userRoleRepository = require("../data/repositories/userRoleRepository");
 const roleRepository = require("../data/repositories/roleRepository");
 
 const auditService = require("../services/auditLogService");
+const { validatePassword } = require("../utils/validatePassword");
 
 const AppError = require("../utils/AppError");
 
@@ -65,6 +66,8 @@ class UserService {
    * @returns {string}
    */
   _hashPassword(password) {
+    validatePassword(password);
+
     return bcrypt.hashSync(password, BCRYPT_ROUNDS);
   }
 
