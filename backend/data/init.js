@@ -231,6 +231,7 @@ function initialiseDatabase() {
       template_version INTEGER NOT NULL,
       title TEXT NOT NULL,
       description TEXT,
+      ccil_number TEXT,
       status TEXT NOT NULL DEFAULT 'active',
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       closed_at DATETIME,

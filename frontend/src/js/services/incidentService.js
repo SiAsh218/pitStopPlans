@@ -23,3 +23,10 @@ export function closeIncident(id) {
 export function reopenIncident(id) {
   return api.post(`/api/incidents/${id}/reopen`);
 }
+
+export function updateIncidentCcil(id, ccilNumber) {
+  return api.post(`/api/incidents/${id}/ccil`, {
+    ccil_number: ccilNumber,
+  });
+}
+``;

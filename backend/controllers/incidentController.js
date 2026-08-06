@@ -13,6 +13,7 @@ class IncidentController {
     this.create = this.create.bind(this);
     this.close = this.close.bind(this);
     this.reopen = this.reopen.bind(this);
+    this.updateCcil = this.updateCcil.bind(this);
     this.dashboard = this.dashboard.bind(this);
   }
 
@@ -137,6 +138,19 @@ class IncidentController {
     this._sendJSON(res, 200, {
       success: true,
       data,
+    });
+  }
+
+  updateCcil(req, res) {
+    const incident = incidentService.updateCcilNumber(
+      Number(req.params.id),
+      req.body.ccil_number,
+      req.user.id,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: incident,
     });
   }
 }

@@ -23,6 +23,7 @@ class IncidentService {
       id: row.id,
       title: row.title,
       description: row.description,
+      ccil_number: row.ccil_number ?? null,
       status: row.status,
       started_at: row.started_at,
       closed_at: row.closed_at,
@@ -204,6 +205,7 @@ class IncidentService {
         template_version: template.version,
         title: data.title,
         description: data.description ?? null,
+        ccil_number: data.ccil_number ?? null,
         status: "active",
         created_by: userId,
         incident_manager_id: userId,
@@ -370,6 +372,35 @@ class IncidentService {
       summary: this._getActionSummary(actions),
       actions,
     };
+  }
+
+  updateCcilNumber(id, ccilNumber, userId) {
+    const incident = this._getIncidentOrThrow(id);
+
+    const beforeCcilNumber = incident.ccil_number;
+
+    incidentRepository.updateById(id, {
+      ccil_number: ccilNumber || null,
+    });
+
+    const updatedIncident = this.getIncidentById(id);
+
+    auditService.log(userId, "UPDATE_INCIDENT_CCIL", "incident", id, {
+      before: {
+        ccilNumber: beforeCcilNumber,
+      },
+      after: {
+        ccilNumber: updatedIncident.ccil_number,
+      },
+    });
+
+    eventService.broadcast({
+      type: "incident-ccil-updated",
+      incidentId: id,
+      userId,
+    });
+
+    return updatedIncident;
   }
 }
 

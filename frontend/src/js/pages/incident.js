@@ -5,6 +5,7 @@ import {
   getDashboard,
   closeIncident,
   reopenIncident,
+  updateIncidentCcil,
 } from "../services/incidentService.js";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
@@ -58,6 +59,7 @@ export async function initIncidentPage() {
     return;
   }
 
+  wireCcilModal();
   registerLiveUpdateListeners();
 
   try {
@@ -129,16 +131,22 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
-        <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span></div>
+        <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span>
+        <span class="incident-meta__chip"> CCIL: ${incident.ccil_number || "Not Assigned"}</span>
+      </div>
     </div>
 
     <div class="incident-meta__actions">
+      <button class="btn btn-secondary" id="btn-edit-ccil">
+        ${incident.ccil_number ? "Edit CCIL" : "Add CCIL"}
+      </button>
       ${incidentButton}
     </div>
   `;
 
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
+  wireEditCcilButton(incident.id, incident.ccil_number);
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
 }
@@ -154,6 +162,58 @@ function wireDashboardBackButton() {
   button.addEventListener("click", () => {
     window.location.assign("/");
   });
+}
+
+function wireEditCcilButton(incidentId, ccilNumber) {
+  document.getElementById("btn-edit-ccil")?.addEventListener("click", () => {
+    document.getElementById("modal-ccil-incident-id").value = incidentId;
+
+    document.getElementById("modal-ccil-number").value = ccilNumber ?? "";
+
+    document
+      .getElementById("modal-form-incident-ccil")
+      .classList.remove("hidden");
+  });
+}
+
+function wireCcilModal() {
+  const modal = document.getElementById("modal-form-incident-ccil");
+
+  if (!modal) {
+    return;
+  }
+
+  modal.querySelector(".modal-form__close")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  modal.querySelector(".modal-form__overlay")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document
+    .getElementById("modal-ccil-form")
+    ?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const incidentId = document.getElementById(
+        "modal-ccil-incident-id",
+      ).value;
+
+      const ccilNumber = document
+        .getElementById("modal-ccil-number")
+        .value.trim();
+
+      try {
+        await updateIncidentCcil(incidentId, ccilNumber || null);
+
+        modal.classList.add("hidden");
+
+        await refreshIncidentPage();
+      } catch (err) {
+        showUnexpectedError(err);
+      }
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -948,6 +1008,8 @@ function registerLiveUpdateListeners() {
   window.addEventListener("incident-closed", handleIncidentClosed);
 
   window.addEventListener("incident-reopened", handleIncidentUpdate);
+
+  window.addEventListener("incident-ccil-updated", handleIncidentUpdate);
 
   sseListenersRegistered = true;
 }

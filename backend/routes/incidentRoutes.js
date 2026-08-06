@@ -41,4 +41,10 @@ module.exports = [
     path: "/api/incidents/:id/dashboard",
     handler: [...authenticatedUser, incidentController.dashboard],
   },
+
+  {
+    method: "POST",
+    path: "/api/incidents/:id/ccil",
+    handler: [...editorAccess, incidentController.updateCcil],
+  },
 ];

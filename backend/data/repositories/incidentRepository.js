@@ -191,6 +191,7 @@ class IncidentRepository extends BaseRepository {
           template_version,
           title,
           description,
+          ccil_number,
           status,
           created_by,
           incident_manager_id
@@ -204,6 +205,7 @@ class IncidentRepository extends BaseRepository {
         data.template_version,
         data.title,
         data.description,
+        data.ccil_number,
         data.status,
         data.created_by,
         data.incident_manager_id,
