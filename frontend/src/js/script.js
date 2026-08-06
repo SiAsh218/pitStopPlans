@@ -13,6 +13,7 @@ import "../css/pages/login.css";
 import "../css/pages/users.css";
 import "../css/pages/roles.css";
 import "../css/pages/auditLog.css";
+import "../css/pages/planTemplate.css";
 
 // AUTH
 import login from "./login.js";

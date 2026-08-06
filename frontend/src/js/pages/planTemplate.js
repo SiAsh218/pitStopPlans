@@ -878,19 +878,21 @@ async function renderActionRoleCheckboxes(
     container.insertAdjacentHTML(
       "beforeend",
       `
-        <label>
+    <label class="action-role-option">
 
-          <input
-            type="checkbox"
-            class="action-role-checkbox"
-            value="${role.id}"
-            ${selectedIds.has(role.id) ? "checked" : ""}
-          >
+      <input
+        type="checkbox"
+        class="action-role-checkbox"
+        value="${role.id}"
+        ${selectedIds.has(role.id) ? "checked" : ""}
+      >
 
-          ${role.name}${disabledLabel}
+      <span class="action-role-option__label">
+        ${role.name}${disabledLabel}
+      </span>
 
-        </label>
-      `,
+    </label>
+  `,
     );
   });
 }

@@ -1,0 +1,37 @@
+#modal-action-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.action-role-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-colour);
+  border-radius: 999px;
+  cursor: pointer;
+  background: #fff;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.action-role-option:hover {
+  border-color: var(--primary-colour);
+  transform: translateY(-1px);
+}
+
+.action-role-checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.action-role-option:has(.action-role-checkbox:checked) {
+  background: #eef6ff;
+  border-color: var(--primary-colour);
+  font-weight: 600;
+}
