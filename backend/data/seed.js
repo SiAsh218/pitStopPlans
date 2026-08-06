@@ -379,7 +379,7 @@ function seedDatabase() {
         incidentActionIds[0],
         adminUser.id,
         "status_change",
-        "Network Rail senior leader contacted and acknowledged incident. (Seeded Data for Testing)",
+        "Action completed",
         "pending",
         "completed",
       );
@@ -388,7 +388,7 @@ function seedDatabase() {
         incidentActionIds[0],
         adminUser.id,
         "comment",
-        "Resources mobilised and situation assessment underway. (Seeded Data for Testing)",
+        "Action started",
         null,
         null,
       );
@@ -399,7 +399,7 @@ function seedDatabase() {
         incidentActionIds[1],
         adminUser.id,
         "status_change",
-        "Incident response is currently underway. (Seeded Data for Testing)",
+        "Action started",
         "pending",
         "in_progress",
       );
@@ -424,7 +424,7 @@ function seedDatabase() {
 
     insertAudit.run(
       adminUser.id,
-      "create",
+      "CREATE_INCIDENT",
       "incident",
       incidentId,
       JSON.stringify({
@@ -432,35 +432,35 @@ function seedDatabase() {
       }),
     );
 
-    if (incidentActionIds.length > 0) {
-      insertAudit.run(
-        adminUser.id,
-        "update_status",
-        "incident_action",
-        incidentActionIds[0],
-        JSON.stringify({
-          field: "status",
-          from: "pending",
-          to: "completed",
-        }),
-      );
-    }
+    // if (incidentActionIds.length > 0) {
+    //   insertAudit.run(
+    //     adminUser.id,
+    //     "update_status",
+    //     "incident_action",
+    //     incidentActionIds[0],
+    //     JSON.stringify({
+    //       field: "status",
+    //       from: "pending",
+    //       to: "completed",
+    //     }),
+    //   );
+    // }
 
-    if (incidentActionIds.length > 1) {
-      insertAudit.run(
-        adminUser.id,
-        "update_status",
-        "incident_action",
-        incidentActionIds[1],
-        JSON.stringify({
-          field: "status",
-          from: "pending",
-          to: "in_progress",
-        }),
-      );
+    // if (incidentActionIds.length > 1) {
+    //   insertAudit.run(
+    //     adminUser.id,
+    //     "update_status",
+    //     "incident_action",
+    //     incidentActionIds[1],
+    //     JSON.stringify({
+    //       field: "status",
+    //       from: "pending",
+    //       to: "in_progress",
+    //     }),
+    //   );
 
-      console.log("✅ Live incident seeded");
-    }
+    console.log("✅ Live incident seeded");
+    // }
   }
 
   console.log("✅ Seeding complete");
