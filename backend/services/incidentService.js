@@ -7,6 +7,8 @@ const planStageRepository = require("../data/repositories/planStageRepository.js
 const planStageActionRepository = require("../data/repositories/planStageActionRepository.js");
 const incidentActionRepository = require("../data/repositories/incidentActionRepository.js");
 
+const auditService = require("../services/auditLogService");
+
 const eventService = require("../services/eventService.js");
 
 class IncidentService {
@@ -216,6 +218,14 @@ class IncidentService {
 
     const incident = this.getIncidentById(incidentId);
 
+    auditService.log(userId, "CREATE_INCIDENT", "incident", incident.id, {
+      title: incident.title,
+      incidentTypeId: incident.incident_type.id,
+      incidentTypeName: incident.incident_type.name,
+      templateVersion: incident.template.version,
+      status: incident.status,
+    });
+
     eventService.broadcast({
       type: "incident-created",
       incidentId: incident.id,
@@ -272,6 +282,8 @@ class IncidentService {
       return this.getIncidentById(id);
     }
 
+    const beforeStatus = incident.status;
+
     incidentRepository.updateById(id, {
       status: "closed",
       closed_at: new Date().toISOString(),
@@ -279,10 +291,60 @@ class IncidentService {
 
     const updatedIncident = this.getIncidentById(id);
 
+    auditService.log(userId, "CLOSE_INCIDENT", "incident", id, {
+      before: {
+        status: beforeStatus,
+      },
+      after: {
+        status: "closed",
+      },
+      closedAt: updatedIncident.closed_at,
+    });
+
     eventService.broadcast({
       type: "incident-closed",
       incidentId: id,
       userId,
+    });
+
+    return updatedIncident;
+  }
+
+  /**
+   * Reopens an incident.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {object|null}
+   */
+  reopenIncident(id, userId) {
+    const incident = this._getIncidentOrThrow(id);
+
+    if (incident.status === "active") {
+      return this.getIncidentById(id);
+    }
+
+    incidentRepository.updateById(id, {
+      status: "active",
+      closed_at: null,
+    });
+
+    const beforeStatus = incident.status;
+
+    incidentRepository.updateById(id, {
+      status: "active",
+      closed_at: null,
+    });
+
+    const updatedIncident = this.getIncidentById(id);
+
+    auditService.log(userId, "REOPEN_INCIDENT", "incident", id, {
+      before: {
+        status: beforeStatus,
+      },
+      after: {
+        status: "active",
+      },
     });
 
     return updatedIncident;

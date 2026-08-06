@@ -31,6 +31,12 @@ module.exports = [
   },
 
   {
+    method: "POST",
+    path: "/api/incidents/:id/reopen",
+    handler: [...editorAccess, incidentController.reopen],
+  },
+
+  {
     method: "GET",
     path: "/api/incidents/:id/dashboard",
     handler: [...authenticatedUser, incidentController.dashboard],

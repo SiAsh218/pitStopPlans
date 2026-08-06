@@ -69,7 +69,7 @@ describe("UserService", () => {
 
       const result = userService.createUser(
         "user@test.com",
-        "Password123",
+        "Password123!",
         "user",
         [],
         99,
@@ -91,7 +91,7 @@ describe("UserService", () => {
       });
 
       expect(() =>
-        userService.createUser("user@test.com", "Password123", "user", [], 99),
+        userService.createUser("user@test.com", "Password123!", "user", [], 99),
       ).toThrow("User already exists");
     });
 
@@ -124,7 +124,7 @@ describe("UserService", () => {
         },
       ]);
 
-      userService.createUser("user@test.com", "Password123", "user", [10], 99);
+      userService.createUser("user@test.com", "Password123!", "user", [10], 99);
 
       expect(userRoleRepository.setRoles).toHaveBeenCalledWith(1, [10]);
     });
@@ -137,7 +137,7 @@ describe("UserService", () => {
       expect(() =>
         userService.createUser(
           "user@test.com",
-          "Password123",
+          "Password123!",
           "user",
           [999],
           99,
@@ -220,7 +220,7 @@ describe("UserService", () => {
         1,
         {
           role: "admin",
-          password: "NewPassword",
+          password: "NewPassword1!",
           role_ids: [20],
         },
         99,

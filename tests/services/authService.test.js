@@ -30,7 +30,7 @@ describe("AuthService", () => {
         lastInsertRowid: 1,
       });
 
-      const result = authService.register("user@test.com", "Password123");
+      const result = authService.register("user@test.com", "Password123!");
 
       expect(bcrypt.hashSync).toHaveBeenCalled();
 
@@ -53,7 +53,7 @@ describe("AuthService", () => {
       });
 
       expect(() =>
-        authService.register("user@test.com", "Password123"),
+        authService.register("user@test.com", "Password123!"),
       ).toThrow("User already exists");
     });
   });
@@ -87,10 +87,10 @@ describe("AuthService", () => {
 
       jwt.sign.mockReturnValue("mock-jwt-token");
 
-      const result = authService.login("user@test.com", "Password123");
+      const result = authService.login("user@test.com", "Password123!");
 
       expect(bcrypt.compareSync).toHaveBeenCalledWith(
-        "Password123",
+        "Password123!",
         "hashed-password",
       );
 
@@ -109,11 +109,11 @@ describe("AuthService", () => {
     it("throws when user does not exist", () => {
       userRepository.findByEmail.mockReturnValue(null);
 
-      expect(() => authService.login("user@test.com", "Password123")).toThrow(
+      expect(() => authService.login("user@test.com", "Password123!")).toThrow(
         AppError,
       );
 
-      expect(() => authService.login("user@test.com", "Password123")).toThrow(
+      expect(() => authService.login("user@test.com", "Password123!")).toThrow(
         "Invalid credentials",
       );
     });
@@ -127,7 +127,7 @@ describe("AuthService", () => {
         active: false,
       });
 
-      expect(() => authService.login("user@test.com", "Password123")).toThrow(
+      expect(() => authService.login("user@test.com", "Password123!")).toThrow(
         "User account is disabled",
       );
     });
@@ -168,7 +168,7 @@ describe("AuthService", () => {
 
       jwt.sign.mockReturnValue("token");
 
-      authService.login("user@test.com", "Password123");
+      authService.login("user@test.com", "Password123!");
 
       expect(userRoleRepository.findByUserId).toHaveBeenCalledWith(1);
     });
@@ -197,7 +197,7 @@ describe("AuthService", () => {
 
       jwt.sign.mockReturnValue("token");
 
-      authService.login("user@test.com", "Password123");
+      authService.login("user@test.com", "Password123!");
 
       expect(jwt.sign).toHaveBeenCalledWith(
         {

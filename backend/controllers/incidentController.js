@@ -12,6 +12,7 @@ class IncidentController {
     this.getById = this.getById.bind(this);
     this.create = this.create.bind(this);
     this.close = this.close.bind(this);
+    this.reopen = this.reopen.bind(this);
     this.dashboard = this.dashboard.bind(this);
   }
 
@@ -96,6 +97,18 @@ class IncidentController {
    */
   close(req, res) {
     const incident = incidentService.closeIncident(
+      Number(req.params.id),
+      req.user.id,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: incident,
+    });
+  }
+
+  reopen(req, res) {
+    const incident = incidentService.reopenIncident(
       Number(req.params.id),
       req.user.id,
     );

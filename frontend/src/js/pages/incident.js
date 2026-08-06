@@ -1,7 +1,11 @@
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-import { getDashboard, closeIncident } from "../services/incidentService.js";
+import {
+  getDashboard,
+  closeIncident,
+  reopenIncident,
+} from "../services/incidentService.js";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
@@ -98,9 +102,16 @@ function renderIncidentMeta(dashboard) {
     return;
   }
 
-  const closeButton =
+  const incidentButton =
     incident.status === "closed"
-      ? ""
+      ? `
+        <button
+          class="btn btn-secondary"
+          id="btn-reopen-incident"
+        >
+          Reopen Incident
+        </button>
+      `
       : `
         <button
           class="btn btn-primary"
@@ -122,11 +133,12 @@ function renderIncidentMeta(dashboard) {
     </div>
 
     <div class="incident-meta__actions">
-      ${closeButton}
+      ${incidentButton}
     </div>
   `;
 
   wireCloseIncidentButton(incident.id);
+  wireReopenIncidentButton(incident.id);
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
 }
@@ -546,6 +558,28 @@ function wireCloseIncidentButton(incidentId) {
     });
 }
 
+function wireReopenIncidentButton(incidentId) {
+  document
+    .getElementById("btn-reopen-incident")
+    ?.addEventListener("click", async () => {
+      const confirmed = await showConfirm(
+        "Reopen Incident",
+        "Are you sure you want to reopen this incident?",
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await reopenIncident(incidentId);
+        await refreshIncidentPage();
+      } catch (err) {
+        showUnexpectedError(err);
+      }
+    });
+}
+
 function renderRolePicker(allRoles) {
   const container = document.getElementById("role-picker");
 
@@ -912,6 +946,8 @@ function registerLiveUpdateListeners() {
   window.addEventListener("incident-action-assigned", handleIncidentUpdate);
 
   window.addEventListener("incident-closed", handleIncidentClosed);
+
+  window.addEventListener("incident-reopened", handleIncidentUpdate);
 
   sseListenersRegistered = true;
 }

@@ -19,3 +19,7 @@ export function createIncident(data) {
 export function closeIncident(id) {
   return api.post(`/api/incidents/${id}/close`);
 }
+
+export function reopenIncident(id) {
+  return api.post(`/api/incidents/${id}/reopen`);
+}
