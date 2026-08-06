@@ -236,7 +236,7 @@ function renderCurrentPage() {
   const filtered = getFilteredIncidents();
   const { rows, meta } = getPaginatedIncidents(filtered);
 
-  updateStatistics(filtered);
+  updateStatistics(allIncidents);
   renderIncidents(rows);
   renderPagination(meta);
 }

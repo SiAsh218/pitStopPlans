@@ -196,7 +196,7 @@ class IncidentRepository extends BaseRepository {
           created_by,
           incident_manager_id
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       )
       .run(
