@@ -12,6 +12,8 @@ import { showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 import { getCurrentUser } from "../auth.js";
 
+import { copyToClipboard } from "../utils/copyToClipboard.js";
+
 import {
   getPreferences,
   savePreferences,
@@ -43,6 +45,7 @@ let sseListenersRegistered = false;
 let currentUser = null;
 let incidentStartedAt = null;
 let currentSummary = null;
+let currentIncident = null;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -97,6 +100,7 @@ export async function refreshIncidentPage() {
 
 function renderIncidentMeta(dashboard) {
   const incident = dashboard.incident;
+  currentIncident = dashboard.incident;
   incidentStartedAt = incident.started_at;
   const container = document.querySelector(".incident-meta");
 
@@ -137,6 +141,9 @@ function renderIncidentMeta(dashboard) {
     </div>
 
     <div class="incident-meta__actions">
+      <button class="btn btn-secondary" id="btn-copy-to-clipboard">
+        Copy
+      </button>
       <button class="btn btn-secondary" id="btn-edit-ccil">
         ${incident.ccil_number ? "Edit CCIL" : "Add CCIL"}
       </button>
@@ -147,6 +154,7 @@ function renderIncidentMeta(dashboard) {
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
   wireEditCcilButton(incident.id, incident.ccil_number);
+  wireCopyToClipboardButton();
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
 }
@@ -174,6 +182,18 @@ function wireEditCcilButton(incidentId, ccilNumber) {
       .getElementById("modal-form-incident-ccil")
       .classList.remove("hidden");
   });
+}
+
+function wireCopyToClipboardButton() {
+  document
+    .getElementById("btn-copy-to-clipboard")
+    ?.addEventListener("click", () => {
+      console.log("click copy button");
+
+      const html = buildIncidentClipboardHtml();
+
+      copyToClipboard(html);
+    });
 }
 
 function wireCcilModal() {
@@ -828,6 +848,120 @@ function isActionOverdue(action) {
 
 function getOverdueActionCount(actions) {
   return actions.filter((action) => isActionOverdue(action)).length;
+}
+
+function buildIncidentClipboardHtml() {
+  if (!currentIncident || !currentSummary) {
+    return "<p>No incident data available</p>";
+  }
+
+  const activeActions = currentActions.filter(
+    (a) => a.status === "in_progress",
+  );
+
+  const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+
+  return `
+    <div style="font-family:Segoe UI,Arial,sans-serif;">
+      <h2>Incident Update</h2>
+
+      <p>
+        <strong>Incident:</strong>
+        ${currentIncident.title}
+      </p>
+
+      <p>
+        <strong>Status:</strong>
+        ${currentIncident.status}
+      </p>
+
+      <p>
+        <strong>CCIL:</strong>
+        ${currentIncident.ccil_number || "Not Assigned"}
+      </p>
+
+      <p>
+        <strong>Progress:</strong>
+        ${currentSummary.completion_percentage}% Complete
+      </p>
+
+      <table
+        border="1"
+        cellpadding="6"
+        cellspacing="0"
+        style="border-collapse:collapse;"
+      >
+        <tr>
+          <th>Metric</th>
+          <th>Count</th>
+        </tr>
+        <tr>
+          <td>Total Actions</td>
+          <td>${currentSummary.total_actions}</td>
+        </tr>
+        <tr>
+          <td>Completed</td>
+          <td>${currentSummary.completed_actions}</td>
+        </tr>
+        <tr>
+          <td>In Progress</td>
+          <td>${currentSummary.in_progress_actions}</td>
+        </tr>
+        <tr>
+          <td>Pending</td>
+          <td>${currentSummary.pending_actions}</td>
+        </tr>
+        <tr>
+          <td>Overdue</td>
+          <td>${getOverdueActionCount(currentActions)}</td>
+        </tr>
+      </table>
+
+      <h3>Actions In Progress</h3>
+
+      ${
+        activeActions.length
+          ? `<ul>
+              ${activeActions
+                .map(
+                  (a) => `
+                    <li>
+                      <strong>${a.title}</strong>
+                      (${a.roles.map((r) => r.name).join(", ")})
+                    </li>
+                  `,
+                )
+                .join("")}
+            </ul>`
+          : "<p>None</p>"
+      }
+
+      ${
+        overdueActions.length
+          ? `
+            <h3>Overdue Actions</h3>
+
+            <ul>
+              ${overdueActions
+                .map(
+                  (a) => `
+                    <li>
+                      <strong>${a.title}</strong>
+                    </li>
+                  `,
+                )
+                .join("")}
+            </ul>
+          `
+          : ""
+      }
+
+      <p>
+        <strong>Updated:</strong>
+        ${new Date().toLocaleString()}
+      </p>
+    </div>
+  `;
 }
 
 // -----------------------------------------------------------------------------
