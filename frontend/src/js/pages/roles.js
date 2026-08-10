@@ -2,12 +2,12 @@ import { getRoles, createRole, updateRole } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
 import { getCurrentUser } from "../auth.js";
 
-let allRoles = [];
-
 const roleState = {
   search: "",
   page: 1,
-  limit: 10,
+  limit: 100,
+  roles: [],
+  paginationMeta: null,
 };
 
 export async function initRolesPage() {
@@ -30,8 +30,15 @@ export async function initRolesPage() {
 
 async function loadRoles() {
   try {
-    allRoles = await getRoles();
-    roleState.page = 1;
+    const result = await getRoles({
+      page: roleState.page,
+      limit: roleState.limit,
+      search: roleState.search || undefined,
+    });
+
+    roleState.roles = result.data;
+    roleState.paginationMeta = result.meta;
+
     renderCurrentPage();
   } catch (err) {
     console.error(err);
@@ -131,38 +138,9 @@ function wireToggleButtons() {
   });
 }
 
-function getFilteredRoles() {
-  return allRoles.filter((role) => {
-    const searchTerm = roleState.search;
-    const name = role.name.toLowerCase();
-
-    return !searchTerm || name.includes(searchTerm);
-  });
-}
-
-function getPaginatedRoles(filteredRoles) {
-  const total = filteredRoles.length;
-  const pageCount = Math.max(1, Math.ceil(total / roleState.limit));
-  const page = Math.min(Math.max(1, roleState.page), pageCount);
-  const offset = (page - 1) * roleState.limit;
-
-  return {
-    rows: filteredRoles.slice(offset, offset + roleState.limit),
-    meta: {
-      total,
-      limit: roleState.limit,
-      page,
-      pageCount,
-    },
-  };
-}
-
 function renderCurrentPage() {
-  const filteredRoles = getFilteredRoles();
-  const { rows, meta } = getPaginatedRoles(filteredRoles);
-
-  renderRoles(rows);
-  renderPagination(meta);
+  renderRoles(roleState.roles);
+  renderPagination(roleState.paginationMeta);
 }
 
 function renderPagination(meta = {}) {
@@ -200,23 +178,27 @@ function renderPagination(meta = {}) {
     </div>
   `;
 
-  document.getElementById("roles-page-prev")?.addEventListener("click", () => {
-    if (roleState.page <= 1) {
-      return;
-    }
+  document
+    .getElementById("roles-page-prev")
+    ?.addEventListener("click", async () => {
+      if (roleState.page <= 1) {
+        return;
+      }
 
-    roleState.page -= 1;
-    renderCurrentPage();
-  });
+      roleState.page -= 1;
+      await loadRoles();
+    });
 
-  document.getElementById("roles-page-next")?.addEventListener("click", () => {
-    if (roleState.page >= pageCount) {
-      return;
-    }
+  document
+    .getElementById("roles-page-next")
+    ?.addEventListener("click", async () => {
+      if (roleState.page >= pageCount) {
+        return;
+      }
 
-    roleState.page += 1;
-    renderCurrentPage();
-  });
+      roleState.page += 1;
+      await loadRoles();
+    });
 }
 
 function wireSearch() {
@@ -226,10 +208,11 @@ function wireSearch() {
     return;
   }
 
-  searchInput.addEventListener("input", () => {
-    roleState.search = searchInput.value.toLowerCase().trim();
+  searchInput.addEventListener("input", async () => {
+    roleState.search = searchInput.value.trim();
     roleState.page = 1;
-    renderCurrentPage();
+
+    await loadRoles();
   });
 }
 

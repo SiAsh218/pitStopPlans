@@ -1,7 +1,9 @@
 import { api } from "./api.js";
 
-export function getRoles(params = {}) {
-  return api.get("/api/roles", params);
+export async function getRoles(params = {}) {
+  return api.get("/api/roles", params, {
+    raw: true,
+  });
 }
 
 export function createRole(data) {
