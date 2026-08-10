@@ -3,5 +3,7 @@ node_modules
 api-test-script.http
 .env
 backend/data/database.sqlite
+backend/data/database.sqlite-shm
+backend/data/database.sqlite-wal
 frontend/dist/bundle.js
 frontend/dist/styles.css

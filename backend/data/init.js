@@ -327,6 +327,32 @@ function initialiseDatabase() {
     );
   `);
 
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_incidents_status
+    ON incidents(status);
+
+    CREATE INDEX IF NOT EXISTS idx_incidents_started_at
+    ON incidents(started_at);
+
+    CREATE INDEX IF NOT EXISTS idx_incident_actions_incident
+    ON incident_actions(incident_id);
+
+    CREATE INDEX IF NOT EXISTS idx_incident_actions_status
+    ON incident_actions(status);
+
+    CREATE INDEX IF NOT EXISTS idx_updates_action
+    ON incident_action_updates(incident_action_id);
+
+    CREATE INDEX IF NOT EXISTS idx_updates_created
+    ON incident_action_updates(created_at);
+
+    CREATE INDEX IF NOT EXISTS idx_audit_user
+    ON audit_logs(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_audit_created
+    ON audit_logs(created_at);
+  `);
+
   console.log("Database initialised");
 }
 
