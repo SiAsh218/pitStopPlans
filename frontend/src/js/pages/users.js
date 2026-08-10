@@ -39,7 +39,12 @@ export async function initUsersPage() {
   }
 
   try {
-    allRoles = await getRoles();
+    const result = await getRoles({
+      page: 1,
+      limit: 1000,
+    });
+
+    allRoles = result.data;
     renderRoleFilterOptions();
     await loadUsers();
   } catch (err) {
