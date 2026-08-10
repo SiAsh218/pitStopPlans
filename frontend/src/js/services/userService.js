@@ -1,7 +1,9 @@
 import { api } from "./api.js";
 
-export async function getUsers() {
-  return api.get("/api/users");
+export async function getUsers(params = {}) {
+  return api.get("/api/users", params, {
+    raw: true,
+  });
 }
 
 export async function getUser(id) {

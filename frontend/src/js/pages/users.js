@@ -10,7 +10,6 @@ import { showSuccess, showError } from "../utils/myAlert.js";
 
 import { getCurrentUser } from "../auth.js";
 
-let allUsers = [];
 let allRoles = [];
 
 const userState = {
@@ -19,7 +18,9 @@ const userState = {
   appRole: "all",
   active: "all",
   page: 1,
-  limit: 10,
+  limit: 50,
+  users: [],
+  paginationMeta: null,
 };
 
 let editingUser = null;
@@ -234,8 +235,21 @@ function wireCreateUserForm() {
 }
 
 async function loadUsers() {
-  allUsers = await getUsers();
-  userState.page = 1;
+  const result = await getUsers({
+    page: userState.page,
+    limit: userState.limit,
+
+    search: userState.search || undefined,
+
+    active: userState.active === "all" ? undefined : userState.active,
+
+    role: userState.role === "all" ? undefined : userState.role,
+
+    appRole: userState.appRole === "all" ? undefined : userState.appRole,
+  });
+
+  userState.users = result.data;
+  userState.paginationMeta = result.meta;
 
   renderCurrentPage();
 }
@@ -379,61 +393,9 @@ function renderRoleFilterOptions() {
   `;
 }
 
-function getFilteredUsers() {
-  return allUsers.filter((user) => {
-    const searchTerm = userState.search;
-    const email = user.email.toLowerCase();
-    const role = user.role.toLowerCase();
-    const jobRoles = user.job_roles
-      .map((r) => r.name)
-      .join(" ")
-      .toLowerCase();
-
-    const matchesSearch =
-      !searchTerm ||
-      email.includes(searchTerm) ||
-      role.includes(searchTerm) ||
-      jobRoles.includes(searchTerm);
-
-    const matchesRole =
-      userState.role === "all" ||
-      user.job_roles.some((jobRole) => jobRole.name === userState.role);
-
-    const matchesAppRole =
-      userState.appRole === "all" || user.role === userState.appRole;
-
-    const matchesActive =
-      userState.active === "all" ||
-      (userState.active === "active" && user.active) ||
-      (userState.active === "disabled" && !user.active);
-
-    return matchesSearch && matchesRole && matchesAppRole && matchesActive;
-  });
-}
-
-function getPaginatedUsers(filteredUsers) {
-  const total = filteredUsers.length;
-  const pageCount = Math.max(1, Math.ceil(total / userState.limit));
-  const page = Math.min(Math.max(1, userState.page), pageCount);
-  const offset = (page - 1) * userState.limit;
-
-  return {
-    rows: filteredUsers.slice(offset, offset + userState.limit),
-    meta: {
-      total,
-      limit: userState.limit,
-      page,
-      pageCount,
-    },
-  };
-}
-
 function renderCurrentPage() {
-  const filteredUsers = getFilteredUsers();
-  const { rows, meta } = getPaginatedUsers(filteredUsers);
-
-  renderUsers(rows);
-  renderPagination(meta);
+  renderUsers(userState.users);
+  renderPagination(userState.paginationMeta);
 }
 
 function renderPagination(meta = {}) {
@@ -471,23 +433,27 @@ function renderPagination(meta = {}) {
     </div>
   `;
 
-  document.getElementById("user-page-prev")?.addEventListener("click", () => {
-    if (userState.page <= 1) {
-      return;
-    }
+  document
+    .getElementById("user-page-prev")
+    ?.addEventListener("click", async () => {
+      if (userState.page <= 1) {
+        return;
+      }
 
-    userState.page -= 1;
-    renderCurrentPage();
-  });
+      userState.page -= 1;
+      await loadUsers();
+    });
 
-  document.getElementById("user-page-next")?.addEventListener("click", () => {
-    if (userState.page >= pageCount) {
-      return;
-    }
+  document
+    .getElementById("user-page-next")
+    ?.addEventListener("click", async () => {
+      if (userState.page >= pageCount) {
+        return;
+      }
 
-    userState.page += 1;
-    renderCurrentPage();
-  });
+      userState.page += 1;
+      await loadUsers();
+    });
 }
 
 function wireDisableButtons() {
@@ -524,7 +490,7 @@ function wireEnableButtons() {
 
 async function openEditUserModal(userId) {
   try {
-    const user = allUsers.find((u) => u.id === userId);
+    const user = userState.users.find((u) => u.id === userId);
 
     if (!user) {
       showError("User not found");
@@ -586,10 +552,10 @@ function wireSearch() {
     return;
   }
 
-  searchInput.addEventListener("input", () => {
+  searchInput.addEventListener("input", async () => {
     userState.search = searchInput.value.toLowerCase().trim();
     userState.page = 1;
-    renderCurrentPage();
+    await loadUsers();
   });
 }
 
@@ -602,22 +568,22 @@ function wireFilterInputs() {
     return;
   }
 
-  roleSelect.addEventListener("change", () => {
+  roleSelect.addEventListener("change", async () => {
     userState.role = roleSelect.value;
     userState.page = 1;
-    renderCurrentPage();
+    await loadUsers();
   });
 
-  appRoleSelect.addEventListener("change", () => {
+  appRoleSelect.addEventListener("change", async () => {
     userState.appRole = appRoleSelect.value;
     userState.page = 1;
-    renderCurrentPage();
+    await loadUsers();
   });
 
-  statusSelect.addEventListener("change", () => {
+  statusSelect.addEventListener("change", async () => {
     userState.active = statusSelect.value;
     userState.page = 1;
-    renderCurrentPage();
+    await loadUsers();
   });
 }
 
