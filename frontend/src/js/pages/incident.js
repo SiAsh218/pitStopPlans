@@ -187,10 +187,10 @@ function wireEditCcilButton(incidentId, ccilNumber) {
 function wireCopyToClipboardButton() {
   document
     .getElementById("btn-copy-to-clipboard")
-    ?.addEventListener("click", () => {
+    ?.addEventListener("click", async () => {
       const html = buildIncidentClipboardHtml();
-
-      copyToClipboard(html);
+      const text = buildIncidentClipboardText();
+      await copyToClipboard(html, text);
     });
 }
 
@@ -848,6 +848,49 @@ function getOverdueActionCount(actions) {
   return actions.filter((action) => isActionOverdue(action)).length;
 }
 
+function buildIncidentClipboardText() {
+  const activeActions = currentActions.filter(
+    (a) => a.status === "in_progress",
+  );
+
+  const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+
+  return `
+INCIDENT UPDATE
+
+Incident: ${currentIncident.title}
+Status: ${currentIncident.status}
+CCIL: ${currentIncident.ccil_number || "Not Assigned"}
+Progress: ${currentSummary.completion_percentage}% Complete
+
+Actions:
+${currentSummary.completed_actions}/${currentSummary.total_actions} completed
+${currentSummary.in_progress_actions} in progress
+${currentSummary.pending_actions} pending
+${getOverdueActionCount(currentActions)} overdue
+
+Actions In Progress:
+${
+  activeActions.length
+    ? activeActions
+        .map((a) => `• ${a.title} (${a.roles.map((r) => r.name).join(", ")})`)
+        .join("\n")
+    : "None"
+}
+
+Overdue Actions:
+${
+  overdueActions.length
+    ? overdueActions
+        .map((a) => `• ${a.title} (${a.roles.map((r) => r.name).join(", ")})`)
+        .join("\n")
+    : "None"
+}
+
+Last Updated: ${new Date().toLocaleString()}
+`.trim();
+}
+
 function buildIncidentClipboardHtml() {
   if (!currentIncident || !currentSummary) {
     return "<p>No incident data available</p>";
@@ -860,91 +903,71 @@ function buildIncidentClipboardHtml() {
   const overdueActions = currentActions.filter((a) => isActionOverdue(a));
 
   return `
-    <div style="font-family:Segoe UI,Arial,sans-serif;">
-      <h2>Incident Update</h2>
+<h2>Incident Update</h2>
+
+<p>
+  <strong>Incident:</strong> ${currentIncident.title}<br>
+  <strong>Status:</strong> ${currentIncident.status}<br>
+  <strong>CCIL:</strong> ${currentIncident.ccil_number || "Not Assigned"}<br>
+  <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
+</p>
+
+<hr>
+
+<h3>Summary</h3>
+
+<p>
+  ✅ Completed: ${currentSummary.completed_actions}/${currentSummary.total_actions}<br>
+  🔄 In Progress: ${currentSummary.in_progress_actions}<br>
+  ⏳ Pending: ${currentSummary.pending_actions}<br>
+  ⚠️ Overdue: ${getOverdueActionCount(currentActions)}
+</p>
+
+${
+  activeActions.length
+    ? `
+      <h3>🔄 Actions In Progress</h3>
+
       <p>
-        <strong>Incident:</strong>
-        ${currentIncident.title}
+        ${activeActions
+          .map(
+            (action) =>
+              `• <strong>${action.title}</strong> (${action.roles
+                .map((r) => r.name)
+                .join(", ")})`,
+          )
+          .join("<br>")}
       </p>
+    `
+    : ""
+}
+
+${
+  overdueActions.length
+    ? `
+      <h3>⚠️ Overdue Actions</h3>
+
       <p>
-        <strong>Status:</strong>
-        ${currentIncident.status}
+        ${overdueActions
+          .map(
+            (action) =>
+              `• <strong>${action.title}</strong> (${action.roles
+                .map((r) => r.name)
+                .join(", ")})`,
+          )
+          .join("<br>")}
       </p>
-      <p>
-        <strong>CCIL:</strong>
-        ${currentIncident.ccil_number || "Not Assigned"}
-      </p>
-      <p>
-        <strong>Progress:</strong>
-        ${currentSummary.completion_percentage}% Complete
-      </p>
-      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;">
-        <tr>
-          <th>Metric</th>
-          <th>Count</th>
-        </tr>
-        <tr>
-          <td>Total Actions</td>
-          <td>${currentSummary.total_actions}</td>
-        </tr>
-        <tr>
-          <td>Completed</td>
-          <td>${currentSummary.completed_actions}</td>
-        </tr>
-        <tr>
-          <td>In Progress</td>
-          <td>${currentSummary.in_progress_actions}</td>
-        </tr>
-        <tr>
-          <td>Pending</td>
-          <td>${currentSummary.pending_actions}</td>
-        </tr>
-        <tr>
-          <td>Overdue</td>
-          <td>${getOverdueActionCount(currentActions)}</td>
-        </tr>
-      </table>
-      <h3>Actions In Progress</h3>
-      ${
-        activeActions.length
-          ? `<ul>
-              ${activeActions
-                .map(
-                  (a) => `
-                    <li>
-                      <strong>${a.title}</strong>
-                      (${a.roles.map((r) => r.name).join(", ")})
-                    </li>
-                  `,
-                )
-                .join("")}
-            </ul>`
-          : "<p>None</p>"
-      }
-      ${
-        overdueActions.length
-          ? `
-            <h3>Overdue Actions</h3>
-            <ul>
-              ${overdueActions
-                .map(
-                  (a) => `
-                    <li>
-                      <strong>${a.title}</strong>
-                    </li>
-                  `,
-                )
-                .join("")}
-            </ul>
-          `
-          : ""
-      }
-      <p>
-        <strong>Updated:</strong>
-        ${new Date().toLocaleString()}
-      </p>
-    </div>
-  `;
+    `
+    : ""
+}
+
+<hr>
+
+<p>
+  <strong>Last Updated:</strong>
+  ${new Date().toLocaleString()}
+</p>
+`;
 }
 
 // -----------------------------------------------------------------------------

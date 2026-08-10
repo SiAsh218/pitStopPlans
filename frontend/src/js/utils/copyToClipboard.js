@@ -1,30 +1,20 @@
 import { showWarning, showError, showSuccess } from "./myAlert.js";
 
-export const copyToClipboard = async (html) => {
+export const copyToClipboard = async (html, text) => {
   try {
     if (
       navigator.clipboard &&
       navigator.clipboard.write &&
       window.ClipboardItem
     ) {
-      const htmlBlob = new Blob([html], { type: "text/html" });
-
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-
-      const plainText = tempDiv.innerText
-        .replace(/\n\s*\n\s*\n+/g, "\n\n")
-        .replace(/[ \t]+\n/g, "\n")
-        .trim();
-
-      const textBlob = new Blob([plainText], {
-        type: "text/plain",
-      });
-
       await navigator.clipboard.write([
         new ClipboardItem({
-          "text/html": htmlBlob,
-          "text/plain": textBlob,
+          "text/html": new Blob([html], {
+            type: "text/html",
+          }),
+          "text/plain": new Blob([text], {
+            type: "text/plain",
+          }),
         }),
       ]);
     } else {
