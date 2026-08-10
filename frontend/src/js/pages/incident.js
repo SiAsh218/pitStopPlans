@@ -145,7 +145,7 @@ function renderIncidentMeta(dashboard) {
         Copy
       </button>
       <button class="btn btn-secondary" id="btn-edit-ccil">
-        ${incident.ccil_number ? "Edit CCIL" : "Add CCIL"}
+        ${incident.ccil_number ? "Edit CCIL No" : "Add CCIL No"}
       </button>
       ${incidentButton}
     </div>

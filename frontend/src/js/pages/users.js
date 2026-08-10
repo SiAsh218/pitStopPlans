@@ -18,7 +18,7 @@ const userState = {
   appRole: "all",
   active: "all",
   page: 1,
-  limit: 50,
+  limit: 100,
   users: [],
   paginationMeta: null,
 };
