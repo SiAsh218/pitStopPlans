@@ -188,8 +188,6 @@ function wireCopyToClipboardButton() {
   document
     .getElementById("btn-copy-to-clipboard")
     ?.addEventListener("click", () => {
-      console.log("click copy button");
-
       const html = buildIncidentClipboardHtml();
 
       copyToClipboard(html);
@@ -864,33 +862,23 @@ function buildIncidentClipboardHtml() {
   return `
     <div style="font-family:Segoe UI,Arial,sans-serif;">
       <h2>Incident Update</h2>
-
       <p>
         <strong>Incident:</strong>
         ${currentIncident.title}
       </p>
-
       <p>
         <strong>Status:</strong>
         ${currentIncident.status}
       </p>
-
       <p>
         <strong>CCIL:</strong>
         ${currentIncident.ccil_number || "Not Assigned"}
       </p>
-
       <p>
         <strong>Progress:</strong>
         ${currentSummary.completion_percentage}% Complete
       </p>
-
-      <table
-        border="1"
-        cellpadding="6"
-        cellspacing="0"
-        style="border-collapse:collapse;"
-      >
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;">
         <tr>
           <th>Metric</th>
           <th>Count</th>
@@ -916,9 +904,7 @@ function buildIncidentClipboardHtml() {
           <td>${getOverdueActionCount(currentActions)}</td>
         </tr>
       </table>
-
       <h3>Actions In Progress</h3>
-
       ${
         activeActions.length
           ? `<ul>
@@ -935,12 +921,10 @@ function buildIncidentClipboardHtml() {
             </ul>`
           : "<p>None</p>"
       }
-
       ${
         overdueActions.length
           ? `
             <h3>Overdue Actions</h3>
-
             <ul>
               ${overdueActions
                 .map(
@@ -955,7 +939,6 @@ function buildIncidentClipboardHtml() {
           `
           : ""
       }
-
       <p>
         <strong>Updated:</strong>
         ${new Date().toLocaleString()}
