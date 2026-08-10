@@ -74,6 +74,96 @@ class UserRepository extends BaseRepository {
 
     return this.findById(userId);
   }
+
+  findAllWithQuery(options = {}) {
+    const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
+
+    const page = Math.max(1, Number(options.page) || 1);
+
+    const offset = (page - 1) * limit;
+
+    const clauses = [];
+    const params = [];
+
+    if (options.appRole) {
+      clauses.push("users.role = ?");
+      params.push(options.appRole);
+    }
+
+    if (options.active === "active") {
+      clauses.push("users.active = 1");
+    }
+
+    if (options.active === "disabled") {
+      clauses.push("users.active = 0");
+    }
+
+    if (options.jobRole) {
+      clauses.push("roles.name = ?");
+      params.push(options.jobRole);
+    }
+
+    if (options.search) {
+      clauses.push(`
+    (
+      users.email LIKE ?
+      OR users.role LIKE ?
+      OR roles.name LIKE ?
+    )
+  `);
+
+      params.push(
+        `%${options.search}%`,
+        `%${options.search}%`,
+        `%${options.search}%`,
+      );
+    }
+
+    const whereClause =
+      clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+
+    const sql = `
+    SELECT DISTINCT users.*
+    FROM users
+    LEFT JOIN user_roles
+      ON user_roles.user_id = users.id
+    LEFT JOIN roles
+      ON roles.id = user_roles.role_id
+    ${whereClause}
+    ORDER BY users.email ASC
+    LIMIT ?
+    OFFSET ?
+  `;
+
+    const rows = this.db.prepare(sql).all(...params, limit, offset);
+
+    const countResult = this.db
+      .prepare(
+        `
+      SELECT COUNT(DISTINCT users.id) AS total
+      FROM users
+      LEFT JOIN user_roles
+        ON user_roles.user_id = users.id
+      LEFT JOIN roles
+        ON roles.id = user_roles.role_id
+      ${whereClause}
+    `,
+      )
+      .get(...params);
+
+    const total = countResult?.total || 0;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
 }
 
 module.exports = new UserRepository();

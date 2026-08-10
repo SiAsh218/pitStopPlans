@@ -243,7 +243,7 @@ async function loadUsers() {
 
     active: userState.active === "all" ? undefined : userState.active,
 
-    role: userState.role === "all" ? undefined : userState.role,
+    jobRole: userState.role === "all" ? undefined : userState.role,
 
     appRole: userState.appRole === "all" ? undefined : userState.appRole,
   });
