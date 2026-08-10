@@ -326,11 +326,6 @@ class IncidentService {
       return this.getIncidentById(id);
     }
 
-    incidentRepository.updateById(id, {
-      status: "active",
-      closed_at: null,
-    });
-
     const beforeStatus = incident.status;
 
     incidentRepository.updateById(id, {
@@ -372,6 +367,51 @@ class IncidentService {
       summary: this._getActionSummary(actions),
       actions,
     };
+  }
+
+  getDashboardStatistics() {
+    const incidents = incidentRepository.findAllWithDetails();
+
+    return {
+      active: incidents.filter((incident) => incident.status === "active")
+        .length,
+      resolvedToday: this._getResolvedTodayCount(incidents),
+      openWorkload: this._getOpenWorkload(incidents),
+    };
+  }
+
+  _getResolvedTodayCount(incidents) {
+    const today = new Date();
+
+    return incidents.filter((incident) => {
+      if (incident.status !== "closed" || !incident.closed_at) {
+        return false;
+      }
+
+      const closedDate = new Date(incident.closed_at);
+
+      return (
+        closedDate.getFullYear() === today.getFullYear() &&
+        closedDate.getMonth() === today.getMonth() &&
+        closedDate.getDate() === today.getDate()
+      );
+    }).length;
+  }
+
+  _getOpenWorkload(incidents) {
+    return incidents
+      .filter((incident) => incident.status === "active")
+      .reduce((total, incident) => {
+        const actions = incidentActionRepository.findByIncidentIdWithRoles(
+          incident.id,
+        );
+
+        const completed = actions.filter(
+          (action) => action.status === "completed",
+        ).length;
+
+        return total + (actions.length - completed);
+      }, 0);
   }
 
   updateCcilNumber(id, ccilNumber, userId) {

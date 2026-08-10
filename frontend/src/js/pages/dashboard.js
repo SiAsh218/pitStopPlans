@@ -10,15 +10,19 @@ import { formatDateTime } from "../utils/dateHandler.js";
 // State
 // -----------------------------------------------------------------------------
 
-let allIncidents = [];
+// let allIncidents = [];
 const state = {
   search: "",
   status: "active",
   incidentType: "all",
   page: 1,
   limit: 10,
+  paginationMeta: null,
+  incidents: [],
+  sseListenersRegistered: false,
+  stats: null,
 };
-let sseListenersRegistered = false;
+// let sseListenersRegistered = false;
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -33,14 +37,21 @@ export async function loadIncidents() {
 
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
-    const [incidents] = await Promise.all([
-      getIncidents(),
+    const [result] = await Promise.all([
+      getIncidents({
+        page: state.page,
+        limit: state.limit,
+        search: state.search || undefined,
+        status: state.status === "all" ? undefined : state.status,
+        incident_type_id:
+          state.incidentType === "all" ? undefined : state.incidentType,
+      }),
       loadIncidentTypes(),
     ]);
 
-    allIncidents = incidents.sort(
-      (a, b) => new Date(b.started_at) - new Date(a.started_at),
-    );
+    state.incidents = result.data;
+    state.paginationMeta = result.meta;
+    state.stats = result.stats;
 
     bindDashboardControls();
     renderCurrentPage();
@@ -75,28 +86,32 @@ function bindDashboardControls() {
   incidentTypeFilter.value = state.incidentType;
   pageSizeSelect.value = String(state.limit);
 
-  searchInput.oninput = (event) => {
-    state.search = event.target.value.trim().toLowerCase();
+  searchInput.oninput = async (event) => {
+    state.search = event.target.value.trim();
     state.page = 1;
-    renderCurrentPage();
+
+    await loadIncidents();
   };
 
-  statusFilter.onchange = (event) => {
+  statusFilter.onchange = async (event) => {
     state.status = event.target.value;
     state.page = 1;
-    renderCurrentPage();
+
+    await loadIncidents();
   };
 
-  incidentTypeFilter.onchange = (event) => {
+  incidentTypeFilter.onchange = async (event) => {
     state.incidentType = event.target.value;
     state.page = 1;
-    renderCurrentPage();
+
+    await loadIncidents();
   };
 
-  pageSizeSelect.onchange = (event) => {
+  pageSizeSelect.onchange = async (event) => {
     state.limit = Number(event.target.value) || 10;
     state.page = 1;
-    renderCurrentPage();
+
+    await loadIncidents();
   };
 
   refreshButton.onclick = () => {
@@ -108,25 +123,7 @@ function bindDashboardControls() {
 // Incident List
 // -----------------------------------------------------------------------------
 
-function getFilteredIncidents() {
-  return allIncidents.filter((incident) => {
-    const matchesStatus =
-      state.status === "all" || incident.status === state.status;
-    const matchesType =
-      state.incidentType === "all" ||
-      String(incident.incident_type?.id) === state.incidentType;
-    const searchTerm = state.search;
-    const matchesSearch =
-      searchTerm.length === 0 ||
-      [incident.title, incident.incident_type?.name]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(searchTerm));
-
-    return matchesStatus && matchesType && matchesSearch;
-  });
-}
-
-function renderIncidents(incidents) {
+function renderIncidents(incidents = []) {
   const container = document.getElementById("incident-list");
 
   if (!container) {
@@ -193,52 +190,31 @@ function renderPagination(meta = {}) {
 
   document
     .getElementById("incident-page-prev")
-    ?.addEventListener("click", () => {
+    ?.addEventListener("click", async () => {
       if (state.page <= 1) {
         return;
       }
 
       state.page -= 1;
-      renderCurrentPage();
+      await loadIncidents();
     });
 
   document
     .getElementById("incident-page-next")
-    ?.addEventListener("click", () => {
+    ?.addEventListener("click", async () => {
       if (state.page >= pageCount) {
         return;
       }
 
       state.page += 1;
-      renderCurrentPage();
+      await loadIncidents();
     });
 }
 
-function getPaginatedIncidents(filteredIncidents) {
-  const total = filteredIncidents.length;
-  const pageCount = Math.max(1, Math.ceil(total / state.limit));
-  const page = Math.min(Math.max(1, state.page), pageCount);
-  const offset = (page - 1) * state.limit;
-  const rows = filteredIncidents.slice(offset, offset + state.limit);
-
-  return {
-    rows,
-    meta: {
-      total,
-      limit: state.limit,
-      page,
-      pageCount,
-    },
-  };
-}
-
 function renderCurrentPage() {
-  const filtered = getFilteredIncidents();
-  const { rows, meta } = getPaginatedIncidents(filtered);
-
-  updateStatistics(allIncidents);
-  renderIncidents(rows);
-  renderPagination(meta);
+  updateStatistics(state.stats);
+  renderIncidents(state.incidents);
+  renderPagination(state.paginationMeta);
 }
 
 async function loadIncidentTypes() {
@@ -272,59 +248,26 @@ async function loadIncidentTypes() {
 // Dashboard Statistics
 // -----------------------------------------------------------------------------
 
-function updateStatistics(incidents) {
-  const active = incidents.filter(
-    (incident) => incident.status === "active",
-  ).length;
+function updateStatistics(stats) {
+  if (!stats) return;
 
-  const resolvedToday = getResolvedTodayCount(incidents);
-  const openWorkload = getOpenWorkload(incidents);
   const activeIncidentCount = document.getElementById("active-incident-count");
 
   if (activeIncidentCount) {
-    activeIncidentCount.textContent = active;
+    activeIncidentCount.textContent = stats.active;
   }
 
   const resolvedCount = document.getElementById("resolved-count");
 
   if (resolvedCount) {
-    resolvedCount.textContent = resolvedToday;
+    resolvedCount.textContent = stats.resolvedToday;
   }
 
   const openActionCount = document.getElementById("open-action-count");
 
   if (openActionCount) {
-    openActionCount.textContent = openWorkload;
+    openActionCount.textContent = stats.openWorkload;
   }
-}
-
-function getResolvedTodayCount(incidents) {
-  const today = new Date();
-
-  return incidents.filter((incident) => {
-    if (incident.status !== "closed" || !incident.closed_at) {
-      return false;
-    }
-
-    const closedDate = new Date(incident.closed_at);
-
-    return (
-      closedDate.getFullYear() === today.getFullYear() &&
-      closedDate.getMonth() === today.getMonth() &&
-      closedDate.getDate() === today.getDate()
-    );
-  }).length;
-}
-
-function getOpenWorkload(incidents) {
-  return incidents
-    .filter((incident) => incident.status === "active")
-    .reduce((total, incident) => {
-      const remaining =
-        incident.summary.total_actions - incident.summary.completed_actions;
-
-      return total + remaining;
-    }, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -394,7 +337,7 @@ function openIncident(incidentId) {
 }
 
 export function registerDashboardLiveUpdates() {
-  if (sseListenersRegistered) return;
+  if (state.sseListenersRegistered) return;
 
   window.addEventListener("incident-created", loadIncidents);
 
@@ -404,5 +347,5 @@ export function registerDashboardLiveUpdates() {
 
   window.addEventListener("incident-action-assigned", loadIncidents);
 
-  sseListenersRegistered = true;
+  state.sseListenersRegistered = true;
 }

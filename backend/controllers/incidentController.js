@@ -47,6 +47,7 @@ class IncidentController {
       success: true,
       data: result.rows,
       meta: result.meta,
+      stats: incidentService.getDashboardStatistics(),
     });
   }
 

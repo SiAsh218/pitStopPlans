@@ -1,7 +1,7 @@
 import { api } from "./api.js";
 
-export function getIncidents() {
-  return api.get("/api/incidents");
+export function getIncidents(params = {}) {
+  return api.get("/api/incidents", params, { raw: true });
 }
 
 export function getIncident(id) {
