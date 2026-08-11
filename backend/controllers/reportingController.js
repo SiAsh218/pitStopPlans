@@ -1,56 +1,34 @@
-const incidentService = require("../services/incidentService");
-const AppError = require("../utils/AppError");
+const reportingService = require("../services/reportingService");
 
 class ReportingController {
   constructor() {
     this.getIncidents = this.getIncidents.bind(this);
-    this.getById = this.getById.bind(this);
+    this.getActions = this.getActions.bind(this);
+    this.getActionRoles = this.getActionRoles.bind(this);
+    this.getActionUpdates = this.getActionUpdates.bind(this);
   }
 
-  /**
-   * Sends a JSON response.
-   *
-   * @param {import("http").ServerResponse} res - HTTP response.
-   * @param {number} statusCode - HTTP status code.
-   * @param {object} payload - Response payload.
-   * @returns {void}
-   */
-  _sendJSON(res, statusCode, payload) {
-    res.writeHead(statusCode, {
+  _sendJSON(res, payload) {
+    res.writeHead(200, {
       "Content-Type": "application/json",
     });
-
     res.end(JSON.stringify(payload));
   }
 
   getIncidents(req, res) {
-    const incidents = incidentService.getAllIncidents(req.query);
-
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-    });
-
-    res.end(
-      JSON.stringify({
-        success: true,
-        data: incidents,
-      }),
-    );
+    this._sendJSON(res, reportingService.getIncidents());
   }
 
-  getById(req, res) {
-    const id = Number(req.params.id);
+  getActions(req, res) {
+    this._sendJSON(res, reportingService.getActions());
+  }
 
-    const incident = incidentService.getIncidentById(id);
+  getActionRoles(req, res) {
+    this._sendJSON(res, reportingService.getActionRoles());
+  }
 
-    if (!incident) {
-      throw new AppError("Incident not found", 404);
-    }
-
-    this._sendJSON(res, 200, {
-      success: true,
-      data: incident,
-    });
+  getActionUpdates(req, res) {
+    this._sendJSON(res, reportingService.getActionUpdates());
   }
 }
 

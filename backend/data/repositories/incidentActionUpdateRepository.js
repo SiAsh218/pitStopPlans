@@ -163,6 +163,28 @@ class IncidentActionUpdateRepository extends BaseRepository {
       )
       .get(id);
   }
+
+  /**
+   * Returns all action updates with user details.
+   *
+   * Used by reporting / Power BI endpoints.
+   *
+   * @returns {object[]}
+   */
+  findAllWithDetails() {
+    return this.db
+      .prepare(
+        `
+      SELECT
+        ${this._projection()}
+      FROM incident_action_updates iau
+      INNER JOIN users u
+        ON iau.user_id = u.id
+      ORDER BY iau.created_at DESC
+    `,
+      )
+      .all();
+  }
 }
 
 module.exports = new IncidentActionUpdateRepository();
