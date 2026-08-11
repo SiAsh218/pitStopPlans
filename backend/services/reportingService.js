@@ -3,20 +3,20 @@ const incidentActionRepository = require("../data/repositories/incidentActionRep
 const incidentActionUpdateRepository = require("../data/repositories/incidentActionUpdateRepository");
 
 class ReportingService {
-  getIncidents() {
-    return incidentRepository.findAllWithDetails();
+  getIncidents(options) {
+    return incidentRepository.findAllWithDetailsQuery(options);
   }
 
-  getActions() {
-    return incidentActionRepository.findAll();
+  getActions(options) {
+    return incidentActionRepository.findAllWithQuery(options);
   }
 
-  getActionRoles() {
-    return incidentActionRepository.findAllActionRoles();
+  getActionRoles(options) {
+    return incidentActionRepository.findAllActionRolesWithQuery(options);
   }
 
-  getActionUpdates() {
-    return incidentActionUpdateRepository.findAllWithDetails();
+  getActionUpdates(options) {
+    return incidentActionUpdateRepository.findAllWithDetailsWithQuery(options);
   }
 }
 

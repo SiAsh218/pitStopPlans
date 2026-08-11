@@ -16,19 +16,19 @@ class ReportingController {
   }
 
   getIncidents(req, res) {
-    this._sendJSON(res, reportingService.getIncidents());
+    this._sendJSON(res, reportingService.getIncidents(req.query));
   }
 
   getActions(req, res) {
-    this._sendJSON(res, reportingService.getActions());
+    this._sendJSON(res, reportingService.getActions(req.query));
   }
 
   getActionRoles(req, res) {
-    this._sendJSON(res, reportingService.getActionRoles());
+    this._sendJSON(res, reportingService.getActionRoles(req.query));
   }
 
   getActionUpdates(req, res) {
-    this._sendJSON(res, reportingService.getActionUpdates());
+    this._sendJSON(res, reportingService.getActionUpdates(req.query));
   }
 }
 

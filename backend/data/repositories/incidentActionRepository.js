@@ -30,6 +30,19 @@ class IncidentActionRepository extends BaseRepository {
     return this.findById(id);
   }
 
+  findAllWithQuery(options = {}) {
+    const result = super.findAllWithQuery(options);
+
+    return {
+      ...result,
+      rows: result.rows.sort((a, b) =>
+        a.stage_number === b.stage_number
+          ? a.action_number - b.action_number
+          : a.stage_number - b.stage_number,
+      ),
+    };
+  }
+
   findByIncidentIdWithQuery(incidentId, options = {}) {
     const result = super.findAllWithQuery({
       ...options,
@@ -163,6 +176,80 @@ class IncidentActionRepository extends BaseRepository {
   `,
       )
       .all();
+  }
+
+  findAllActionRolesWithQuery(options = {}) {
+    const filters = [];
+    const params = [];
+
+    if (options.action_id) {
+      filters.push("ia.id = ?");
+      params.push(options.action_id);
+    }
+
+    if (options.incident_id) {
+      filters.push("ia.incident_id = ?");
+      params.push(options.incident_id);
+    }
+
+    if (options.role_id) {
+      filters.push("r.id = ?");
+      params.push(options.role_id);
+    }
+
+    const whereClause =
+      filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+    const limit = Math.max(1, Math.min(Number(options.limit) || 1000, 10000));
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset = (page - 1) * limit;
+
+    const rows = this.db
+      .prepare(
+        `
+      SELECT
+        ia.id AS action_id,
+        ia.incident_id,
+        r.id AS role_id,
+        r.name AS role_name
+      FROM incident_actions ia
+      INNER JOIN plan_stage_action_roles psar
+        ON ia.original_action_id =
+           psar.plan_stage_action_id
+      INNER JOIN roles r
+        ON r.id = psar.role_id
+      ${whereClause}
+      ORDER BY ia.id
+      LIMIT ?
+      OFFSET ?
+    `,
+      )
+      .all(...params, limit, offset);
+
+    const total = this.db
+      .prepare(
+        `
+      SELECT COUNT(*) AS total
+      FROM incident_actions ia
+      INNER JOIN plan_stage_action_roles psar
+        ON ia.original_action_id =
+           psar.plan_stage_action_id
+      INNER JOIN roles r
+        ON r.id = psar.role_id
+      ${whereClause}
+    `,
+      )
+      .get(...params).total;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
   }
 }
 
