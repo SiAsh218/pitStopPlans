@@ -335,11 +335,41 @@ function initialiseDatabase() {
     CREATE INDEX IF NOT EXISTS idx_incidents_started_at
     ON incidents(started_at);
 
+    CREATE INDEX IF NOT EXISTS idx_incidents_incident_type
+    ON incidents(incident_type_id);
+
+    CREATE INDEX IF NOT EXISTS idx_incidents_created_by
+    ON incidents(created_by);
+
+    CREATE INDEX IF NOT EXISTS idx_incidents_manager
+    ON incidents(incident_manager_id);
+
+    CREATE INDEX IF NOT EXISTS idx_incidents_template
+    ON incidents(plan_template_id);
+
     CREATE INDEX IF NOT EXISTS idx_incident_actions_incident
     ON incident_actions(incident_id);
 
     CREATE INDEX IF NOT EXISTS idx_incident_actions_status
     ON incident_actions(status);
+
+    CREATE INDEX IF NOT EXISTS idx_actions_incident_status
+    ON incident_actions(
+      incident_id,
+      status
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_actions_original_action
+    ON incident_actions(original_action_id);
+
+    CREATE INDEX IF NOT EXISTS idx_actions_assigned_user
+    ON incident_actions(assigned_user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_plan_stages_template
+    ON plan_stages(plan_template_id);
+
+    CREATE INDEX IF NOT EXISTS idx_plan_stage_actions_stage
+    ON plan_stage_actions(plan_stage_id);
 
     CREATE INDEX IF NOT EXISTS idx_updates_action
     ON incident_action_updates(incident_action_id);
@@ -352,6 +382,12 @@ function initialiseDatabase() {
 
     CREATE INDEX IF NOT EXISTS idx_audit_created
     ON audit_logs(created_at);
+
+    CREATE INDEX IF NOT EXISTS idx_audit_entity
+    ON audit_logs(
+      entity_type,
+      entity_id
+    );
   `);
 
   console.log("Database initialised");

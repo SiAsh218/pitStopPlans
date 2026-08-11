@@ -58,17 +58,41 @@ class IncidentActionRepository extends BaseRepository {
       ),
     };
   }
-
   findByIncidentIdWithRolesQuery(incidentId, options = {}) {
     const result = this.findByIncidentIdWithQuery(incidentId, options);
 
     return {
-      rows: result.rows.map((action) => ({
-        ...action,
-        roles: this.getRoles(action.id),
-      })),
+      rows: this._attachRoles(result.rows),
       meta: result.meta,
     };
+  }
+
+  _attachRoles(actions) {
+    if (!actions.length) {
+      return [];
+    }
+
+    const roleRows = this.getRolesForActions(
+      actions.map((action) => action.id),
+    );
+
+    const roleMap = new Map();
+
+    for (const row of roleRows) {
+      if (!roleMap.has(row.action_id)) {
+        roleMap.set(row.action_id, []);
+      }
+
+      roleMap.get(row.action_id).push({
+        id: row.id,
+        name: row.name,
+      });
+    }
+
+    return actions.map((action) => ({
+      ...action,
+      roles: roleMap.get(action.id) || [],
+    }));
   }
 
   findByIncidentAndStatus(incidentId, status) {
@@ -151,10 +175,7 @@ class IncidentActionRepository extends BaseRepository {
   findByIncidentIdWithRoles(incidentId) {
     const actions = this.findByIncidentId(incidentId);
 
-    return actions.map((action) => ({
-      ...action,
-      roles: this.getRoles(action.id),
-    }));
+    return this._attachRoles(actions);
   }
 
   findAllActionRoles() {
@@ -250,6 +271,33 @@ class IncidentActionRepository extends BaseRepository {
         pageCount: Math.ceil(total / limit),
       },
     };
+  }
+
+  getRolesForActions(actionIds) {
+    if (!actionIds.length) {
+      return [];
+    }
+
+    const placeholders = actionIds.map(() => "?").join(",");
+
+    return this.db
+      .prepare(
+        `
+      SELECT
+        ia.id AS action_id,
+        r.id,
+        r.name
+      FROM incident_actions ia
+      INNER JOIN plan_stage_action_roles psar
+        ON ia.original_action_id =
+           psar.plan_stage_action_id
+      INNER JOIN roles r
+        ON r.id = psar.role_id
+      WHERE ia.id IN (${placeholders})
+      ORDER BY r.name
+    `,
+      )
+      .all(...actionIds);
   }
 }
 

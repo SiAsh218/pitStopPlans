@@ -28,6 +28,10 @@ class BaseRepository {
     return this._columns;
   }
 
+  getSearchableColumns() {
+    return this.getColumns();
+  }
+
   /**
    * Returns all rows.
    *
@@ -188,8 +192,8 @@ class BaseRepository {
     }
 
     if (search) {
-      const searchColumns = columns.map(
-        (column) => `CAST(${column} AS TEXT) LIKE ?`,
+      const searchColumns = this.getSearchableColumns().map(
+        (column) => `${column} LIKE ?`,
       );
 
       if (searchColumns.length) {
