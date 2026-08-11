@@ -232,6 +232,7 @@ function initialiseDatabase() {
       title TEXT NOT NULL,
       description TEXT,
       ccil_number TEXT,
+      tin_number TEXT,
       status TEXT NOT NULL DEFAULT 'active',
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       closed_at DATETIME,

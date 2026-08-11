@@ -24,6 +24,7 @@ class IncidentService {
       title: row.title,
       description: row.description,
       ccil_number: row.ccil_number ?? null,
+      tin_number: row.tin_number ?? null,
       status: row.status,
       started_at: row.started_at,
       closed_at: row.closed_at,
@@ -206,6 +207,7 @@ class IncidentService {
         title: data.title,
         description: data.description ?? null,
         ccil_number: data.ccil_number ?? null,
+        tin_number: data.tin_number ?? null,
         status: "active",
         created_by: userId,
         incident_manager_id: userId,
@@ -436,6 +438,35 @@ class IncidentService {
 
     eventService.broadcast({
       type: "incident-ccil-updated",
+      incidentId: id,
+      userId,
+    });
+
+    return updatedIncident;
+  }
+
+  updateTinNumber(id, tinNumber, userId) {
+    const incident = this._getIncidentOrThrow(id);
+
+    const beforeCcilNumber = incident.tin_number;
+
+    incidentRepository.updateById(id, {
+      tin_number: tinNumber || null,
+    });
+
+    const updatedIncident = this.getIncidentById(id);
+
+    auditService.log(userId, "UPDATE_INCIDENT_CCIL", "incident", id, {
+      before: {
+        tinNumber: beforeCcilNumber,
+      },
+      after: {
+        tinNumber: updatedIncident.tin_number,
+      },
+    });
+
+    eventService.broadcast({
+      type: "incident-tin-updated",
       incidentId: id,
       userId,
     });

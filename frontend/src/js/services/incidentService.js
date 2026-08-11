@@ -29,4 +29,9 @@ export function updateIncidentCcil(id, ccilNumber) {
     ccil_number: ccilNumber,
   });
 }
-``;
+
+export function updateIncidentTin(id, tinNumber) {
+  return api.post(`/api/incidents/${id}/tin`, {
+    tin_number: tinNumber,
+  });
+}

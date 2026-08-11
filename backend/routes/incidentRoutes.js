@@ -47,4 +47,10 @@ module.exports = [
     path: "/api/incidents/:id/ccil",
     handler: [...editorAccess, incidentController.updateCcil],
   },
+
+  {
+    method: "POST",
+    path: "/api/incidents/:id/tin",
+    handler: [...editorAccess, incidentController.updateTin],
+  },
 ];

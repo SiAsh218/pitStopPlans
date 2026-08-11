@@ -6,6 +6,7 @@ import {
   closeIncident,
   reopenIncident,
   updateIncidentCcil,
+  updateIncidentTin,
 } from "../services/incidentService.js";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
@@ -63,6 +64,7 @@ export async function initIncidentPage() {
   }
 
   wireCcilModal();
+  wireTinModal();
   registerLiveUpdateListeners();
 
   try {
@@ -137,6 +139,7 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
         <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span>
         <span class="incident-meta__chip"> CCIL: ${incident.ccil_number || "Not Assigned"}</span>
+        <span class="incident-meta__chip"> TIN: ${incident.tin_number || "Not Assigned"}</span>
       </div>
     </div>
 
@@ -147,6 +150,9 @@ function renderIncidentMeta(dashboard) {
       <button class="btn btn-secondary" id="btn-edit-ccil">
         ${incident.ccil_number ? "Edit CCIL No" : "Add CCIL No"}
       </button>
+      <button class="btn btn-secondary" id="btn-edit-tin">
+        ${incident.tin_number ? "Edit TIN No" : "Add TIN No"}
+      </button>
       ${incidentButton}
     </div>
   `;
@@ -154,6 +160,7 @@ function renderIncidentMeta(dashboard) {
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
   wireEditCcilButton(incident.id, incident.ccil_number);
+  wireEditTinButton(incident.id, incident.tin_number);
   wireCopyToClipboardButton();
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
@@ -180,6 +187,18 @@ function wireEditCcilButton(incidentId, ccilNumber) {
 
     document
       .getElementById("modal-form-incident-ccil")
+      .classList.remove("hidden");
+  });
+}
+
+function wireEditTinButton(incidentId, tinNumber) {
+  document.getElementById("btn-edit-tin")?.addEventListener("click", () => {
+    document.getElementById("modal-tin-incident-id").value = incidentId;
+
+    document.getElementById("modal-tin-number").value = tinNumber ?? "";
+
+    document
+      .getElementById("modal-form-incident-tin")
       .classList.remove("hidden");
   });
 }
@@ -224,6 +243,44 @@ function wireCcilModal() {
 
       try {
         await updateIncidentCcil(incidentId, ccilNumber || null);
+
+        modal.classList.add("hidden");
+
+        await refreshIncidentPage();
+      } catch (err) {
+        showUnexpectedError(err);
+      }
+    });
+}
+
+function wireTinModal() {
+  const modal = document.getElementById("modal-form-incident-tin");
+
+  if (!modal) {
+    return;
+  }
+
+  modal.querySelector(".modal-form__close")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  modal.querySelector(".modal-form__overlay")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document
+    .getElementById("modal-tin-form")
+    ?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const incidentId = document.getElementById("modal-tin-incident-id").value;
+
+      const tinNumber = document
+        .getElementById("modal-tin-number")
+        .value.trim();
+
+      try {
+        await updateIncidentTin(incidentId, tinNumber || null);
 
         modal.classList.add("hidden");
 
@@ -861,6 +918,7 @@ INCIDENT UPDATE
 Incident: ${currentIncident.title}
 Status: ${currentIncident.status}
 CCIL: ${currentIncident.ccil_number || "Not Assigned"}
+TIN: ${currentIncident.tin_number || "Not Assigned"}
 Progress: ${currentSummary.completion_percentage}% Complete
 
 Actions:
@@ -909,6 +967,7 @@ function buildIncidentClipboardHtml() {
   <strong>Incident:</strong> ${currentIncident.title}<br>
   <strong>Status:</strong> ${currentIncident.status}<br>
   <strong>CCIL:</strong> ${currentIncident.ccil_number || "Not Assigned"}<br>
+  <strong>TIN:</strong> ${currentIncident.tin_number || "Not Assigned"}<br>
   <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
 </p>
 

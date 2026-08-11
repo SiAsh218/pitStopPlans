@@ -192,11 +192,12 @@ class IncidentRepository extends BaseRepository {
           title,
           description,
           ccil_number,
+          tin_number,
           status,
           created_by,
           incident_manager_id
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       )
       .run(
