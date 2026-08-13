@@ -7,12 +7,14 @@ export function initialiseLiveUpdates() {
 
   events = new EventSource("/events");
 
-  window.addEventListener("beforeunload", () => {
-    console.log("[SSE] Closing connection");
-
-    events?.close();
-    events = null;
-  });
+  window.addEventListener(
+    "beforeunload",
+    () => {
+      events?.close();
+      events = null;
+    },
+    { once: true },
+  );
 
   events.onopen = () => {
     console.log("[SSE] Open");
@@ -23,12 +25,20 @@ export function initialiseLiveUpdates() {
   };
 
   events.onmessage = (event) => {
-    const payload = JSON.parse(event.data);
+    try {
+      const payload = JSON.parse(event.data);
 
-    window.dispatchEvent(
-      new CustomEvent(payload.type, {
-        detail: payload,
-      }),
-    );
+      if (!payload?.type) {
+        return;
+      }
+
+      window.dispatchEvent(
+        new CustomEvent(payload.type, {
+          detail: payload,
+        }),
+      );
+    } catch (err) {
+      console.error("[SSE] Failed to parse message", err);
+    }
   };
 }
