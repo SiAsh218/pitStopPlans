@@ -5,7 +5,7 @@ let clientCount = 0;
 function stream(req, res) {
   const clientId = ++clientCount;
 
-  console.log(`[SSE] Client ${clientId} connected`);
+  // console.log(`[SSE] Client ${clientId} connected`);
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -20,14 +20,14 @@ function stream(req, res) {
   );
 
   const heartbeat = setInterval(() => {
-    console.log(`[SSE] Heartbeat -> ${clientId}`);
+    // console.log(`[SSE] Heartbeat -> ${clientId}`);
     res.write(": heartbeat\n\n");
   }, 30000);
 
   eventService.addClient(res);
 
   req.on("close", () => {
-    console.log(`[SSE] Client ${clientId} disconnected`);
+    // console.log(`[SSE] Client ${clientId} disconnected`);
 
     clearInterval(heartbeat);
     eventService.removeClient(res);

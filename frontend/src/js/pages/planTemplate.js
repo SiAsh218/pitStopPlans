@@ -44,11 +44,11 @@ export async function initPlanTemplatePage() {
 
     const isDraft = template.status === "draft";
 
+    renderTemplateMeta(template, isDraft);
+
     await renderRoles(isDraft);
 
     renderVersionHistory(history, template.id);
-
-    await renderRoles(isDraft);
 
     renderTemplateMatrix(plan, isDraft);
 
