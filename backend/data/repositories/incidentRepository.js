@@ -207,6 +207,7 @@ class IncidentRepository extends BaseRepository {
         data.title,
         data.description,
         data.ccil_number,
+        data.tin_number,
         data.status,
         data.created_by,
         data.incident_manager_id,
