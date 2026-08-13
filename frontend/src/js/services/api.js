@@ -20,12 +20,10 @@ async function request(method, url, body = null, params = null, options = {}) {
 
   const response = await fetch(fullUrl, {
     method,
-
     headers: {
       Authorization: `Bearer ${getToken()}`,
       "Content-Type": "application/json",
     },
-
     ...(body && {
       body: JSON.stringify(body),
     }),

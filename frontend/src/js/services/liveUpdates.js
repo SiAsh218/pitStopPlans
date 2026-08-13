@@ -1,11 +1,26 @@
-let connectionCount = 0;
+let events = null;
 
 export function initialiseLiveUpdates() {
-  connectionCount++;
+  if (events) {
+    return;
+  }
 
-  // console.log("[SSE] Initialising connection", connectionCount);
+  events = new EventSource("/events");
 
-  const events = new EventSource("/events");
+  window.addEventListener("beforeunload", () => {
+    console.log("[SSE] Closing connection");
+
+    events?.close();
+    events = null;
+  });
+
+  events.onopen = () => {
+    console.log("[SSE] Open");
+  };
+
+  events.onerror = (err) => {
+    console.error("[SSE] Error", err);
+  };
 
   events.onmessage = (event) => {
     const payload = JSON.parse(event.data);

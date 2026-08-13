@@ -184,6 +184,8 @@ function seedDatabase() {
     seedAddActivationTemplate(adminUser);
   }
 
+  return;
+
   /**
    * ============================================================
    * Seed Live Incident

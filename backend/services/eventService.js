@@ -6,13 +6,13 @@ class EventService {
   addClient(res) {
     this.clients.add(res);
 
-    // console.log(`[SSE] Client connected (${this.clients.size} total)`);
+    console.log(`[SSE] Client connected (${this.clients.size} total)`);
   }
 
   removeClient(res) {
     this.clients.delete(res);
 
-    // console.log(`[SSE] Client disconnected (${this.clients.size} total)`);
+    console.log(`[SSE] Client disconnected (${this.clients.size} total)`);
   }
 
   broadcast(event) {

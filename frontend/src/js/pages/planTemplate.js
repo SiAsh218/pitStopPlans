@@ -44,7 +44,7 @@ export async function initPlanTemplatePage() {
 
     const isDraft = template.status === "draft";
 
-    renderTemplateMeta(template, isDraft);
+    await renderRoles(isDraft);
 
     renderVersionHistory(history, template.id);
 
@@ -795,7 +795,9 @@ async function renderRoles(isDraft) {
     return;
   }
 
-  const roles = await getRoles();
+  const response = await getRoles();
+
+  const roles = response.data;
 
   let html = `
     <div class="card">
@@ -861,7 +863,9 @@ async function renderActionRoleCheckboxes(
   selectedRoleIds = [],
   showDisabled = false,
 ) {
-  const roles = await getRoles();
+  const response = await getRoles();
+
+  const roles = response.data;
   const selectedIds = new Set(selectedRoleIds.map(Number));
 
   const visibleRoles = roles.filter(
