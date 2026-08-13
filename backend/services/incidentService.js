@@ -427,14 +427,14 @@ class IncidentService {
 
     const updatedIncident = this.getIncidentById(id);
 
-    auditService.log(userId, "UPDATE_INCIDENT_CCIL", "incident", id, {
-      before: {
-        ccilNumber: beforeCcilNumber,
-      },
-      after: {
-        ccilNumber: updatedIncident.ccil_number,
-      },
-    });
+    // auditService.log(userId, "UPDATE_INCIDENT_CCIL", "incident", id, {
+    //   before: {
+    //     ccilNumber: beforeCcilNumber,
+    //   },
+    //   after: {
+    //     ccilNumber: updatedIncident.ccil_number,
+    //   },
+    // });
 
     eventService.broadcast({
       type: "incident-ccil-updated",
@@ -456,14 +456,14 @@ class IncidentService {
 
     const updatedIncident = this.getIncidentById(id);
 
-    auditService.log(userId, "UPDATE_INCIDENT_CCIL", "incident", id, {
-      before: {
-        tinNumber: beforeCcilNumber,
-      },
-      after: {
-        tinNumber: updatedIncident.tin_number,
-      },
-    });
+    // auditService.log(userId, "UPDATE_INCIDENT_TIN", "incident", id, {
+    //   before: {
+    //     tinNumber: beforeCcilNumber,
+    //   },
+    //   after: {
+    //     tinNumber: updatedIncident.tin_number,
+    //   },
+    // });
 
     eventService.broadcast({
       type: "incident-tin-updated",
