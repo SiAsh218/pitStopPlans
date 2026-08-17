@@ -1215,6 +1215,8 @@ function registerLiveUpdateListeners() {
 
   window.addEventListener("incident-ccil-updated", handleIncidentUpdate);
 
+  window.addEventListener("incident-tin-updated", handleIncidentUpdate);
+
   sseListenersRegistered = true;
 }
 
