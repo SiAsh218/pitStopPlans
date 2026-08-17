@@ -149,7 +149,7 @@ function renderIncidentMeta(dashboard) {
 
     <div class="incident-meta__actions">
       <button class="btn btn-secondary" id="btn-copy-to-clipboard">
-        Copy
+        Copy to Clipboard
       </button>
       ${incidentButton}
     </div>
