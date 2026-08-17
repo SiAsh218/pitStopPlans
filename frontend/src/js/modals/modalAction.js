@@ -3,6 +3,8 @@ import {
   updateAction,
 } from "../services/planStageActionService.js";
 
+import { refreshPlanTemplatePage } from "../pages/planTemplate.js";
+
 import { showSuccess, showError } from "../utils/myAlert.js";
 
 export function initModalAction() {
@@ -62,7 +64,9 @@ export function initModalAction() {
           : "Action created successfully",
       );
 
-      location.reload();
+      modal.classList.add("hidden");
+
+      await refreshPlanTemplatePage();
     } catch (err) {
       console.error(err);
 

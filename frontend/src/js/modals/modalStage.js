@@ -1,6 +1,7 @@
 import { createStage, updateStage } from "../services/planStageService.js";
 import { resetFormInputs } from "../components/modal.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
+import { refreshPlanTemplatePage } from "../pages/planTemplate.js";
 
 export function initModalStage() {
   const modal = document.getElementById("modal-form-incident-stage");
@@ -35,7 +36,9 @@ export function initModalStage() {
 
       document.getElementById("modal-form-stage--id").value = "";
 
-      location.reload();
+      modal.classList.add("hidden");
+
+      await refreshPlanTemplatePage();
     } catch (err) {
       console.error(err);
 

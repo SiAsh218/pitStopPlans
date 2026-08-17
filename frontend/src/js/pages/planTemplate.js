@@ -67,6 +67,10 @@ export async function initPlanTemplatePage() {
   }
 }
 
+export async function refreshPlanTemplatePage() {
+  await initPlanTemplatePage();
+}
+
 function renderTemplateMeta(template, isDraft) {
   const container = document.querySelector(".template-meta");
 
@@ -540,7 +544,7 @@ function wireDeleteActionButtons() {
 
         showSuccess("Action deleted successfully");
 
-        location.reload();
+        await refreshPlanTemplatePage();
       } catch (err) {
         showError("Failed to delete action");
       }
@@ -593,7 +597,7 @@ function wireStageButtons() {
 
         showSuccess("Stage deleted successfully");
 
-        location.reload();
+        await refreshPlanTemplatePage();
       } catch (err) {
         console.error(err);
 
