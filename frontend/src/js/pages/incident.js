@@ -890,6 +890,10 @@ function isActionOverdue(action) {
     return false;
   }
 
+  if (currentIncident?.status === "closed") {
+    return false;
+  }
+
   if (action.status === "completed") {
     return false;
   }
