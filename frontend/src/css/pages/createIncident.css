@@ -18,3 +18,22 @@
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
 }
+
+.incident-meta__description {
+  margin: 0.75rem 0 1rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 900px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.incident-meta__chip--interactive {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.incident-meta__chip--interactive:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}

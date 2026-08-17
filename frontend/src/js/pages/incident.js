@@ -132,14 +132,18 @@ function renderIncidentMeta(dashboard) {
   container.innerHTML = `
     <div class="incident-meta__summary">
       <h1>${incident.title}</h1>
-
+      ${incident.description ? `<p class="incident-meta__description">${incident.description}</p>` : ""}
       <div class="incident-meta__meta">
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
         <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span>
-        <span class="incident-meta__chip"> CCIL: ${incident.ccil_number || "Not Assigned"}</span>
-        <span class="incident-meta__chip"> TIN: ${incident.tin_number || "Not Assigned"}</span>
+        <span class="incident-meta__chip incident-meta__chip--interactive" id="chip-ccil">
+          CCIL: ${incident.ccil_number || "Click to Add"}
+        </span>
+        <span class="incident-meta__chip incident-meta__chip--interactive" id="chip-tin">
+          TIN: ${incident.tin_number || "Click to Add"}
+        </span>
       </div>
     </div>
 
@@ -147,20 +151,14 @@ function renderIncidentMeta(dashboard) {
       <button class="btn btn-secondary" id="btn-copy-to-clipboard">
         Copy
       </button>
-      <button class="btn btn-secondary" id="btn-edit-ccil">
-        ${incident.ccil_number ? "Edit CCIL No" : "Add CCIL No"}
-      </button>
-      <button class="btn btn-secondary" id="btn-edit-tin">
-        ${incident.tin_number ? "Edit TIN No" : "Add TIN No"}
-      </button>
       ${incidentButton}
     </div>
   `;
 
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
-  wireEditCcilButton(incident.id, incident.ccil_number);
-  wireEditTinButton(incident.id, incident.tin_number);
+  wireEditCcilChip(incident.id, incident.ccil_number);
+  wireEditTinChip(incident.id, incident.tin_number);
   wireCopyToClipboardButton();
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
@@ -179,8 +177,8 @@ function wireDashboardBackButton() {
   });
 }
 
-function wireEditCcilButton(incidentId, ccilNumber) {
-  document.getElementById("btn-edit-ccil")?.addEventListener("click", () => {
+function wireEditCcilChip(incidentId, ccilNumber) {
+  document.getElementById("chip-ccil")?.addEventListener("click", () => {
     document.getElementById("modal-ccil-incident-id").value = incidentId;
 
     document.getElementById("modal-ccil-number").value = ccilNumber ?? "";
@@ -191,8 +189,8 @@ function wireEditCcilButton(incidentId, ccilNumber) {
   });
 }
 
-function wireEditTinButton(incidentId, tinNumber) {
-  document.getElementById("btn-edit-tin")?.addEventListener("click", () => {
+function wireEditTinChip(incidentId, tinNumber) {
+  document.getElementById("chip-tin")?.addEventListener("click", () => {
     document.getElementById("modal-tin-incident-id").value = incidentId;
 
     document.getElementById("modal-tin-number").value = tinNumber ?? "";
@@ -923,8 +921,8 @@ INCIDENT UPDATE
 
 Incident: ${currentIncident.title}
 Status: ${currentIncident.status}
-CCIL: ${currentIncident.ccil_number || "Not Assigned"}
-TIN: ${currentIncident.tin_number || "Not Assigned"}
+CCIL: ${currentIncident.ccil_number || "Click to Add"}
+TIN: ${currentIncident.tin_number || "Click to Add"}
 Progress: ${currentSummary.completion_percentage}% Complete
 
 Actions:
@@ -972,8 +970,8 @@ function buildIncidentClipboardHtml() {
 <p>
   <strong>Incident:</strong> ${currentIncident.title}<br>
   <strong>Status:</strong> ${currentIncident.status}<br>
-  <strong>CCIL:</strong> ${currentIncident.ccil_number || "Not Assigned"}<br>
-  <strong>TIN:</strong> ${currentIncident.tin_number || "Not Assigned"}<br>
+  <strong>CCIL:</strong> ${currentIncident.ccil_number || "Click to Add"}<br>
+  <strong>TIN:</strong> ${currentIncident.tin_number || "Click to Add"}<br>
   <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
 </p>
 
