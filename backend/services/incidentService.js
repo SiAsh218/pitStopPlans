@@ -382,6 +382,21 @@ class IncidentService {
     };
   }
 
+  getIncidentForDashboard(id) {
+    const incident = this.getIncidentById(id);
+
+    if (!incident) {
+      return null;
+    }
+
+    const actions = incidentActionRepository.findByIncidentIdWithRoles(id);
+
+    return {
+      ...incident,
+      summary: this._getActionSummary(actions),
+    };
+  }
+
   _getResolvedTodayCount(incidents) {
     const today = new Date();
 

@@ -2,6 +2,7 @@ const AppError = require("../utils/AppError");
 
 const incidentActionRepository = require("../data/repositories/incidentActionRepository");
 
+const incidentService = require("./incidentService");
 const incidentActionUpdateService = require("./incidentActionUpdateService");
 
 const eventService = require("../services/eventService.js");
@@ -90,9 +91,17 @@ class IncidentActionService {
       "in_progress",
     );
 
+    const incident = incidentService.getIncidentForDashboard(
+      action.incident_id,
+    );
+
+    const stats = incidentService.getDashboardStatistics();
+
     eventService.broadcast({
       type: "incident-action-updated",
       incidentId: action.incident_id,
+      incident,
+      stats,
       actionId: id,
       status: "in_progress",
     });
@@ -131,9 +140,17 @@ class IncidentActionService {
       "completed",
     );
 
+    const incident = incidentService.getIncidentForDashboard(
+      action.incident_id,
+    );
+
+    const stats = incidentService.getDashboardStatistics();
+
     eventService.broadcast({
       type: "incident-action-updated",
       incidentId: action.incident_id,
+      incident,
+      stats,
       actionId: id,
       status: "completed",
     });
@@ -164,9 +181,17 @@ class IncidentActionService {
       "in_progress",
     );
 
+    const incident = incidentService.getIncidentForDashboard(
+      action.incident_id,
+    );
+
+    const stats = incidentService.getDashboardStatistics();
+
     eventService.broadcast({
       type: "incident-action-updated",
       incidentId: action.incident_id,
+      incident,
+      stats,
       actionId: id,
       status: "in_progress",
     });
@@ -181,9 +206,17 @@ class IncidentActionService {
       assigned_user_id: userId,
     });
 
+    const incident = incidentService.getIncidentForDashboard(
+      action.incident_id,
+    );
+
+    const stats = incidentService.getDashboardStatistics();
+
     eventService.broadcast({
       type: "incident-action-assigned",
       incidentId: action.incident_id,
+      incident,
+      stats,
       actionId: id,
       assignedUserId: userId,
     });

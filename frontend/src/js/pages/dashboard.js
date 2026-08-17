@@ -145,12 +145,66 @@ function renderIncidents(incidents = []) {
     const card = document.createElement("div");
 
     card.className = "incident-card";
+    card.dataset.incidentId = incident.id;
     card.innerHTML = buildIncidentCard(incident);
     card.addEventListener("click", () => {
       openIncident(incident.id);
     });
     container.appendChild(card);
   });
+}
+
+function updateIncidentCard(updatedIncident) {
+  const card = document.querySelector(
+    `[data-incident-id="${updatedIncident.id}"]`,
+  );
+
+  if (!card) {
+    return;
+  }
+
+  card.innerHTML = buildIncidentCard(updatedIncident);
+}
+
+function handleIncidentUpdated(event) {
+  const { incident: updatedIncident, stats } = event.detail;
+
+  if (!updatedIncident?.id) {
+    return;
+  }
+
+  const index = state.incidents.findIndex(
+    (incident) => incident.id === updatedIncident.id,
+  );
+
+  if (index === -1) {
+    return;
+  }
+
+  state.incidents[index] = updatedIncident;
+
+  updateIncidentCard(updatedIncident);
+
+  if (stats) {
+    state.stats = stats;
+    updateStatistics(stats);
+  }
+}
+
+function updateStateStatistics(updatedIncident) {
+  const active = state.incidents.filter((i) => i.status === "active").length;
+
+  const resolvedToday = state.incidents.filter(
+    (i) => i.status === "resolved",
+  ).length;
+
+  state.stats = {
+    ...state.stats,
+    active,
+    resolvedToday,
+  };
+
+  updateStatistics(state.stats);
 }
 
 function renderPagination(meta = {}) {
@@ -343,9 +397,9 @@ export function registerDashboardLiveUpdates() {
 
   window.addEventListener("incident-closed", loadIncidents);
 
-  window.addEventListener("incident-action-updated", loadIncidents);
+  window.addEventListener("incident-action-updated", handleIncidentUpdated);
 
-  window.addEventListener("incident-action-assigned", loadIncidents);
+  window.addEventListener("incident-action-assigned", handleIncidentUpdated);
 
   state.sseListenersRegistered = true;
 }
