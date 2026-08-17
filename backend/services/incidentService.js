@@ -308,6 +308,8 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-closed",
       incidentId: id,
+      incident: this.getIncidentForDashboard(id),
+      stats: this.getDashboardStatistics(),
       userId,
     });
 
@@ -344,6 +346,14 @@ class IncidentService {
       after: {
         status: "active",
       },
+    });
+
+    eventService.broadcast({
+      type: "incident-reopened",
+      incidentId: id,
+      incident: this.getIncidentForDashboard(id),
+      stats: this.getDashboardStatistics(),
+      userId,
     });
 
     return updatedIncident;

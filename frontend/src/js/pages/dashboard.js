@@ -37,23 +37,20 @@ export async function loadIncidents() {
 
   try {
     incidentList.innerHTML = "<p>Loading incidents...</p>";
-    const [result] = await Promise.all([
-      getIncidents({
-        page: state.page,
-        limit: state.limit,
-        search: state.search || undefined,
-        status: state.status === "all" ? undefined : state.status,
-        incident_type_id:
-          state.incidentType === "all" ? undefined : state.incidentType,
-      }),
-      loadIncidentTypes(),
-    ]);
+    const result = await getIncidents({
+      page: state.page,
+      limit: state.limit,
+      search: state.search || undefined,
+      status: state.status === "all" ? undefined : state.status,
+      incident_type_id:
+        state.incidentType === "all" ? undefined : state.incidentType,
+    });
 
     state.incidents = result.data;
     state.paginationMeta = result.meta;
     state.stats = result.stats;
 
-    bindDashboardControls();
+    // bindDashboardControls();
     renderCurrentPage();
   } catch (err) {
     showDashboardError(incidentList, err);
@@ -64,7 +61,7 @@ export async function loadIncidents() {
 // Dashboard Controls
 // -----------------------------------------------------------------------------
 
-function bindDashboardControls() {
+export function bindDashboardControls() {
   const searchInput = document.getElementById("incident-search");
   const statusFilter = document.getElementById("incident-status-filter");
   const incidentTypeFilter = document.getElementById("incident-type-filter");
@@ -191,20 +188,46 @@ function handleIncidentUpdated(event) {
   }
 }
 
-function updateStateStatistics(updatedIncident) {
-  const active = state.incidents.filter((i) => i.status === "active").length;
+function handleIncidentStatusChanged(event) {
+  const { incident, stats } = event.detail;
 
-  const resolvedToday = state.incidents.filter(
-    (i) => i.status === "resolved",
-  ).length;
+  if (!incident?.id) {
+    return;
+  }
 
-  state.stats = {
-    ...state.stats,
-    active,
-    resolvedToday,
-  };
+  if (stats) {
+    state.stats = stats;
+    updateStatistics(stats);
+  }
 
-  updateStatistics(state.stats);
+  const index = state.incidents.findIndex((i) => i.id === incident.id);
+
+  if (state.status !== "all") {
+    const shouldBeVisible = incident.status === state.status;
+
+    if (!shouldBeVisible) {
+      if (index !== -1) {
+        state.incidents.splice(index, 1);
+
+        renderIncidents(state.incidents);
+      }
+
+      return;
+    }
+  }
+
+  if (index === -1) {
+    state.incidents.unshift(incident);
+
+    renderIncidents(state.incidents);
+    renderPagination(state.paginationMeta);
+
+    return;
+  }
+
+  state.incidents[index] = incident;
+
+  updateIncidentCard(incident);
 }
 
 function renderPagination(meta = {}) {
@@ -271,7 +294,7 @@ function renderCurrentPage() {
   renderPagination(state.paginationMeta);
 }
 
-async function loadIncidentTypes() {
+export async function loadIncidentTypes() {
   const select = document.getElementById("incident-type-filter");
 
   if (!select) {
@@ -340,6 +363,12 @@ function buildIncidentCard(incident) {
   const statusClass =
     incident.status === "active" ? "status--active" : "status--closed";
 
+  const summary = incident.summary ?? {
+    completion_percentage: 0,
+    completed_actions: 0,
+    total_actions: 0,
+  };
+
   return `
       <div class="incident-card__header">
         <h3>
@@ -366,14 +395,14 @@ function buildIncidentCard(incident) {
           class="progress-bar__fill"
           style="
             width:
-            ${incident.summary.completion_percentage}%;
+            ${summary.completion_percentage}%;
           "
         ></div>
       </div>
       <small>
-        ${incident.summary.completed_actions}
+        ${summary.completed_actions}
         /
-        ${incident.summary.total_actions}
+        ${summary.total_actions}
         actions completed
       </small>
       <div class="incident-card__actions">
@@ -395,7 +424,9 @@ export function registerDashboardLiveUpdates() {
 
   window.addEventListener("incident-created", loadIncidents);
 
-  window.addEventListener("incident-closed", loadIncidents);
+  window.addEventListener("incident-closed", handleIncidentStatusChanged);
+
+  window.addEventListener("incident-reopened", handleIncidentStatusChanged);
 
   window.addEventListener("incident-action-updated", handleIncidentUpdated);
 

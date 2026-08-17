@@ -27,6 +27,8 @@ import { initModal } from "./components/modal.js";
 import {
   loadIncidents,
   registerDashboardLiveUpdates,
+  bindDashboardControls,
+  loadIncidentTypes,
 } from "./pages/dashboard.js";
 import { initTemplatesPage } from "./pages/templates.js";
 import { initIncidentPage, refreshIncidentPage } from "./pages/incident.js";
@@ -35,7 +37,6 @@ import { initPlanTemplatePage } from "./pages/planTemplate.js";
 import { initUsersPage } from "./pages/users.js";
 import { initRolesPage } from "./pages/roles.js";
 import { initAuditLogsPage } from "./pages/auditLog.js";
-
 import { initialiseLiveUpdates } from "./services/liveUpdates.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -45,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initHeader();
   initTemplatesPage();
-  loadIncidents();
   initModal();
   initIncidentPage();
   initCreateIncidentPage();
@@ -54,7 +54,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initRolesPage();
   initAuditLogsPage();
 
-  initialiseLiveUpdates();
+  await loadIncidentTypes();
 
+  bindDashboardControls();
+
+  await loadIncidents();
+
+  initialiseLiveUpdates();
   registerDashboardLiveUpdates();
 });

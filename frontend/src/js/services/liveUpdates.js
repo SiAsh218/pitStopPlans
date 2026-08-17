@@ -17,7 +17,7 @@ export function initialiseLiveUpdates() {
   );
 
   events.onopen = () => {
-    console.log("[SSE] Open");
+    // console.log("[SSE] Open");
   };
 
   events.onerror = (err) => {
