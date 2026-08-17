@@ -1,6 +1,7 @@
 const AppError = require("../utils/AppError");
 
 const incidentActionRepository = require("../data/repositories/incidentActionRepository");
+const incidentRepository = require("../data/repositories/incidentRepository");
 
 const incidentService = require("./incidentService");
 const incidentActionUpdateService = require("./incidentActionUpdateService");
@@ -53,6 +54,18 @@ class IncidentActionService {
     }
   }
 
+  _validateIncidentIsActive(incidentId) {
+    const incident = incidentRepository.findById(incidentId);
+
+    if (!incident) {
+      throw new AppError("Incident not found", 404);
+    }
+
+    if (incident.status !== "active") {
+      throw new AppError("Actions cannot be updated on a closed incident", 400);
+    }
+  }
+
   getByIncident(incidentId, options = {}) {
     return incidentActionRepository.findByIncidentIdWithRolesQuery(
       incidentId,
@@ -66,6 +79,8 @@ class IncidentActionService {
 
   startAction(id, user) {
     const action = this._getActionOrThrow(id);
+
+    this._validateIncidentIsActive(action.incident_id);
 
     this._validateUserCanUpdateAction(id, user);
 
@@ -111,6 +126,8 @@ class IncidentActionService {
 
   completeAction(id, user) {
     const action = this._getActionOrThrow(id);
+
+    this._validateIncidentIsActive(action.incident_id);
 
     this._validateUserCanUpdateAction(id, user);
 
@@ -161,6 +178,8 @@ class IncidentActionService {
   reopenAction(id, user) {
     const action = this._getActionOrThrow(id);
 
+    this._validateIncidentIsActive(action.incident_id);
+
     this._validateUserCanUpdateAction(id, user);
 
     if (action.status !== "completed") {
@@ -201,6 +220,8 @@ class IncidentActionService {
 
   assignAction(id, userId) {
     const action = this._getActionOrThrow(id);
+
+    this._validateIncidentIsActive(action.incident_id);
 
     incidentActionRepository.updateById(id, {
       assigned_user_id: userId,

@@ -444,6 +444,8 @@ function renderActionPanel(action, updates = []) {
   const overlay = document.getElementById("incident-action-overlay");
   const panel = document.getElementById("incident-action-panel");
 
+  const canUpdateActions = currentIncident?.status === "active";
+
   if (!overlay || !panel) {
     return;
   }
@@ -454,7 +456,7 @@ function renderActionPanel(action, updates = []) {
 
   let buttons = "";
 
-  if (action.status === "pending") {
+  if (canUpdateActions && action.status === "pending") {
     buttons = `
       <button
         class="btn btn-primary"
@@ -465,7 +467,7 @@ function renderActionPanel(action, updates = []) {
     `;
   }
 
-  if (action.status === "in_progress") {
+  if (canUpdateActions && action.status === "in_progress") {
     buttons = `
       <button
         class="btn btn-primary"
@@ -476,7 +478,7 @@ function renderActionPanel(action, updates = []) {
     `;
   }
 
-  if (action.status === "completed") {
+  if (canUpdateActions && action.status === "completed") {
     buttons = `
       <p>
         ✅ Action Completed
@@ -1070,29 +1072,32 @@ function buildActionCard(action) {
     `
     : "";
 
-  const actionButton =
-    action.status === "pending"
+  const canUpdateActions = currentIncident?.status === "active";
+
+  const actionButton = !canUpdateActions
+    ? ""
+    : action.status === "pending"
       ? `
+        <div class="matrix-action__buttons">
+          <button
+            class="btn btn-secondary btn-start-action-card"
+            data-action-id="${action.id}"
+          >
+            Start
+          </button>
+        </div>
+      `
+      : action.status === "in_progress"
+        ? `
           <div class="matrix-action__buttons">
             <button
-              class="btn btn-secondary btn-start-action-card"
+              class="btn btn-secondary btn-complete-action-card"
               data-action-id="${action.id}"
             >
-              Start
+              Complete
             </button>
           </div>
         `
-      : action.status === "in_progress"
-        ? `
-            <div class="matrix-action__buttons">
-              <button
-                class="btn btn-secondary btn-complete-action-card"
-                data-action-id="${action.id}"
-              >
-                Complete
-              </button>
-            </div>
-          `
         : "";
 
   return `
