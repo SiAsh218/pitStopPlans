@@ -9,7 +9,7 @@ module.exports = {
     path: path.resolve(__dirname, "./frontend/dist"),
   },
 
-  mode: "development",
+  mode: "production",
 
   module: {
     rules: [
