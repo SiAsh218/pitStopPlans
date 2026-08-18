@@ -23,6 +23,7 @@ require("dotenv").config();
 const http = require("http");
 const path = require("path");
 const fs = require("fs").promises;
+const logger = require("./logger.js");
 
 const config = require("../config.json");
 
@@ -34,10 +35,8 @@ const AppError = require("./utils/AppError");
 // Middleware Registration
 // =========================
 
-const logger = require("./middleware/logger");
 const requireJSON = require("./middleware/requireJSON");
 
-router.use(logger);
 router.use(requireJSON);
 
 // =========================
@@ -106,12 +105,7 @@ class App {
      */
     this.host = null;
 
-    try {
-      initialiseDatabase();
-      seedDatabase();
-    } catch (error) {
-      console.error("Database startup failed:", error.message || error);
-    }
+    this.maxBodySize = 1024 * 1024; // 1MB
   }
 
   /**
@@ -125,11 +119,13 @@ class App {
    */
   async start() {
     try {
+      initialiseDatabase();
+      seedDatabase();
       this.runHTTP(this.mode === "production" ? "production" : "development");
 
       await this._listenWithRetry(this.port, this.host);
     } catch (error) {
-      console.error("Application startup failed:", error);
+      logger.fatal({ err: error }, "Application startup failed!");
       process.exit(1);
     }
   }
@@ -171,13 +167,18 @@ class App {
           });
         });
 
-        console.log(
-          `Server running (${this.mode}) on http://${host}:${this.port}`,
+        logger.info(
+          { host, port: this.port, mode: this.mode },
+          "Server started",
         );
 
         return;
       } catch (error) {
         if (error.code !== "EADDRINUSE") {
+          throw error;
+        }
+
+        if (this.mode === "production") {
           throw error;
         }
 
@@ -190,9 +191,7 @@ class App {
         const previousPort = currentPort;
         currentPort += 1;
 
-        console.warn(
-          `Port ${previousPort} is in use, trying ${currentPort}...`,
-        );
+        logger.warn({ previousPort, currentPort }, "Port in use");
       }
     }
   }
@@ -225,8 +224,15 @@ class App {
 
         if (["POST", "PUT"].includes(req.method)) {
           let body = "";
+          let size = 0;
 
           for await (const chunk of req) {
+            size += chunk.length;
+
+            if (size > this.maxBodySize) {
+              throw new AppError("Request too large", 413);
+            }
+
             body += chunk.toString();
           }
 
@@ -266,7 +272,7 @@ class App {
           });
         }
       } catch (error) {
-        console.error("Server Error:", error);
+        logger.error({ err: error }, "Server Error!");
         this._sendError(res, error);
       }
     });
@@ -307,7 +313,7 @@ class App {
     const statusCode =
       typeof err?.statusCode === "number" ? err.statusCode : 500;
 
-    const message = err?.message ?? "Internal Server Error";
+    const message = statusCode >= 500 ? "Internal Server Error" : err.message;
 
     this._sendJson(res, statusCode, {
       success: false,
@@ -355,9 +361,13 @@ class App {
    * @returns {string}
    */
   _getSafePath(requestUrl) {
-    const safePath = path.normalize(requestUrl).replace(/^(\.\.[/\\])+/, "");
+    const resolved = path.resolve(this.staticFilePath, "." + requestUrl);
 
-    return path.join(this.staticFilePath, safePath);
+    if (!resolved.startsWith(this.staticFilePath)) {
+      throw new AppError("Forbidden", 403);
+    }
+
+    return resolved;
   }
 
   /**
@@ -382,7 +392,7 @@ class App {
       return true;
     } catch (error) {
       if (error.code !== "ENOENT") {
-        console.error("Static file error:", error);
+        logger.error({ err: error }, "Static file error!");
       }
 
       res.writeHead(404, {
