@@ -251,7 +251,7 @@ class App {
         // 3. QUERY PARAM PARSING
         // ====================================================
 
-        const fullUrl = new URL(req.url, `http://${req.headers.host}`);
+        const fullUrl = new URL(req.url || "/", "http://localhost");
 
         req.query = Object.fromEntries(fullUrl.searchParams);
 

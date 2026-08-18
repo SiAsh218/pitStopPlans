@@ -82,10 +82,7 @@ class Router {
    */
   async handleRequest(req, res) {
     try {
-      const url = new URL(
-        req.url || "/",
-        `http://${req.headers.host || "localhost"}`,
-      );
+      const url = new URL(req.url || "/", "http://localhost");
 
       const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
