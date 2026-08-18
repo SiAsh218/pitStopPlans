@@ -752,6 +752,15 @@ function wireCloseIncidentButton(incidentId) {
   document
     .getElementById("btn-close-incident")
     ?.addEventListener("click", async () => {
+      console.log(currentIncident);
+
+      if (!currentIncident.ccil_number || !currentIncident.tin_number) {
+        showError(
+          "Please Complete the CCIL Number and Tin Number fields to close this incident",
+        );
+        return;
+      }
+
       const confirmed = await showConfirm(
         "Close Incident",
         "Are you sure you want to close this incident?",
