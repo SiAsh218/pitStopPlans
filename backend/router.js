@@ -28,6 +28,8 @@ const userPreferenceRoutes = require("./routes/userPreferenceRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const reportingRoutes = require("./routes/reportingRoutes");
 
+const logger = require("./logger.js");
+
 /**
  * Registered application routes.
  *
@@ -111,6 +113,10 @@ class Router {
 
         for (const handler of handlers) {
           await handler(req, res);
+
+          if (res.writableEnded) {
+            break;
+          }
         }
 
         return true;
@@ -164,7 +170,7 @@ class Router {
    * @returns {boolean}
    */
   _handleError(error, req, res) {
-    console.error("Router Error:", error);
+    logger.error({ err: error }, "Router error");
 
     if (res.headersSent) {
       return true;
@@ -173,7 +179,7 @@ class Router {
     const status =
       typeof error?.statusCode === "number" ? error.statusCode : 500;
 
-    const message = error?.message ?? "Internal Server Error";
+    const message = status >= 500 ? "Internal Server Error" : error?.message;
 
     res.writeHead(status, {
       "Content-Type": "application/json",
@@ -220,7 +226,8 @@ class Router {
         const urlPart = urlParts[i];
 
         if (routePart.startsWith(":")) {
-          params[routePart.slice(1)] = urlPart;
+          params[routePart.slice(1)] = decodeURIComponent(urlPart);
+
           continue;
         }
 
