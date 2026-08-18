@@ -134,8 +134,8 @@ function renderIncidentMeta(dashboard) {
 
   container.innerHTML = `
     <div class="incident-meta__summary">
-      <h1 id="incident-title" class="incident-meta__editable">${incident.title}</h1>
-      ${incident.description ? `<p id="incident-description" class="incident-meta__description incident-meta__editable">${incident.description}</p>` : ""}
+      <h1 id="incident-title" ${canEditIncident ? "class='incident-meta__editable'" : ""}">${incident.title}</h1>
+      ${incident.description ? `<p id="incident-description" class="incident-meta__description${canEditIncident ? " incident-meta__editable" : ""}"">${incident.description}</p>` : ""}
       <div class="incident-meta__meta">
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
