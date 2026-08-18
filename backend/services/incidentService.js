@@ -298,6 +298,13 @@ class IncidentService {
       return this.getIncidentById(id);
     }
 
+    if (!incident.ccil_number || !incident.tin_number) {
+      throw new AppError(
+        "CCIL Number and TIN Number must be completed before an incident can be closed",
+        400,
+      );
+    }
+
     const beforeStatus = incident.status;
 
     incidentRepository.updateById(id, {
