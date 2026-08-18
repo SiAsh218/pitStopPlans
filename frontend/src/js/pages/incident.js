@@ -992,8 +992,8 @@ INCIDENT UPDATE
 
 Incident: ${currentIncident.title}
 Status: ${currentIncident.status}
-CCIL: ${currentIncident.ccil_number || "Click to Add"}
-TIN: ${currentIncident.tin_number || "Click to Add"}
+CCIL: ${currentIncident.ccil_number}
+TIN: ${currentIncident.tin_number}
 Progress: ${currentSummary.completion_percentage}% Complete
 
 Actions:
@@ -1041,8 +1041,8 @@ function buildIncidentClipboardHtml() {
 <p>
   <strong>Incident:</strong> ${currentIncident.title}<br>
   <strong>Status:</strong> ${currentIncident.status}<br>
-  <strong>CCIL:</strong> ${currentIncident.ccil_number || "Click to Add"}<br>
-  <strong>TIN:</strong> ${currentIncident.tin_number || "Click to Add"}<br>
+  <strong>CCIL:</strong> ${currentIncident.ccil_number}<br>
+  <strong>TIN:</strong> ${currentIncident.tin_number}<br>
   <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
 </p>
 
