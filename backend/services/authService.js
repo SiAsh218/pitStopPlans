@@ -1,13 +1,15 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
 const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
+const sessionRepository = require("../data/repositories/sessionRepository");
 const AppError = require("../utils/AppError");
 const { validatePassword } = require("../utils/validatePassword");
 
 const SECRET = process.env.JWT_SECRET;
-const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT || 10);
+const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS || 12);
 
 if (!SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -37,16 +39,19 @@ class AuthService {
    * @param {Array<object>} jobRoles
    * @returns {string}
    */
-  _generateToken(user, jobRoles) {
+  _generateToken(user, jobRoles = []) {
     return jwt.sign(
       {
-        id: user.id,
+        sub: String(user.id),
         role: user.role,
         jobRoles: jobRoles.map((role) => role.id),
       },
       SECRET,
       {
-        expiresIn: "1h",
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
+        issuer: process.env.JWT_ISSUER || "pit-stop-plans",
+        audience: process.env.JWT_AUDIENCE || "pit-stop-plans-api",
+        algorithm: "HS256",
       },
     );
   }
@@ -108,10 +113,25 @@ class AuthService {
 
     const jobRoles = userRoleRepository.findByUserId(user.id);
 
-    const token = this._generateToken(user, jobRoles);
+    const accessToken = this._generateToken(user, jobRoles);
+
+    const refreshToken = this._createRefreshToken();
+
+    const refreshTokenHash = this._hashRefreshToken(refreshToken);
+
+    const sessionExpiry = this._createSessionExpiry(
+      Number(process.env.SESSION_EXPIRES_IN_DAYS || 30),
+    );
+
+    sessionRepository.create({
+      userId: user.id,
+      tokenHash: refreshTokenHash,
+      expiresAt: sessionExpiry,
+    });
 
     return {
-      token,
+      accessToken,
+      refreshToken,
       user: this._toUserDTO(user, jobRoles),
     };
   }
@@ -123,7 +143,79 @@ class AuthService {
    * @returns {object}
    */
   verify(token) {
-    return jwt.verify(token, SECRET);
+    return jwt.verify(token, SECRET, {
+      algorithms: ["HS256"],
+      issuer: process.env.JWT_ISSUER || "pit-stop-plans",
+      audience: process.env.JWT_AUDIENCE || "pit-stop-plans-api",
+    });
+  }
+
+  _createRefreshToken() {
+    return crypto.randomBytes(64).toString("hex");
+  }
+
+  _hashRefreshToken(token) {
+    return crypto.createHash("sha256").update(token).digest("hex");
+  }
+
+  _createSessionExpiry(days) {
+    const expiresAt = new Date();
+
+    expiresAt.setDate(expiresAt.getDate() + days);
+
+    return expiresAt.toISOString();
+  }
+
+  async refresh(refreshToken) {
+    if (!refreshToken) {
+      throw new AppError("Refresh token required", 401);
+    }
+
+    const tokenHash = this._hashRefreshToken(refreshToken);
+
+    const session = sessionRepository.findValidByTokenHash(tokenHash);
+
+    if (!session) {
+      throw new AppError("Invalid session", 401);
+    }
+
+    if (!session.active) {
+      sessionRepository.revoke(session.id);
+
+      throw new AppError("User account is disabled", 401);
+    }
+
+    sessionRepository.markUsed(session.id);
+
+    const user = {
+      id: session.user_id,
+      email: session.email,
+      role: session.role,
+      token_version: 0,
+    };
+
+    const jobRoles = userRoleRepository.findByUserId(user.id);
+
+    const accessToken = this._generateToken(user, jobRoles);
+
+    return {
+      accessToken,
+      user: this._toUserDTO(user, jobRoles),
+    };
+  }
+
+  async logout(refreshToken) {
+    if (!refreshToken) {
+      return;
+    }
+
+    const tokenHash = this._hashRefreshToken(refreshToken);
+
+    const session = sessionRepository.findValidByTokenHash(tokenHash);
+
+    if (session) {
+      sessionRepository.revoke(session.id);
+    }
   }
 }
 

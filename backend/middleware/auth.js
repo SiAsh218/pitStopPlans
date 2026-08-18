@@ -93,18 +93,27 @@ module.exports = function auth(req, res) {
 
   /**
    * ============================================================
-   * 5. Attach user to request
+   * 5. Attach authenticated user to request
    * ============================================================
    *
-   * This makes the authenticated user available throughout:
-   * - route middleware (requireRole)
-   * - controllers
+   * The JWT uses the standard "sub" claim for the user ID.
+   * The rest of the application expects req.user.id.
    *
-   * Example usage:
-   *   req.user.id
-   *   req.user.role
+   * Normalise the JWT payload here so downstream services
+   * don't need to know how the JWT is structured.
    */
-  req.user = decoded;
+  const userId = Number(decoded.sub);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new AppError("Invalid token", 401);
+  }
+
+  req.user = {
+    ...decoded,
+    id: userId,
+    role: decoded.role,
+    jobRoles: decoded.jobRoles || [],
+  };
 
   /**
    * ============================================================

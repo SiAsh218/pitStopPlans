@@ -1,32 +1,43 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
+const validate = require("../middleware/validate");
 const authController = require("../controllers/authController");
 
+const { loginSchema, registerSchema } = require("../validation/schemas");
+
 module.exports = [
-  /**
-   * Register a new user.
-   */
   {
     method: "POST",
     path: "/api/auth/register",
-    handler: [auth, requireRole("admin"), authController.register],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("body", registerSchema),
+      authController.register,
+    ],
   },
 
-  /**
-   * Login and receive a JWT.
-   */
   {
     method: "POST",
     path: "/api/auth/login",
-    handler: authController.login,
+    handler: [validate("body", loginSchema), authController.login],
   },
 
-  /**
-   * Validate current JWT.
-   */
   {
     method: "GET",
     path: "/api/auth/validate",
     handler: [auth, authController.validate],
+  },
+
+  {
+    method: "POST",
+    path: "/api/auth/refresh",
+    handler: [authController.refresh],
+  },
+
+  {
+    method: "POST",
+    path: "/api/auth/logout",
+    handler: [authController.logout],
   },
 ];

@@ -1,6 +1,9 @@
+let refreshPromise = null;
+
 export async function login(email, password) {
   const response = await fetch("/api/auth/login", {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -16,7 +19,19 @@ export async function login(email, password) {
     throw new Error(json.error || "Login failed");
   }
 
-  return json.data;
+  const { accessToken, user } = json.data;
+
+  if (!accessToken || !user) {
+    throw new Error("Invalid login response");
+  }
+
+  localStorage.setItem("accessToken", accessToken);
+  localStorage.setItem("user", JSON.stringify(user));
+
+  return {
+    accessToken,
+    user,
+  };
 }
 
 export async function requireAuth() {
@@ -34,26 +49,86 @@ export async function requireAuth() {
   return true;
 }
 
-export function logout() {
-  localStorage.removeItem("token");
+export async function logout() {
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
+
+  localStorage.removeItem("accessToken");
   localStorage.removeItem("user");
 
   window.location.href = "/login";
 }
 
 export function getToken() {
-  return localStorage.getItem("token");
+  return localStorage.getItem("accessToken");
 }
 
-// export function isAuthenticated() {
-//   return !!getToken();
-// }
+export async function refreshAccessToken() {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+
+        return false;
+      }
+
+      const { accessToken, user } = json.data || {};
+
+      if (!accessToken) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+
+        return false;
+      }
+
+      localStorage.setItem("accessToken", accessToken);
+
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Token refresh failed:", err);
+
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
 
 export async function isAuthenticated() {
   const token = getToken();
 
   if (!token) {
-    return false;
+    return await refreshAccessToken();
   }
 
   try {
@@ -63,18 +138,25 @@ export async function isAuthenticated() {
       },
     });
 
-    if (!response.ok) {
-      localStorage.removeItem("token");
-      return false;
+    if (response.ok) {
+      return true;
     }
 
-    return true;
-  } catch (err) {
-    console.error(err);
-
-    localStorage.removeItem("token");
+    /*
+     * The access token may have expired.
+     *
+     * Try the refresh token before deciding
+     * that the user is no longer authenticated.
+     */
+    if (response.status === 401) {
+      return await refreshAccessToken();
+    }
 
     return false;
+  } catch (err) {
+    console.error("Authentication validation failed:", err);
+
+    return await refreshAccessToken();
   }
 }
 

@@ -1,4 +1,4 @@
-import { getToken } from "../auth.js";
+import { getToken, refreshAccessToken } from "../auth.js";
 
 function buildQueryString(params = {}) {
   return Object.entries(params)
@@ -20,14 +20,35 @@ async function request(method, url, body = null, params = null, options = {}) {
 
   const response = await fetch(fullUrl, {
     method,
+
+    // Required so the browser sends authentication cookies.
+    credentials: "include",
+
     headers: {
       Authorization: `Bearer ${getToken()}`,
       "Content-Type": "application/json",
     },
+
     ...(body && {
       body: JSON.stringify(body),
     }),
   });
+
+  /*
+   * Access token may have expired.
+   *
+   * Refresh once and retry the original request.
+   */
+  if (response.status === 401 && !options._retried) {
+    const refreshed = await refreshAccessToken();
+
+    if (refreshed) {
+      return request(method, url, body, params, {
+        ...options,
+        _retried: true,
+      });
+    }
+  }
 
   const json = await response.json();
 
