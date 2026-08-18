@@ -2,6 +2,10 @@ const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 const incidentTypeController = require("../controllers/incidentTypeController");
 
+const validate = require("../middleware/validate");
+
+const { idParamSchema } = require("../validation/schemas");
+
 module.exports = [
   {
     method: "GET",
@@ -19,6 +23,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       incidentTypeController.getById,
     ],
   },
@@ -39,6 +44,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       incidentTypeController.update,
     ],
   },
@@ -46,6 +52,11 @@ module.exports = [
   {
     method: "DELETE",
     path: "/api/incident_types/:id",
-    handler: [auth, requireRole("admin"), incidentTypeController.delete],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      incidentTypeController.delete,
+    ],
   },
 ];

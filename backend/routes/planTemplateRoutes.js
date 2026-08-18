@@ -1,6 +1,10 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 
+const validate = require("../middleware/validate");
+
+const { idParamSchema } = require("../validation/schemas");
+
 const planTemplateController = require("../controllers/planTemplateController");
 
 module.exports = [
@@ -36,6 +40,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       planTemplateController.getById,
     ],
   },
@@ -56,6 +61,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       planTemplateController.update,
     ],
   },
@@ -66,6 +72,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       planTemplateController.removeDraft,
     ],
   },
@@ -76,6 +83,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       planTemplateController.approve,
     ],
   },
@@ -86,6 +94,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       planTemplateController.clone,
     ],
   },
@@ -93,7 +102,12 @@ module.exports = [
   {
     method: "POST",
     path: "/api/plan_templates/:id/retire",
-    handler: [auth, requireRole("admin"), planTemplateController.retire],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      planTemplateController.retire,
+    ],
   },
 
   {
@@ -102,6 +116,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       planTemplateController.getHistory,
     ],
   },

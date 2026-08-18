@@ -1,4 +1,4 @@
-const AppError = require("../utils/AppError");
+// const AppError = require("../utils/AppError");
 const incidentActionUpdateService = require("../services/incidentActionUpdateService");
 
 /**
@@ -56,10 +56,6 @@ class IncidentActionUpdateController {
    */
   create(req, res) {
     const note = req.body.note;
-
-    if (!note?.trim()) {
-      throw new AppError("Update note is required", 400);
-    }
 
     this._sendJSON(res, 201, {
       success: true,

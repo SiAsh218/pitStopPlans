@@ -1,7 +1,14 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
+const validate = require("../middleware/validate");
 
 const controller = require("../controllers/incidentActionController");
+
+const {
+  idParamSchema,
+  incidentIdParamSchema,
+  assignActionSchema,
+} = require("../validation/schemas");
 
 module.exports = [
   /**
@@ -13,6 +20,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", incidentIdParamSchema),
       controller.getByIncident,
     ],
   },
@@ -23,7 +31,12 @@ module.exports = [
   {
     method: "GET",
     path: "/api/incident_actions/:id",
-    handler: [auth, requireRole("admin", "editor", "user"), controller.getById],
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
+      controller.getById,
+    ],
   },
 
   /**
@@ -32,7 +45,12 @@ module.exports = [
   {
     method: "POST",
     path: "/api/incident_actions/:id/start",
-    handler: [auth, requireRole("admin", "editor", "user"), controller.start],
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
+      controller.start,
+    ],
   },
 
   /**
@@ -44,16 +62,23 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       controller.complete,
     ],
   },
+
   /**
    * Reopen
    */
   {
     method: "POST",
     path: "/api/incident_actions/:id/reopen",
-    handler: [auth, requireRole("admin", "editor", "user"), controller.reopen],
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
+      controller.reopen,
+    ],
   },
 
   /**
@@ -62,6 +87,12 @@ module.exports = [
   {
     method: "POST",
     path: "/api/incident_actions/:id/assign",
-    handler: [auth, requireRole("admin", "editor"), controller.assign],
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      validate("params", idParamSchema),
+      validate("body", assignActionSchema),
+      controller.assign,
+    ],
   },
 ];

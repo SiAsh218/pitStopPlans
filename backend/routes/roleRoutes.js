@@ -1,6 +1,10 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 
+const validate = require("../middleware/validate");
+
+const { idParamSchema } = require("../validation/schemas");
+
 const roleController = require("../controllers/roleController");
 
 module.exports = [
@@ -20,6 +24,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       roleController.getById,
     ],
   },
@@ -33,12 +38,22 @@ module.exports = [
   {
     method: "DELETE",
     path: "/api/roles/:id",
-    handler: [auth, requireRole("admin"), roleController.delete],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      roleController.delete,
+    ],
   },
 
   {
     method: "PUT",
     path: "/api/roles/:id",
-    handler: [auth, requireRole("admin"), roleController.update],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      roleController.update,
+    ],
   },
 ];

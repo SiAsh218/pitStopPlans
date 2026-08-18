@@ -1,6 +1,13 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 
+const validate = require("../middleware/validate");
+
+const {
+  idParamSchema,
+  planTemplateIdParamSchema,
+} = require("../validation/schemas");
+
 const planStageController = require("../controllers/planStageController.js");
 
 module.exports = [
@@ -10,6 +17,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", planTemplateIdParamSchema),
       planStageController.getByTemplate,
     ],
   },
@@ -20,6 +28,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       planStageController.getById,
     ],
   },
@@ -33,12 +42,22 @@ module.exports = [
   {
     method: "PUT",
     path: "/api/plan_stages/:id",
-    handler: [auth, requireRole("admin", "editor"), planStageController.update],
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      validate("params", idParamSchema),
+      planStageController.update,
+    ],
   },
 
   {
     method: "DELETE",
     path: "/api/plan_stages/:id",
-    handler: [auth, requireRole("admin"), planStageController.delete],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      planStageController.delete,
+    ],
   },
 ];

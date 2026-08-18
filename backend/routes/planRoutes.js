@@ -2,6 +2,10 @@ const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 const planController = require("../controllers/planController");
 
+const validate = require("../middleware/validate");
+
+const { idParamSchema } = require("../validation/schemas");
+
 module.exports = [
   /**
    * Get all plans.
@@ -25,6 +29,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       planController.getById,
     ],
   },

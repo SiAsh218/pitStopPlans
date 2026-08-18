@@ -85,6 +85,12 @@ const assignActionSchema = z
   })
   .strict();
 
+const createIncidentActionUpdateSchema = z
+  .object({
+    note: z.string().trim().min(1).max(5000),
+  })
+  .strict();
+
 const idParamSchema = z
   .object({
     id: positiveInt,
@@ -94,6 +100,18 @@ const idParamSchema = z
 const incidentIdParamSchema = z
   .object({
     incidentId: positiveInt,
+  })
+  .strict();
+
+const planTemplateIdParamSchema = z
+  .object({
+    templateId: positiveInt,
+  })
+  .strict();
+
+const planStageIdParamSchema = z
+  .object({
+    stageId: positiveInt,
   })
   .strict();
 
@@ -108,6 +126,9 @@ module.exports = {
   updateTinSchema,
   updateIncidentMetaSchema,
   assignActionSchema,
+  createIncidentActionUpdateSchema,
   idParamSchema,
   incidentIdParamSchema,
+  planTemplateIdParamSchema,
+  planStageIdParamSchema,
 };

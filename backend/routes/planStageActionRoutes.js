@@ -1,6 +1,13 @@
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 
+const validate = require("../middleware/validate");
+
+const {
+  planStageIdParamSchema,
+  idParamSchema,
+} = require("../validation/schemas");
+
 const planStageActionController = require("../controllers/planStageActionController");
 
 module.exports = [
@@ -10,6 +17,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", planStageIdParamSchema),
       planStageActionController.getByStage,
     ],
   },
@@ -20,6 +28,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
       planStageActionController.getById,
     ],
   },
@@ -40,6 +49,7 @@ module.exports = [
     handler: [
       auth,
       requireRole("admin", "editor"),
+      validate("params", idParamSchema),
       planStageActionController.update,
     ],
   },
@@ -47,6 +57,11 @@ module.exports = [
   {
     method: "DELETE",
     path: "/api/plan_stage_actions/:id",
-    handler: [auth, requireRole("admin"), planStageActionController.delete],
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      planStageActionController.delete,
+    ],
   },
 ];
