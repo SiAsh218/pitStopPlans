@@ -3,7 +3,7 @@ let refreshPromise = null;
 export async function login(email, password) {
   const response = await fetch("/api/auth/login", {
     method: "POST",
-    credentials: "include",
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
     },
@@ -51,9 +51,9 @@ export async function requireAuth() {
 
 export async function logout() {
   try {
-    await fetch("/api/auth/logout", {
+    const response = await fetch("/api/auth/logout", {
       method: "POST",
-      credentials: "include",
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
       },
@@ -81,7 +81,7 @@ export async function refreshAccessToken() {
     try {
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
-        credentials: "include",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
