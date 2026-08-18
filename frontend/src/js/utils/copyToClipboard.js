@@ -1,6 +1,10 @@
 import { showWarning, showError, showSuccess } from "./myAlert.js";
 
-export const copyToClipboard = async (html, text) => {
+export const copyToClipboard = async (
+  html,
+  text,
+  message = "Data copied to clipboard",
+) => {
   try {
     if (
       navigator.clipboard &&
@@ -21,7 +25,7 @@ export const copyToClipboard = async (html, text) => {
       fallbackCopyRichText(html);
     }
 
-    showSuccess("Data copied to clipboard");
+    showSuccess(message);
   } catch (err) {
     console.error(err);
     showError(err?.message || "Failed to copy to clipboard");

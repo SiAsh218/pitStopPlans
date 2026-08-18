@@ -43,7 +43,11 @@ export async function initCreateIncidentPage() {
 
       const html = buildIncidentClipboardHtml(title, incidentType, description);
       const text = buildIncidentClipboardText(title, incidentType, description);
-      await copyToClipboard(html, text);
+      await copyToClipboard(
+        html,
+        text,
+        "Creating Incident... Holding Message Data Copied to Clipboard",
+      );
 
       setTimeout(() => {
         window.location.href = `/incidents/${incident.id}`;
