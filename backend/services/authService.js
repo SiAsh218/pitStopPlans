@@ -185,21 +185,46 @@ class AuthService {
       throw new AppError("User account is disabled", 401);
     }
 
-    sessionRepository.markUsed(session.id);
-
     const user = {
       id: session.user_id,
       email: session.email,
       role: session.role,
-      token_version: 0,
     };
 
     const jobRoles = userRoleRepository.findByUserId(user.id);
+
+    /*
+     * Generate a completely new refresh token.
+     */
+    const newRefreshToken = this._createRefreshToken();
+
+    const newRefreshTokenHash = this._hashRefreshToken(newRefreshToken);
+
+    const sessionExpiry = this._createSessionExpiry(
+      Number(process.env.SESSION_EXPIRES_IN_DAYS || 30),
+    );
+
+    /*
+     * Replace the old refresh-token hash with
+     * the new one.
+     *
+     * The old refresh token is now invalid.
+     */
+    const rotated = sessionRepository.rotate(
+      session.id,
+      newRefreshTokenHash,
+      sessionExpiry,
+    );
+
+    if (!rotated) {
+      throw new AppError("Invalid session", 401);
+    }
 
     const accessToken = this._generateToken(user, jobRoles);
 
     return {
       accessToken,
+      refreshToken: newRefreshToken,
       user: this._toUserDTO(user, jobRoles),
     };
   }

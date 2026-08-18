@@ -40,14 +40,22 @@ class SessionRepository {
       .get(tokenHash);
   }
 
-  markUsed(id) {
-    db.prepare(
-      `
+  rotate(id, newTokenHash, newExpiresAt) {
+    const result = db
+      .prepare(
+        `
       UPDATE auth_sessions
-      SET last_used_at = CURRENT_TIMESTAMP
+      SET
+        token_hash = ?,
+        expires_at = ?,
+        last_used_at = CURRENT_TIMESTAMP
       WHERE id = ?
+        AND revoked_at IS NULL
     `,
-    ).run(id);
+      )
+      .run(newTokenHash, newExpiresAt, id);
+
+    return result.changes === 1;
   }
 
   revoke(id) {
