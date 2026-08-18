@@ -20,13 +20,18 @@
 
 const config = require("./config.json");
 const App = require("./backend/app");
+const logger = require("./backend/logger");
 
 /**
  * Resolve port in priority order:
  * 1. Environment variable (PORT)
  * 2. Default config port
  */
-const port = process.env.PORT ?? config.port;
+const port = Number(process.env.PORT ?? config.port);
+
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error("Invalid port");
+}
 
 /**
  * Logs a fatal application error and terminates the process.
@@ -36,8 +41,11 @@ const port = process.env.PORT ?? config.port;
  * @returns {void}
  */
 function handleFatalError(type, error) {
-  console.error(`${type}:`, error);
-  process.exit(1);
+  logger.fatal({ err: error, type }, "Fatal application error");
+
+  setTimeout(() => {
+    process.exit(1);
+  }, 5000);
 }
 
 /**
@@ -50,8 +58,8 @@ process.on("uncaughtException", (error) => {
 /**
  * Handles unhandled Promise rejections.
  */
-process.on("unhandledRejection", (error) => {
-  handleFatalError("Unhandled Rejection", error);
+process.on("unhandledRejection", (reason) => {
+  handleFatalError("Unhandled Rejection", reason);
 });
 
 /**
@@ -68,9 +76,9 @@ async function run() {
     // Start the HTTP server
     await app.start();
 
-    console.log(`Server running on port ${port}`);
+    logger.info({ port }, "Server started");
   } catch (error) {
-    console.error("Failed to start app:", error);
+    logger.fatal({ err: error }, "Application startup failed");
 
     // Exit if startup fails
     process.exit(1);
