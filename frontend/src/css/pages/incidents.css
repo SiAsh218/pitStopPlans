@@ -300,6 +300,16 @@
   flex-shrink: 0;
 }
 
+.incident-meta__chip--error {
+  background-color: #fee2e2;
+  border: 2px solid #dc2626;
+  color: #991b1b;
+}
+
+.incident-meta__chip--error:hover {
+  border-color: #b91c1c;
+}
+
 #incident-summary {
   margin-bottom: 1rem;
 }

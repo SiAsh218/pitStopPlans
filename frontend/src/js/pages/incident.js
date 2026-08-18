@@ -755,9 +755,12 @@ function wireCloseIncidentButton(incidentId) {
       console.log(currentIncident);
 
       if (!currentIncident.ccil_number || !currentIncident.tin_number) {
+        highlightMissingFields();
+
         showError(
-          "Please Complete the CCIL Number and Tin Number fields to close this incident",
+          "Please complete the highlighted fields before closing the incident.",
         );
+
         return;
       }
 
@@ -778,6 +781,19 @@ function wireCloseIncidentButton(incidentId) {
         showUnexpectedError(err);
       }
     });
+}
+
+function highlightMissingFields() {
+  const ccilChip = document.getElementById("chip-ccil");
+  const tinChip = document.getElementById("chip-tin");
+
+  if (!currentIncident?.ccil_number) {
+    ccilChip?.classList.add("incident-meta__chip--error");
+  }
+
+  if (!currentIncident?.tin_number) {
+    tinChip?.classList.add("incident-meta__chip--error");
+  }
 }
 
 function wireReopenIncidentButton(incidentId) {
