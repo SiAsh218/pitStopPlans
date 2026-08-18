@@ -62,6 +62,18 @@ class IncidentService {
     return incidentType;
   }
 
+  _validateIncidentIsActive(incidentId) {
+    const incident = incidentRepository.findById(incidentId);
+
+    if (!incident) {
+      throw new AppError("Incident not found", 404);
+    }
+
+    if (incident.status !== "active") {
+      throw new AppError("Actions cannot be updated on a closed incident", 400);
+    }
+  }
+
   /**
    * Retrieves the latest approved template.
    *
@@ -444,6 +456,8 @@ class IncidentService {
   updateCcilNumber(id, ccilNumber, userId) {
     const incident = this._getIncidentOrThrow(id);
 
+    this._validateIncidentIsActive(id);
+
     const beforeCcilNumber = incident.ccil_number;
 
     incidentRepository.updateById(id, {
@@ -473,6 +487,8 @@ class IncidentService {
   updateTinNumber(id, tinNumber, userId) {
     const incident = this._getIncidentOrThrow(id);
 
+    this._validateIncidentIsActive(id);
+
     const beforeCcilNumber = incident.tin_number;
 
     incidentRepository.updateById(id, {
@@ -501,6 +517,8 @@ class IncidentService {
 
   updateMeta(id, title, description, userId) {
     const incident = this._getIncidentOrThrow(id);
+
+    this._validateIncidentIsActive(id);
 
     incidentRepository.updateById(id, {
       title,

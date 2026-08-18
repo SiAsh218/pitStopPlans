@@ -107,6 +107,7 @@ function renderIncidentMeta(dashboard) {
   currentIncident = dashboard.incident;
   incidentStartedAt = incident.started_at;
   const container = document.querySelector(".incident-meta");
+  const canEditIncident = incident.status === "active";
 
   if (!container) {
     return;
@@ -140,10 +141,10 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
         <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span>
-        <span class="incident-meta__chip incident-meta__chip--interactive" id="chip-ccil">
+        <span class="incident-meta__chip${canEditIncident ? " incident-meta__chip--interactive" : ""}" id="chip-ccil">
           CCIL: ${incident.ccil_number || "Click to Add"}
         </span>
-        <span class="incident-meta__chip incident-meta__chip--interactive" id="chip-tin">
+        <span class="incident-meta__chip${canEditIncident ? " incident-meta__chip--interactive" : ""}" id="chip-tin">
           TIN: ${incident.tin_number || "Click to Add"}
         </span>
       </div>
@@ -159,9 +160,15 @@ function renderIncidentMeta(dashboard) {
 
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
-  wireEditCcilChip(incident.id, incident.ccil_number);
-  wireEditTinChip(incident.id, incident.tin_number);
-  wireEditIncidentMetaButton(incident.id, incident.title, incident.description);
+  if (canEditIncident) {
+    wireEditCcilChip(incident.id, incident.ccil_number);
+    wireEditTinChip(incident.id, incident.tin_number);
+    wireEditIncidentMetaButton(
+      incident.id,
+      incident.title,
+      incident.description,
+    );
+  }
   wireCopyToClipboardButton();
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
