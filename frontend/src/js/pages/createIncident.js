@@ -27,6 +27,10 @@ export async function initCreateIncidentPage() {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating Incident...";
+
     const title = document.getElementById("incident-title").value;
     const incidentTypeSelect = document.getElementById("incident-type");
     const incidentTypeId = incidentTypeSelect.value;
@@ -54,6 +58,9 @@ export async function initCreateIncidentPage() {
       }, 1000);
     } catch (err) {
       console.error(err);
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Create Incident";
 
       showError("Failed to create incident");
     }

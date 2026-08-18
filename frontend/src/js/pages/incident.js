@@ -752,8 +752,6 @@ function wireCloseIncidentButton(incidentId) {
   document
     .getElementById("btn-close-incident")
     ?.addEventListener("click", async () => {
-      console.log(currentIncident);
-
       if (!currentIncident.ccil_number || !currentIncident.tin_number) {
         highlightMissingFields();
 
