@@ -498,6 +498,25 @@ class IncidentService {
 
     return updatedIncident;
   }
+
+  updateMeta(id, title, description, userId) {
+    const incident = this._getIncidentOrThrow(id);
+
+    incidentRepository.updateById(id, {
+      title,
+      description: description || null,
+    });
+
+    const updatedIncident = this.getIncidentById(id);
+
+    eventService.broadcast({
+      type: "incident-meta-updated",
+      incidentId: id,
+      userId,
+    });
+
+    return updatedIncident;
+  }
 }
 
 module.exports = new IncidentService();

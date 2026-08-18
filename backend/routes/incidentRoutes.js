@@ -53,4 +53,10 @@ module.exports = [
     path: "/api/incidents/:id/tin",
     handler: [...editorAccess, incidentController.updateTin],
   },
+
+  {
+    method: "POST",
+    path: "/api/incidents/:id/meta",
+    handler: [...editorAccess, incidentController.updateMeta],
+  },
 ];

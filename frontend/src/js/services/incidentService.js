@@ -35,3 +35,10 @@ export function updateIncidentTin(id, tinNumber) {
     tin_number: tinNumber,
   });
 }
+
+export async function updateIncidentMeta(incidentId, title, description) {
+  return api.post(`/api/incidents/${incidentId}/meta`, {
+    title,
+    description,
+  });
+}

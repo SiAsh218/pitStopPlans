@@ -7,6 +7,7 @@ import {
   reopenIncident,
   updateIncidentCcil,
   updateIncidentTin,
+  updateIncidentMeta,
 } from "../services/incidentService.js";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showWarning, showError } from "../utils/myAlert.js";
@@ -65,6 +66,7 @@ export async function initIncidentPage() {
 
   wireCcilModal();
   wireTinModal();
+  wireIncidentMetaModal();
   registerLiveUpdateListeners();
 
   try {
@@ -131,8 +133,8 @@ function renderIncidentMeta(dashboard) {
 
   container.innerHTML = `
     <div class="incident-meta__summary">
-      <h1>${incident.title}</h1>
-      ${incident.description ? `<p class="incident-meta__description">${incident.description}</p>` : ""}
+      <h1 id="incident-title" class="incident-meta__editable">${incident.title}</h1>
+      ${incident.description ? `<p id="incident-description" class="incident-meta__description incident-meta__editable">${incident.description}</p>` : ""}
       <div class="incident-meta__meta">
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
@@ -159,6 +161,7 @@ function renderIncidentMeta(dashboard) {
   wireReopenIncidentButton(incident.id);
   wireEditCcilChip(incident.id, incident.ccil_number);
   wireEditTinChip(incident.id, incident.tin_number);
+  wireEditIncidentMetaButton(incident.id, incident.title, incident.description);
   wireCopyToClipboardButton();
   wireDashboardBackButton();
   startIncidentTimer(formatDateTime(incident.started_at));
@@ -199,6 +202,30 @@ function wireEditTinChip(incidentId, tinNumber) {
       .getElementById("modal-form-incident-tin")
       .classList.remove("hidden");
   });
+}
+
+function wireEditIncidentMetaButton(incidentId, title, description) {
+  const openModal = () => {
+    document.getElementById("modal-incident-meta-incident-id").value =
+      incidentId;
+
+    document.getElementById("modal-incident-meta-title").value = title ?? "";
+
+    document.getElementById("modal-incident-meta-description").value =
+      description ?? "";
+
+    document
+      .getElementById("modal-form-incident-meta")
+      .classList.remove("hidden");
+  };
+
+  document
+    .getElementById("incident-title")
+    ?.addEventListener("click", openModal);
+
+  document
+    .getElementById("incident-description")
+    ?.addEventListener("click", openModal);
 }
 
 function wireCopyToClipboardButton() {
@@ -279,6 +306,50 @@ function wireTinModal() {
 
       try {
         await updateIncidentTin(incidentId, tinNumber || null);
+
+        modal.classList.add("hidden");
+
+        await refreshIncidentPage();
+      } catch (err) {
+        showUnexpectedError(err);
+      }
+    });
+}
+
+function wireIncidentMetaModal() {
+  const modal = document.getElementById("modal-form-incident-meta");
+
+  if (!modal) {
+    return;
+  }
+
+  modal.querySelector(".modal-form__close")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  modal.querySelector(".modal-form__overlay")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document
+    .getElementById("modal-incident-meta-form")
+    ?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const incidentId = document.getElementById(
+        "modal-incident-meta-incident-id",
+      ).value;
+
+      const title = document
+        .getElementById("modal-incident-meta-title")
+        .value.trim();
+
+      const description = document
+        .getElementById("modal-incident-meta-description")
+        .value.trim();
+
+      try {
+        await updateIncidentMeta(incidentId, title, description);
 
         modal.classList.add("hidden");
 

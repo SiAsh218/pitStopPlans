@@ -16,6 +16,7 @@ class IncidentController {
     this.updateCcil = this.updateCcil.bind(this);
     this.updateTin = this.updateTin.bind(this);
     this.dashboard = this.dashboard.bind(this);
+    this.updateMeta = this.updateMeta.bind(this);
   }
 
   /**
@@ -160,6 +161,20 @@ class IncidentController {
     const incident = incidentService.updateTinNumber(
       Number(req.params.id),
       req.body.tin_number,
+      req.user.id,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: incident,
+    });
+  }
+
+  updateMeta(req, res) {
+    const incident = incidentService.updateMeta(
+      Number(req.params.id),
+      req.body.title,
+      req.body.description,
       req.user.id,
     );
 

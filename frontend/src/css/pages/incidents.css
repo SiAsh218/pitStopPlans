@@ -285,6 +285,14 @@
   font-size: 0.84rem;
 }
 
+.incident-meta__editable {
+  cursor: pointer;
+}
+
+.incident-meta__editable:hover {
+  opacity: 0.85;
+}
+
 .incident-meta__actions {
   display: flex;
   align-items: center;
