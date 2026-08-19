@@ -244,6 +244,14 @@ class BaseRepository {
       throw new Error("No fields supplied for insert");
     }
 
+    const columns = this.getColumns();
+
+    for (const key of keys) {
+      if (!columns.includes(key)) {
+        throw new Error(`Unknown column: ${key}`);
+      }
+    }
+
     const values = Object.values(fields);
 
     const placeholders = keys.map(() => "?").join(", ");
@@ -271,6 +279,14 @@ class BaseRepository {
 
     if (!keys.length) {
       throw new Error("No fields supplied for update");
+    }
+
+    const columns = this.getColumns();
+
+    for (const key of keys) {
+      if (!columns.includes(key)) {
+        throw new Error(`Unknown column: ${key}`);
+      }
     }
 
     const values = Object.values(fields);

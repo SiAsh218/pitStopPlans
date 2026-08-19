@@ -221,10 +221,22 @@ class PlanTemplateRepository extends BaseRepository {
 
     const allowedSortColumns = [...columns, "incident_type_name"];
 
-    const orderClause =
-      sortBy && allowedSortColumns.includes(sortBy)
-        ? `ORDER BY ${sortBy} ${sortOrder}`
-        : "ORDER BY it.name, pt.version DESC";
+    let orderClause;
+
+    if (sortBy && allowedSortColumns.includes(sortBy)) {
+      orderClause = `ORDER BY ${sortBy} ${sortOrder}`;
+    } else if (sortBy) {
+      // Invalid sort column.
+      orderClause = `
+            ORDER BY
+              pt.incident_type_id ASC,
+              CASE WHEN pt.status = 'approved' THEN 0 ELSE 1 END ASC,
+              pt.version DESC
+          `;
+    } else {
+      // No sort supplied: default repository ordering.
+      orderClause = "ORDER BY pt.incident_type_id ASC, pt.version DESC";
+    }
 
     const sql = `
       SELECT

@@ -19,6 +19,71 @@ class IncidentRepository extends BaseRepository {
   }
 
   /**
+   * Builds the incident-specific WHERE clause.
+   *
+   * Incident queries join multiple tables, so columns from the
+   * incidents table must be qualified with the `i` alias.
+   *
+   * @param {object} filters
+   * @param {string} search
+   * @param {string[]} columns
+   * @returns {{clause: string, params: any[]}}
+   */
+  _buildWhereClause(filters, search, columns) {
+    const clauses = [];
+    const params = [];
+
+    for (const [column, value] of Object.entries(filters)) {
+      if (!columns.includes(column)) {
+        continue;
+      }
+
+      const qualifiedColumn = `i.${column}`;
+
+      if (value === null || value === "null") {
+        clauses.push(`${qualifiedColumn} IS NULL`);
+        continue;
+      }
+
+      if (typeof value === "string" && value.includes("%")) {
+        clauses.push(`${qualifiedColumn} LIKE ?`);
+        params.push(value);
+        continue;
+      }
+
+      if (value === "true" || value === "false") {
+        clauses.push(`${qualifiedColumn} = ?`);
+        params.push(value === "true" ? 1 : 0);
+        continue;
+      }
+
+      clauses.push(`${qualifiedColumn} = ?`);
+      params.push(value);
+    }
+
+    if (search) {
+      const searchColumns = [
+        ...columns.map((column) => `i.${column}`),
+        "it.name",
+        "u.email",
+      ];
+
+      clauses.push(
+        `(${searchColumns.map((column) => `${column} LIKE ?`).join(" OR ")})`,
+      );
+
+      for (const column of searchColumns) {
+        params.push(`%${search}%`);
+      }
+    }
+
+    return {
+      clause: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+      params,
+    };
+  }
+
+  /**
    * Finds an incident by ID with related details.
    *
    * @param {number} id
@@ -125,10 +190,21 @@ class IncidentRepository extends BaseRepository {
       "created_by_email",
     ];
 
-    const orderClause =
-      sortBy && allowedSortColumns.includes(sortBy)
-        ? `ORDER BY ${sortBy} ${sortOrder}`
-        : "ORDER BY i.started_at DESC";
+    let orderClause = "ORDER BY i.started_at DESC";
+
+    if (sortBy && allowedSortColumns.includes(sortBy)) {
+      const qualifiedSortColumn = columns.includes(sortBy)
+        ? `i.${sortBy}`
+        : sortBy === "incident_type_name"
+          ? "it.name"
+          : sortBy === "created_by_email"
+            ? "u.email"
+            : null;
+
+      if (qualifiedSortColumn) {
+        orderClause = `ORDER BY ${qualifiedSortColumn} ${sortOrder}`;
+      }
+    }
 
     const sql = `
       SELECT
