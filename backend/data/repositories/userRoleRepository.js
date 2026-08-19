@@ -48,21 +48,51 @@ class UserRoleRepository {
    * @param {number[]} roleIds
    */
   setRoles(userId, roleIds = []) {
+    const currentRoleIds = db
+      .prepare(
+        `
+      SELECT role_id
+      FROM user_roles
+      WHERE user_id = ?
+      ORDER BY role_id
+      `,
+      )
+      .all(userId)
+      .map((row) => row.role_id);
+
+    const newRoleIds = [...roleIds].map(Number).sort((a, b) => a - b);
+
+    const rolesChanged =
+      currentRoleIds.length !== newRoleIds.length ||
+      currentRoleIds.some((roleId, index) => roleId !== newRoleIds[index]);
+
+    if (!rolesChanged) {
+      return;
+    }
+
     const transaction = db.transaction(() => {
       this.deleteByUserId(userId);
 
       const stmt = db.prepare(`
-        INSERT INTO user_roles
-        (
-          user_id,
-          role_id
-        )
-        VALUES (?, ?)
-      `);
+      INSERT INTO user_roles
+      (
+        user_id,
+        role_id
+      )
+      VALUES (?, ?)
+    `);
 
-      for (const roleId of roleIds) {
+      for (const roleId of newRoleIds) {
         stmt.run(userId, roleId);
       }
+
+      db.prepare(
+        `
+        UPDATE users
+        SET token_version = token_version + 1
+        WHERE id = ?
+        `,
+      ).run(userId);
     });
 
     transaction();
