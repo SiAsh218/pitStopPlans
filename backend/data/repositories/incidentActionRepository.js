@@ -58,6 +58,7 @@ class IncidentActionRepository extends BaseRepository {
       ),
     };
   }
+
   findByIncidentIdWithRolesQuery(incidentId, options = {}) {
     const result = this.findByIncidentIdWithQuery(incidentId, options);
 
