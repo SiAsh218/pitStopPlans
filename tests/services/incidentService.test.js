@@ -7,12 +7,21 @@ jest.mock("../../backend/data/repositories/planStageRepository");
 jest.mock("../../backend/data/repositories/planStageActionRepository");
 jest.mock("../../backend/data/repositories/incidentActionRepository");
 
+// Mock external services used by IncidentService.
+// These tests are for IncidentService itself, so we don't want
+// audit/event database operations affecting the tests.
+jest.mock("../../backend/services/auditLogService");
+jest.mock("../../backend/services/eventService");
+
 const incidentRepository = require("../../backend/data/repositories/incidentRepository");
 const incidentTypeRepository = require("../../backend/data/repositories/incidentTypeRepository");
 const planTemplateRepository = require("../../backend/data/repositories/planTemplateRepository");
 const planStageRepository = require("../../backend/data/repositories/planStageRepository");
 const planStageActionRepository = require("../../backend/data/repositories/planStageActionRepository");
 const incidentActionRepository = require("../../backend/data/repositories/incidentActionRepository");
+
+const auditService = require("../../backend/services/auditLogService");
+const eventService = require("../../backend/services/eventService");
 
 const incidentService = require("../../backend/services/incidentService");
 
@@ -49,6 +58,8 @@ describe("IncidentService", () => {
         id: 100,
         title: "Broken Train",
         description: null,
+        ccil_number: null,
+        tin_number: null,
         status: "active",
         incident_type_id: 1,
         incident_type_name: "Train Failure",
@@ -70,6 +81,9 @@ describe("IncidentService", () => {
 
       expect(result.id).toBe(100);
       expect(result.status).toBe("active");
+
+      expect(auditService.log).toHaveBeenCalled();
+      expect(eventService.broadcast).toHaveBeenCalled();
     });
 
     it("creates incident actions from template", () => {
@@ -124,6 +138,8 @@ describe("IncidentService", () => {
         id: 100,
         title: "Broken Train",
         description: null,
+        ccil_number: null,
+        tin_number: null,
         status: "active",
         incident_type_id: 1,
         incident_type_name: "Train Failure",
@@ -142,6 +158,9 @@ describe("IncidentService", () => {
       );
 
       expect(incidentActionRepository.insert).toHaveBeenCalledTimes(2);
+
+      expect(auditService.log).toHaveBeenCalled();
+      expect(eventService.broadcast).toHaveBeenCalled();
     });
 
     it("throws when incident type does not exist", () => {
@@ -156,6 +175,8 @@ describe("IncidentService", () => {
           99,
         ),
       ).toThrow(AppError);
+
+      expect(incidentRepository.insertIncident).not.toHaveBeenCalled();
     });
 
     it("throws when no approved template exists", () => {
@@ -176,6 +197,8 @@ describe("IncidentService", () => {
           99,
         ),
       ).toThrow("No approved template exists for this incident type");
+
+      expect(incidentRepository.insertIncident).not.toHaveBeenCalled();
     });
 
     it("throws when incident action creation fails", () => {
@@ -228,6 +251,8 @@ describe("IncidentService", () => {
           99,
         ),
       ).toThrow("Boom");
+
+      expect(auditService.log).not.toHaveBeenCalled();
     });
   });
 
@@ -236,6 +261,8 @@ describe("IncidentService", () => {
       incidentRepository.findById.mockReturnValue({
         id: 1,
         status: "active",
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
       });
 
       incidentRepository.findByIdWithDetails.mockReturnValue({
@@ -249,7 +276,13 @@ describe("IncidentService", () => {
         template_version: 1,
         created_by: 99,
         created_by_email: "user@test.com",
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
       });
+
+      incidentActionRepository.findByIncidentIdWithRoles.mockReturnValue([]);
+
+      incidentRepository.findAllWithDetails.mockReturnValue([]);
 
       const result = incidentService.closeIncident(1, 99);
 
@@ -267,12 +300,16 @@ describe("IncidentService", () => {
       incidentRepository.findById.mockReturnValue({
         id: 1,
         status: "closed",
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
       });
 
       incidentRepository.findByIdWithDetails.mockReturnValue({
         id: 1,
         title: "Broken Train",
         description: null,
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
         status: "closed",
         incident_type_id: 1,
         incident_type_name: "Train Failure",
@@ -287,12 +324,17 @@ describe("IncidentService", () => {
       expect(result.status).toBe("closed");
 
       expect(incidentRepository.updateById).not.toHaveBeenCalled();
+
+      expect(auditService.log).not.toHaveBeenCalled();
+      expect(eventService.broadcast).not.toHaveBeenCalled();
     });
 
     it("throws when incident does not exist", () => {
       incidentRepository.findById.mockReturnValue(null);
 
       expect(() => incidentService.closeIncident(999, 99)).toThrow(AppError);
+
+      expect(incidentRepository.updateById).not.toHaveBeenCalled();
     });
   });
 });
