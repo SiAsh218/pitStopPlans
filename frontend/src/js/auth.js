@@ -34,6 +34,14 @@ export async function login(email, password) {
   };
 }
 
+function getCsrfToken() {
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("csrfToken="));
+
+  return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+}
+
 export async function requireAuth() {
   const isLoginPage = window.location.pathname === "/login";
 
@@ -51,11 +59,14 @@ export async function requireAuth() {
 
 export async function logout() {
   try {
+    const csrfToken = getCsrfToken();
+
     const response = await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
       },
     });
   } catch (err) {
@@ -79,11 +90,14 @@ export async function refreshAccessToken() {
 
   refreshPromise = (async () => {
     try {
+      const csrfToken = getCsrfToken();
+
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
         },
       });
 

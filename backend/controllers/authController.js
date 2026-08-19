@@ -1,4 +1,5 @@
 const authService = require("../services/authService");
+const { setCsrfCookie } = require("../middleware/csrf");
 
 /**
  * Handles authentication-related HTTP requests.
@@ -61,6 +62,7 @@ class AuthController {
     const result = authService.login(email, password);
 
     this._setRefreshCookie(res, result.refreshToken);
+    setCsrfCookie(res);
 
     delete result.refreshToken;
 
@@ -81,7 +83,9 @@ class AuthController {
       .filter(Boolean)
       .join("; ");
 
-    res.setHeader("Set-Cookie", cookie);
+    const existing = res.getHeader("Set-Cookie");
+
+    res.setHeader("Set-Cookie", existing ? [...existing, cookie] : [cookie]);
   }
 
   /**
@@ -161,7 +165,9 @@ class AuthController {
       .filter(Boolean)
       .join("; ");
 
-    res.setHeader("Set-Cookie", cookie);
+    const existing = res.getHeader("Set-Cookie");
+
+    res.setHeader("Set-Cookie", existing ? [...existing, cookie] : [cookie]);
   }
 }
 
