@@ -9,7 +9,7 @@ const email = z
   .max(254)
   .transform((value) => value.toLowerCase());
 
-const password = z.string().min(8).max(128);
+const password = z.string().min(0).max(128); // set to zero as requests can be sent with a password just to update roles
 
 const role = z.enum(["admin", "editor", "user"]);
 
