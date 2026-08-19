@@ -43,8 +43,18 @@ class UserRepository extends BaseRepository {
   updateUser(userId, updates) {
     const fields = {};
 
+    const existingUser = this.findById(userId);
+
+    if (!existingUser) {
+      return null;
+    }
+
     if (updates.role !== undefined) {
       fields.role = updates.role;
+
+      // Changing an application's role invalidates
+      // all existing access tokens.
+      fields.token_version = existingUser.token_version + 1;
     }
 
     if (updates.password !== undefined) {
@@ -52,7 +62,7 @@ class UserRepository extends BaseRepository {
     }
 
     if (!Object.keys(fields).length) {
-      return this.findById(userId);
+      return existingUser;
     }
 
     this.updateById(userId, fields);
