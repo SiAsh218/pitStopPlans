@@ -5,11 +5,16 @@ const jwt = require("jsonwebtoken");
 const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
 const sessionRepository = require("../data/repositories/sessionRepository");
+const loginAttemptRepository = require("../data/repositories/loginAttemptRepository");
 const AppError = require("../utils/AppError");
 const { validatePassword } = require("../utils/validatePassword");
 
 const SECRET = process.env.JWT_SECRET;
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS || 12);
+
+const MAX_LOGIN_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS || 5);
+
+const LOGIN_LOCKOUT_MINUTES = Number(process.env.LOGIN_LOCKOUT_MINUTES || 15);
 
 if (!SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -96,6 +101,18 @@ class AuthService {
    * @returns {{token: string, user: object}}
    */
   login(email, password) {
+    const loginStatus = loginAttemptRepository.getStatus(
+      email,
+      MAX_LOGIN_ATTEMPTS,
+    );
+
+    if (loginStatus.locked) {
+      throw new AppError(
+        `Too many failed login attempts. Please try again in ${loginStatus.lockoutRemainingMinutes} minutes.`,
+        429,
+      );
+    }
+
     const user = userRepository.findByEmail(email);
 
     if (!user) {
@@ -103,14 +120,39 @@ class AuthService {
     }
 
     if (!user.active) {
-      throw new AppError("User account is disabled", 403);
+      throw new AppError("Invalid credentials", 401);
     }
 
     const valid = bcrypt.compareSync(password, user.password);
 
     if (!valid) {
-      throw new AppError("Invalid credentials", 401);
+      loginAttemptRepository.recordFailure(
+        email,
+        MAX_LOGIN_ATTEMPTS,
+        LOGIN_LOCKOUT_MINUTES,
+      );
+
+      const status = loginAttemptRepository.getStatus(
+        email,
+        MAX_LOGIN_ATTEMPTS,
+      );
+
+      if (status.locked) {
+        throw new AppError(
+          `Too many failed login attempts. Your account has been temporarily locked for ${LOGIN_LOCKOUT_MINUTES} minutes.`,
+          429,
+        );
+      }
+
+      throw new AppError(
+        `Invalid credentials. You have ${status.attemptsRemaining} attempt${
+          status.attemptsRemaining === 1 ? "" : "s"
+        } remaining.`,
+        401,
+      );
     }
+
+    loginAttemptRepository.reset(email);
 
     const jobRoles = userRoleRepository.findByUserId(user.id);
 

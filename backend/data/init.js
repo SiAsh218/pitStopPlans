@@ -112,6 +112,25 @@ function initialiseDatabase() {
 
   /**
    * ============================================================
+   * Login Attempts
+   * ============================================================
+   *
+   * Tracks failed login attempts and temporary account lockouts.
+   */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      email TEXT PRIMARY KEY,
+      failed_attempts INTEGER NOT NULL DEFAULT 0,
+      locked_until DATETIME,
+      last_failed_at DATETIME
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_login_attempts_locked_until
+      ON login_attempts(locked_until);
+  `);
+
+  /**
+   * ============================================================
    * Roles
    * ============================================================
    *
