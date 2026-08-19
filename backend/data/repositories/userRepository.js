@@ -68,9 +68,17 @@ class UserRepository extends BaseRepository {
    * @returns {object|null}
    */
   setActive(userId, active) {
-    this.updateById(userId, {
-      active: active ? 1 : 0,
-    });
+    this.db
+      .prepare(
+        `
+      UPDATE users
+      SET
+        active = ?,
+        token_version = token_version + 1
+      WHERE id = ?
+      `,
+      )
+      .run(active ? 1 : 0, userId);
 
     return this.findById(userId);
   }

@@ -45,6 +45,7 @@ class AuthService {
         sub: String(user.id),
         role: user.role,
         jobRoles: jobRoles.map((role) => role.id),
+        tokenVersion: user.token_version,
       },
       SECRET,
       {
@@ -185,11 +186,17 @@ class AuthService {
       throw new AppError("User account is disabled", 401);
     }
 
-    const user = {
-      id: session.user_id,
-      email: session.email,
-      role: session.role,
-    };
+    const user = userRepository.findById(session.user_id);
+
+    if (!user) {
+      throw new AppError("Invalid session", 401);
+    }
+
+    if (!user.active) {
+      sessionRepository.revoke(session.id);
+
+      throw new AppError("User account is disabled", 401);
+    }
 
     const jobRoles = userRoleRepository.findByUserId(user.id);
 

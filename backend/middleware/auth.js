@@ -24,6 +24,7 @@
  */
 
 const authService = require("../services/authService");
+const userRepository = require("../data/repositories/userRepository");
 const AppError = require("../utils/AppError");
 
 module.exports = function auth(req, res) {
@@ -106,6 +107,20 @@ module.exports = function auth(req, res) {
 
   if (!Number.isInteger(userId) || userId <= 0) {
     throw new AppError("Invalid token", 401);
+  }
+
+  const user = userRepository.findById(userId);
+
+  if (!user) {
+    throw new AppError("Invalid token", 401);
+  }
+
+  if (!user.active) {
+    throw new AppError("User account is disabled", 401);
+  }
+
+  if (decoded.tokenVersion !== user.token_version) {
+    throw new AppError("Token has been revoked", 401);
   }
 
   req.user = {
