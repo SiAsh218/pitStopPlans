@@ -208,6 +208,7 @@ class App {
 
     this.server = http.createServer(async (req, res) => {
       try {
+        this._setSecurityHeaders(res);
         // ====================================================
         // 1. STATIC FILE HANDLING
         // ====================================================
@@ -276,6 +277,41 @@ class App {
         this._sendError(res, error);
       }
     });
+  }
+
+  /**
+   * Applies HTTP security headers to every response.
+   *
+   * @param {import("http").ServerResponse} res
+   * @returns {void}
+   */
+  _setSecurityHeaders(res) {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    res.setHeader("X-Frame-Options", "DENY");
+
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    res.setHeader(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()",
+    );
+
+    res.setHeader(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "img-src 'self' data:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ].join("; "),
+    );
   }
 
   /**

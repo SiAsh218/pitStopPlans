@@ -37,3 +37,8 @@
   transform: translateY(-1px);
   opacity: 0.9;
 }
+
+.create-incident {
+  display: flex;
+  flex-direction: column;
+}

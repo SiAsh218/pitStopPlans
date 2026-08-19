@@ -344,8 +344,7 @@ function renderUsers(users) {
             user.active
               ? `
                 <button
-                  class="btn btn-secondary btn-disable-user"
-                  style="margin-left: 8px"
+                  class="btn btn-secondary btn-disable-user user-card__disable-button"
                   data-user-id="${user.id}"
                 >
                   Disable User

@@ -56,6 +56,11 @@
   background: #107c10;
 }
 
+#incident-summary .progress-bar {
+  margin-bottom: 0.7rem;
+  height: 10px;
+}
+
 .incident-matrix {
   width: 100%;
   border-collapse: separate;
@@ -345,11 +350,6 @@
   font-weight: 700;
 }
 
-#incident-summary .progress-bar {
-  margin-bottom: 0.7rem;
-  height: 10px;
-}
-
 .incident-progress-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -542,4 +542,413 @@
   background: #2563eb;
   border-color: #2563eb;
   color: #fff;
+}
+
+.matrix-action__footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.progress-bar__fill--0 {
+  width: 0%;
+}
+
+.progress-bar__fill--1 {
+  width: 1%;
+}
+
+.progress-bar__fill--2 {
+  width: 2%;
+}
+
+.progress-bar__fill--3 {
+  width: 3%;
+}
+
+.progress-bar__fill--4 {
+  width: 4%;
+}
+
+.progress-bar__fill--5 {
+  width: 5%;
+}
+
+.progress-bar__fill--6 {
+  width: 6%;
+}
+
+.progress-bar__fill--7 {
+  width: 7%;
+}
+
+.progress-bar__fill--8 {
+  width: 8%;
+}
+
+.progress-bar__fill--9 {
+  width: 9%;
+}
+
+.progress-bar__fill--10 {
+  width: 10%;
+}
+
+.progress-bar__fill--11 {
+  width: 11%;
+}
+
+.progress-bar__fill--12 {
+  width: 12%;
+}
+
+.progress-bar__fill--13 {
+  width: 13%;
+}
+
+.progress-bar__fill--14 {
+  width: 14%;
+}
+
+.progress-bar__fill--15 {
+  width: 15%;
+}
+
+.progress-bar__fill--16 {
+  width: 16%;
+}
+
+.progress-bar__fill--17 {
+  width: 17%;
+}
+
+.progress-bar__fill--18 {
+  width: 18%;
+}
+
+.progress-bar__fill--19 {
+  width: 19%;
+}
+
+.progress-bar__fill--20 {
+  width: 20%;
+}
+
+.progress-bar__fill--21 {
+  width: 21%;
+}
+
+.progress-bar__fill--22 {
+  width: 22%;
+}
+
+.progress-bar__fill--23 {
+  width: 23%;
+}
+
+.progress-bar__fill--24 {
+  width: 24%;
+}
+
+.progress-bar__fill--25 {
+  width: 25%;
+}
+
+.progress-bar__fill--26 {
+  width: 26%;
+}
+
+.progress-bar__fill--27 {
+  width: 27%;
+}
+
+.progress-bar__fill--28 {
+  width: 28%;
+}
+
+.progress-bar__fill--29 {
+  width: 29%;
+}
+
+.progress-bar__fill--30 {
+  width: 30%;
+}
+
+.progress-bar__fill--31 {
+  width: 31%;
+}
+
+.progress-bar__fill--32 {
+  width: 32%;
+}
+
+.progress-bar__fill--33 {
+  width: 33%;
+}
+
+.progress-bar__fill--34 {
+  width: 34%;
+}
+
+.progress-bar__fill--35 {
+  width: 35%;
+}
+
+.progress-bar__fill--36 {
+  width: 36%;
+}
+
+.progress-bar__fill--37 {
+  width: 37%;
+}
+
+.progress-bar__fill--38 {
+  width: 38%;
+}
+
+.progress-bar__fill--39 {
+  width: 39%;
+}
+
+.progress-bar__fill--40 {
+  width: 40%;
+}
+
+.progress-bar__fill--41 {
+  width: 41%;
+}
+
+.progress-bar__fill--42 {
+  width: 42%;
+}
+
+.progress-bar__fill--43 {
+  width: 43%;
+}
+
+.progress-bar__fill--44 {
+  width: 44%;
+}
+
+.progress-bar__fill--45 {
+  width: 45%;
+}
+
+.progress-bar__fill--46 {
+  width: 46%;
+}
+
+.progress-bar__fill--47 {
+  width: 47%;
+}
+
+.progress-bar__fill--48 {
+  width: 48%;
+}
+
+.progress-bar__fill--49 {
+  width: 49%;
+}
+
+.progress-bar__fill--50 {
+  width: 50%;
+}
+
+.progress-bar__fill--51 {
+  width: 51%;
+}
+
+.progress-bar__fill--52 {
+  width: 52%;
+}
+
+.progress-bar__fill--53 {
+  width: 53%;
+}
+
+.progress-bar__fill--54 {
+  width: 54%;
+}
+
+.progress-bar__fill--55 {
+  width: 55%;
+}
+
+.progress-bar__fill--56 {
+  width: 56%;
+}
+
+.progress-bar__fill--57 {
+  width: 57%;
+}
+
+.progress-bar__fill--58 {
+  width: 58%;
+}
+
+.progress-bar__fill--59 {
+  width: 59%;
+}
+
+.progress-bar__fill--60 {
+  width: 60%;
+}
+
+.progress-bar__fill--61 {
+  width: 61%;
+}
+
+.progress-bar__fill--62 {
+  width: 62%;
+}
+
+.progress-bar__fill--63 {
+  width: 63%;
+}
+
+.progress-bar__fill--64 {
+  width: 64%;
+}
+
+.progress-bar__fill--65 {
+  width: 65%;
+}
+
+.progress-bar__fill--66 {
+  width: 66%;
+}
+
+.progress-bar__fill--67 {
+  width: 67%;
+}
+
+.progress-bar__fill--68 {
+  width: 68%;
+}
+
+.progress-bar__fill--69 {
+  width: 69%;
+}
+
+.progress-bar__fill--70 {
+  width: 70%;
+}
+
+.progress-bar__fill--71 {
+  width: 71%;
+}
+
+.progress-bar__fill--72 {
+  width: 72%;
+}
+
+.progress-bar__fill--73 {
+  width: 73%;
+}
+
+.progress-bar__fill--74 {
+  width: 74%;
+}
+
+.progress-bar__fill--75 {
+  width: 75%;
+}
+
+.progress-bar__fill--76 {
+  width: 76%;
+}
+
+.progress-bar__fill--77 {
+  width: 77%;
+}
+
+.progress-bar__fill--78 {
+  width: 78%;
+}
+
+.progress-bar__fill--79 {
+  width: 79%;
+}
+
+.progress-bar__fill--80 {
+  width: 80%;
+}
+
+.progress-bar__fill--81 {
+  width: 81%;
+}
+
+.progress-bar__fill--82 {
+  width: 82%;
+}
+
+.progress-bar__fill--83 {
+  width: 83%;
+}
+
+.progress-bar__fill--84 {
+  width: 84%;
+}
+
+.progress-bar__fill--85 {
+  width: 85%;
+}
+
+.progress-bar__fill--86 {
+  width: 86%;
+}
+
+.progress-bar__fill--87 {
+  width: 87%;
+}
+
+.progress-bar__fill--88 {
+  width: 88%;
+}
+
+.progress-bar__fill--89 {
+  width: 89%;
+}
+
+.progress-bar__fill--90 {
+  width: 90%;
+}
+
+.progress-bar__fill--91 {
+  width: 91%;
+}
+
+.progress-bar__fill--92 {
+  width: 92%;
+}
+
+.progress-bar__fill--93 {
+  width: 93%;
+}
+
+.progress-bar__fill--94 {
+  width: 94%;
+}
+
+.progress-bar__fill--95 {
+  width: 95%;
+}
+
+.progress-bar__fill--96 {
+  width: 96%;
+}
+
+.progress-bar__fill--97 {
+  width: 97%;
+}
+
+.progress-bar__fill--98 {
+  width: 98%;
+}
+
+.progress-bar__fill--99 {
+  width: 99%;
+}
+
+.progress-bar__fill--100 {
+  width: 100%;
 }

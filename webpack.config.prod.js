@@ -11,6 +11,8 @@ module.exports = {
 
   mode: "production",
 
+  devtool: false,
+
   module: {
     rules: [
       {

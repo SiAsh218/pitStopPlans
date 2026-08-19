@@ -390,13 +390,7 @@ function renderSummary(summary) {
       </div>
 
       <div class="progress-bar">
-        <div
-          class="progress-bar__fill"
-          style="
-            width:
-            ${summary.completion_percentage}%;
-          "
-        ></div>
+        <div class="progress-bar__fill"></div>
       </div>
 
       <div class="incident-progress-metrics">
@@ -423,6 +417,12 @@ function renderSummary(summary) {
       </div>
     </div>
   `;
+
+  const fill = container.querySelector(".progress-bar__fill");
+
+  if (fill) {
+    fill.style.width = `${summary.completion_percentage}%`;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -1226,7 +1226,7 @@ function buildActionCard(action) {
         ${roleNames}
       </div>
 
-      <div style="display: flex; justify-content: space-between">${actionButton}${overdueBadge}</div>
+      <div class="matrix-action__footer">${actionButton}${overdueBadge}</div>
     </div>
   `;
 }

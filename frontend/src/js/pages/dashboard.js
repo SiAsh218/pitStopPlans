@@ -369,6 +369,11 @@ function buildIncidentCard(incident) {
     total_actions: 0,
   };
 
+  const completionPercentage = Math.min(
+    100,
+    Math.max(0, Math.round(Number(summary.completion_percentage) || 0)),
+  );
+
   return `
       <div class="incident-card__header">
         <h3>
@@ -392,11 +397,7 @@ function buildIncidentCard(incident) {
       </p>
       <div class="progress-bar">
         <div
-          class="progress-bar__fill"
-          style="
-            width:
-            ${summary.completion_percentage}%;
-          "
+          class="progress-bar__fill progress-bar__fill--${completionPercentage}"
         ></div>
       </div>
       <small>
