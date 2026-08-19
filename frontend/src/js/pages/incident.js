@@ -1340,9 +1340,5 @@ async function handleIncidentClosed(event) {
     return;
   }
 
-  if (event.detail.userId !== currentUser.id) {
-    showConfirm("This incident was closed by another user.");
-  }
-
   await refreshIncidentPage();
 }
