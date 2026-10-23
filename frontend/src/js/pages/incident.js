@@ -734,6 +734,7 @@ function wireUpdateButton(actionId) {
         textarea.value = "";
       }
 
+      await refreshIncidentPage();
       await openActionPanel(actionId);
     } catch (err) {
       showUnexpectedError(err);
@@ -1161,6 +1162,13 @@ function getStages(actions) {
 
 function buildActionCard(action) {
   const roleNames = action.roles.map((role) => role.name).join(", ");
+  const textUpdateBadge = action.has_text_update
+    ? `
+      <span class="matrix-action__note-badge" title="This action has a text update">
+        Note
+      </span>
+    `
+    : "";
 
   const dueLabel =
     action.due_from_stage_start != null
@@ -1209,7 +1217,8 @@ function buildActionCard(action) {
       data-action-id="${action.id}"
     >
       <div class="matrix-action__title">
-        ${action.title}
+        <span>${action.title}</span>
+        ${textUpdateBadge}
       </div>
 
       <div class="matrix-action__meta">

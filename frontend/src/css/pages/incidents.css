@@ -61,12 +61,23 @@
   height: 10px;
 }
 
+#incident-actions {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .incident-matrix {
   width: 100%;
+  min-width: max-content;
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
   border-radius: 12px;
+}
+
+.incident-matrix th:not(:first-child),
+.incident-matrix td:not(:first-child) {
+  min-width: 240px;
 }
 
 .incident-matrix th {
@@ -176,8 +187,25 @@
 }
 
 .matrix-action__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
+}
+
+.matrix-action__note-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #d9f0ed;
+  color: #245e59;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .matrix-action__meta {

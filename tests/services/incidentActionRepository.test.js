@@ -37,6 +37,13 @@ describe("IncidentActionRepository", () => {
           REFERENCES roles(id)
           ON DELETE CASCADE
       );
+
+      CREATE TABLE incident_action_updates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        incident_action_id INTEGER NOT NULL,
+        update_type TEXT NOT NULL,
+        note TEXT
+      );
     `);
 
     incidentActionRepository.db = db;
@@ -47,6 +54,7 @@ describe("IncidentActionRepository", () => {
     db.exec(`
       DELETE FROM incident_actions;
       DELETE FROM plan_stage_action_roles;
+      DELETE FROM incident_action_updates;
       DELETE FROM roles;
     `);
 
@@ -67,6 +75,15 @@ describe("IncidentActionRepository", () => {
         (101, 1),
         (101, 2),
         (102, 3);
+
+      INSERT INTO incident_action_updates (
+        incident_action_id,
+        update_type,
+        note
+      )
+      VALUES
+        (1, 'comment', 'Progress update'),
+        (2, 'status_change', 'Action started');
 
       INSERT INTO incident_actions (
         id,
@@ -571,7 +588,7 @@ describe("IncidentActionRepository", () => {
   });
 
   describe("findByIncidentIdWithRoles", () => {
-    it("returns all actions with their roles", () => {
+    it("returns all actions with their roles and text-update indicators", () => {
       const result = incidentActionRepository.findByIncidentIdWithRoles(10);
 
       expect(result.map((action) => action.id)).toEqual([2, 1, 3]);
@@ -603,6 +620,11 @@ describe("IncidentActionRepository", () => {
           id: 3,
           name: "Operations Manager",
         },
+      ]);
+      expect(result.map((action) => action.has_text_update)).toEqual([
+        false,
+        true,
+        false,
       ]);
     });
 

@@ -73,11 +73,24 @@ class IncidentActionRepository extends BaseRepository {
       return [];
     }
 
-    const roleRows = this.getRolesForActions(
-      actions.map((action) => action.id),
-    );
+    const actionIds = actions.map((action) => action.id);
+    const roleRows = this.getRolesForActions(actionIds);
+    const textUpdateRows = this.db
+      .prepare(
+        `
+        SELECT DISTINCT incident_action_id
+        FROM incident_action_updates
+        WHERE update_type = 'comment'
+          AND TRIM(COALESCE(note, '')) != ''
+          AND incident_action_id IN (${actionIds.map(() => "?").join(", ")})
+      `,
+      )
+      .all(...actionIds);
 
     const roleMap = new Map();
+    const textUpdateActionIds = new Set(
+      textUpdateRows.map((row) => row.incident_action_id),
+    );
 
     for (const row of roleRows) {
       if (!roleMap.has(row.action_id)) {
@@ -93,6 +106,7 @@ class IncidentActionRepository extends BaseRepository {
     return actions.map((action) => ({
       ...action,
       roles: roleMap.get(action.id) || [],
+      has_text_update: textUpdateActionIds.has(action.id),
     }));
   }
 
