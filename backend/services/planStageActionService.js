@@ -75,6 +75,10 @@ class PlanStageActionService {
    * @returns {void}
    */
   _validateRoles(roleIds = []) {
+    if (!Array.isArray(roleIds) || roleIds.length === 0) {
+      throw new AppError("An action must have at least one role", 400);
+    }
+
     for (const roleId of roleIds) {
       const role = roleRepository.findById(roleId);
 

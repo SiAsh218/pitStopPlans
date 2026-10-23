@@ -5,6 +5,7 @@ jest.mock("../../backend/data/repositories/planTemplateRepository");
 jest.mock("../../backend/data/repositories/planStageRepository");
 jest.mock("../../backend/data/repositories/planStageActionRepository");
 
+const roleRepository = require("../../backend/data/repositories/roleRepository");
 const planTemplateRepository = require("../../backend/data/repositories/planTemplateRepository");
 const planStageRepository = require("../../backend/data/repositories/planStageRepository");
 const planStageActionRepository = require("../../backend/data/repositories/planStageActionRepository");
@@ -20,6 +21,7 @@ describe("PlanStageActionService due times", () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    roleRepository.findById.mockImplementation((id) => ({ id }));
     planTemplateRepository.findById.mockReturnValue({
       id: 10,
       status: "draft",
@@ -46,7 +48,7 @@ describe("PlanStageActionService due times", () => {
       description: "Test description",
       due_from_stage_start: 30,
       due_from_incident_start: 999,
-      role_ids: [],
+      role_ids: [1],
     });
 
     expect(planStageActionRepository.insert).toHaveBeenCalledWith(
@@ -72,6 +74,39 @@ describe("PlanStageActionService due times", () => {
     expect(planStageActionRepository.insert).not.toHaveBeenCalled();
   });
 
+  it("rejects creating an action without an assigned role", () => {
+    expect(() =>
+      planStageActionService.createAction({
+        plan_stage_id: 2,
+        action_number: 1,
+        title: "Test action",
+        description: "Test description",
+        due_from_stage_start: 20,
+        role_ids: [],
+      }),
+    ).toThrow(AppError);
+
+    expect(planStageActionRepository.insert).not.toHaveBeenCalled();
+  });
+
+  it("rejects removing every role from an existing action", () => {
+    planStageActionRepository.findById.mockReturnValue({
+      id: 99,
+      plan_stage_id: 2,
+      action_number: 1,
+      due_from_stage_start: 10,
+      due_from_incident_start: 40,
+    });
+
+    expect(() =>
+      planStageActionService.updateAction(99, {
+        role_ids: [],
+      }),
+    ).toThrow(AppError);
+
+    expect(planStageActionRepository.setRoles).not.toHaveBeenCalled();
+  });
+
   it("recalculates incident due time when an action is edited", () => {
     planStageActionRepository.findById.mockReturnValue({
       id: 99,
@@ -84,6 +119,7 @@ describe("PlanStageActionService due times", () => {
     planStageActionService.updateAction(99, {
       due_from_stage_start: 25,
       due_from_incident_start: 999,
+      role_ids: [1],
     });
 
     expect(planStageActionRepository.updateById).toHaveBeenCalledWith(

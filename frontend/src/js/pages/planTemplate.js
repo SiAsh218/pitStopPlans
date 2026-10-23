@@ -309,6 +309,7 @@ function renderTemplateMatrix(plan, isDraft) {
                     <button
                       class="btn btn-secondary btn-edit-stage"
                       data-stage-id="${stage.id}"
+                      data-template-id="${plan.id}"
                       data-stage-number="${stage.stage_number}"
                       data-stage-name="${stage.name}"
                       data-stage-due="${stage.due_from_incident_start}"
@@ -702,6 +703,8 @@ function wireDeleteActionButtons() {
 function wireStageButtons() {
   document.querySelectorAll(".btn-edit-stage").forEach((button) => {
     button.addEventListener("click", () => {
+      document.getElementById("modal-form-stage--template-id").value =
+        button.dataset.templateId;
       document.getElementById("modal-form-stage--id").value =
         button.dataset.stageId;
 

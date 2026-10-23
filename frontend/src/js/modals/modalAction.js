@@ -26,6 +26,12 @@ export function initModalAction() {
         ...document.querySelectorAll(".action-role-checkbox:checked"),
       ].map((checkbox) => Number(checkbox.value));
 
+      if (role_ids.length === 0) {
+        showError("Select at least one role for this action");
+        document.querySelector(".action-role-checkbox")?.focus();
+        return;
+      }
+
       const payload = {
         plan_stage_id: Number(
           document.getElementById("modal-action-stage-id").value,
@@ -67,7 +73,8 @@ export function initModalAction() {
       console.error(err);
 
       showError(
-        actionId ? "Failed to update action" : "Failed to create action",
+        err.message ||
+          (actionId ? "Failed to update action" : "Failed to create action"),
       );
     }
   });

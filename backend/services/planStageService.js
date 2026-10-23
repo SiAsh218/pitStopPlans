@@ -155,28 +155,14 @@ class PlanStageService {
       .sort((a, b) => a.stage_number - b.stage_number);
 
     for (let index = 0; index < stages.length; index += 1) {
-      const currentStage = stages[index];
       const stageStart = Number(
         stages[index - 1]?.due_from_incident_start ?? 0,
       );
-      const stageEnd = Number(currentStage.due_from_incident_start);
-      const actions = planStageActionRepository.findByStageId(currentStage.id);
-      const maxActionOffset = actions.reduce(
-        (maximum, action) =>
-          Math.max(maximum, Number(action.due_from_stage_start || 0)),
-        0,
-      );
+      const stageEnd = Number(stages[index].due_from_incident_start);
 
       if (!Number.isFinite(stageEnd) || stageEnd < stageStart) {
         throw new AppError(
           "Stage due times must follow the previous stage",
-          400,
-        );
-      }
-
-      if (maxActionOffset > stageEnd - stageStart) {
-        throw new AppError(
-          "Stage due time cannot be earlier than its latest action deadline",
           400,
         );
       }
@@ -191,7 +177,69 @@ class PlanStageService {
       throw new AppError("Stage number already exists", 409);
     }
 
-    planStageRepository.updateById(id, updated);
+    const actionDeadlineUpdates = [];
+    if (
+      updates.adjust_action_due_times &&
+      Number(updated.due_from_incident_start) !==
+        Number(stage.due_from_incident_start)
+    ) {
+      const proposedStageStarts = new Map();
+      for (let index = 0; index < stages.length; index += 1) {
+        proposedStageStarts.set(
+          stages[index].id,
+          Number(stages[index - 1]?.due_from_incident_start ?? 0),
+        );
+      }
+
+      for (const currentStage of stages) {
+        const stageStart = proposedStageStarts.get(currentStage.id);
+        const stageEnd = Number(currentStage.due_from_incident_start);
+
+        for (const action of planStageActionRepository.findByStageId(
+          currentStage.id,
+        )) {
+          if (
+            Number(action.due_from_incident_start) !==
+            Number(stage.due_from_incident_start)
+          ) {
+            continue;
+          }
+
+          const adjustedOffset =
+            Number(updated.due_from_incident_start) - stageStart;
+
+          if (adjustedOffset < 0 || adjustedOffset > stageEnd - stageStart) {
+            throw new AppError(
+              "Boundary actions cannot be moved within their stage window",
+              400,
+            );
+          }
+
+          actionDeadlineUpdates.push({
+            id: action.id,
+            due_from_stage_start: adjustedOffset,
+            due_from_incident_start: Number(updated.due_from_incident_start),
+          });
+        }
+      }
+    }
+
+    const persistUpdate = () => {
+      planStageRepository.updateById(id, updated);
+
+      for (const actionUpdate of actionDeadlineUpdates) {
+        planStageActionRepository.updateById(actionUpdate.id, {
+          due_from_stage_start: actionUpdate.due_from_stage_start,
+          due_from_incident_start: actionUpdate.due_from_incident_start,
+        });
+      }
+    };
+
+    if (actionDeadlineUpdates.length) {
+      planStageRepository.db.transaction(persistUpdate)();
+    } else {
+      persistUpdate();
+    }
 
     return this.getStageById(id);
   }
