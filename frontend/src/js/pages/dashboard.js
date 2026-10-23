@@ -151,83 +151,12 @@ function renderIncidents(incidents = []) {
   });
 }
 
-function updateIncidentCard(updatedIncident) {
-  const card = document.querySelector(
-    `[data-incident-id="${updatedIncident.id}"]`,
-  );
-
-  if (!card) {
-    return;
-  }
-
-  card.innerHTML = buildIncidentCard(updatedIncident);
-}
-
 function handleIncidentUpdated(event) {
-  const { incident: updatedIncident, stats } = event.detail;
-
-  if (!updatedIncident?.id) {
-    return;
-  }
-
-  const index = state.incidents.findIndex(
-    (incident) => incident.id === updatedIncident.id,
-  );
-
-  if (index === -1) {
-    return;
-  }
-
-  state.incidents[index] = updatedIncident;
-
-  updateIncidentCard(updatedIncident);
-
-  if (stats) {
-    state.stats = stats;
-    updateStatistics(stats);
-  }
+  if (event.detail?.incidentId) loadIncidents();
 }
 
 function handleIncidentStatusChanged(event) {
-  const { incident, stats } = event.detail;
-
-  if (!incident?.id) {
-    return;
-  }
-
-  if (stats) {
-    state.stats = stats;
-    updateStatistics(stats);
-  }
-
-  const index = state.incidents.findIndex((i) => i.id === incident.id);
-
-  if (state.status !== "all") {
-    const shouldBeVisible = incident.status === state.status;
-
-    if (!shouldBeVisible) {
-      if (index !== -1) {
-        state.incidents.splice(index, 1);
-
-        renderIncidents(state.incidents);
-      }
-
-      return;
-    }
-  }
-
-  if (index === -1) {
-    state.incidents.unshift(incident);
-
-    renderIncidents(state.incidents);
-    renderPagination(state.paginationMeta);
-
-    return;
-  }
-
-  state.incidents[index] = incident;
-
-  updateIncidentCard(incident);
+  if (event.detail?.incidentId) loadIncidents();
 }
 
 function renderPagination(meta = {}) {
@@ -432,6 +361,8 @@ export function registerDashboardLiveUpdates() {
   window.addEventListener("incident-action-updated", handleIncidentUpdated);
 
   window.addEventListener("incident-action-assigned", handleIncidentUpdated);
+
+  window.addEventListener("live-update-reconnected", loadIncidents);
 
   state.sseListenersRegistered = true;
 }

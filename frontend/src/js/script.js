@@ -40,6 +40,10 @@ import { initAuditLogsPage } from "./pages/auditLog.js";
 import { initialiseLiveUpdates } from "./services/liveUpdates.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  if (document.getElementById("login-form")) {
+    return;
+  }
+
   if (!(await requireAuth())) {
     return;
   }
@@ -60,6 +64,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadIncidents();
 
-  initialiseLiveUpdates();
   registerDashboardLiveUpdates();
+  initialiseLiveUpdates();
 });

@@ -641,7 +641,6 @@ describe("IncidentService", () => {
         expect.objectContaining({
           type: "incident-reopened",
           incidentId: 1,
-          userId: 99,
         }),
       );
     });
@@ -950,7 +949,6 @@ describe("IncidentService", () => {
         expect.objectContaining({
           type: "incident-ccil-updated",
           incidentId: 1,
-          userId: 99,
         }),
       );
     });
@@ -1071,7 +1069,6 @@ describe("IncidentService", () => {
         expect.objectContaining({
           type: "incident-tin-updated",
           incidentId: 1,
-          userId: 99,
         }),
       );
     });
@@ -1173,7 +1170,6 @@ describe("IncidentService", () => {
       expect(eventService.broadcast).toHaveBeenCalledWith({
         type: "incident-meta-updated",
         incidentId: 1,
-        userId: 99,
       });
     });
 

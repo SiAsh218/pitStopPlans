@@ -327,9 +327,6 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-closed",
       incidentId: id,
-      incident: this.getIncidentForDashboard(id),
-      stats: this.getDashboardStatistics(),
-      userId,
     });
 
     return updatedIncident;
@@ -370,9 +367,6 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-reopened",
       incidentId: id,
-      incident: this.getIncidentForDashboard(id),
-      stats: this.getDashboardStatistics(),
-      userId,
     });
 
     return updatedIncident;
@@ -485,7 +479,6 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-ccil-updated",
       incidentId: id,
-      userId,
     });
 
     return updatedIncident;
@@ -516,7 +509,6 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-tin-updated",
       incidentId: id,
-      userId,
     });
 
     return updatedIncident;
@@ -537,7 +529,6 @@ class IncidentService {
     eventService.broadcast({
       type: "incident-meta-updated",
       incidentId: id,
-      userId,
     });
 
     return updatedIncident;

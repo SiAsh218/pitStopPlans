@@ -1329,6 +1329,8 @@ function registerLiveUpdateListeners() {
 
   window.addEventListener("incident-tin-updated", handleIncidentUpdate);
 
+  window.addEventListener("live-update-reconnected", refreshIncidentPage);
+
   sseListenersRegistered = true;
 }
 

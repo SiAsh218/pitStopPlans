@@ -26,10 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.get("password"),
       );
 
-      localStorage.setItem("token", result.token);
-
-      localStorage.setItem("user", JSON.stringify(result.user));
-
       window.location.href = "/";
     } catch (err) {
       showError(err?.message || "Error Logging In!");

@@ -1,3 +1,14 @@
+const ALLOWED_EVENT_TYPES = new Set([
+  "incident-created",
+  "incident-closed",
+  "incident-reopened",
+  "incident-action-updated",
+  "incident-action-assigned",
+  "incident-ccil-updated",
+  "incident-tin-updated",
+  "incident-meta-updated",
+]);
+
 class EventService {
   constructor() {
     this.clients = new Set();
@@ -10,25 +21,38 @@ class EventService {
   }
 
   removeClient(res) {
-    this.clients.delete(res);
-
-    console.log(`[SSE] Client disconnected (${this.clients.size} total)`);
+    if (this.clients.delete(res)) {
+      console.log(`[SSE] Client disconnected (${this.clients.size} total)`);
+    }
   }
 
   broadcast(event) {
-    const payload = `data: ${JSON.stringify(event)}\n\n`;
+    const safeEvent = {
+      type: event?.type,
+      incidentId: Number(event?.incidentId),
+    };
+
+    if (
+      typeof safeEvent.type !== "string" ||
+      !ALLOWED_EVENT_TYPES.has(safeEvent.type) ||
+      !Number.isSafeInteger(safeEvent.incidentId) ||
+      safeEvent.incidentId < 1
+    ) {
+      return;
+    }
+
+    const payload = `data: ${JSON.stringify(safeEvent)}\n\n`;
 
     for (const client of this.clients) {
       try {
-        client.write(payload);
+        if (client.destroyed || !client.writable || !client.write(payload)) {
+          this.removeClient(client);
+          client.destroy?.();
+        }
       } catch {
-        this.clients.delete(client);
+        this.removeClient(client);
       }
     }
-
-    // console.log(
-    //   `[SSE] Broadcast: ${event.type} -> ${this.clients.size} clients`,
-    // );
   }
 }
 

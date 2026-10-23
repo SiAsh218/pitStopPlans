@@ -3,6 +3,7 @@ const AppError = require("../utils/AppError");
 const incidentActionRepository = require("../data/repositories/incidentActionRepository");
 
 const incidentActionUpdateRepository = require("../data/repositories/incidentActionUpdateRepository");
+const eventService = require("./eventService");
 
 class IncidentActionUpdateService {
   /**
@@ -44,7 +45,7 @@ class IncidentActionUpdateService {
    * @returns {object}
    */
   addComment(incidentActionId, userId, note) {
-    this._getActionOrThrow(incidentActionId);
+    const action = this._getActionOrThrow(incidentActionId);
 
     const result = incidentActionUpdateRepository.insert({
       incident_action_id: incidentActionId,
@@ -55,9 +56,16 @@ class IncidentActionUpdateService {
       new_status: null,
     });
 
-    return incidentActionUpdateRepository.findByIdWithDetails(
+    const update = incidentActionUpdateRepository.findByIdWithDetails(
       result.lastInsertRowid,
     );
+
+    eventService.broadcast({
+      type: "incident-action-updated",
+      incidentId: action.incident_id,
+    });
+
+    return update;
   }
 
   /**
