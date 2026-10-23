@@ -47,11 +47,7 @@ export async function initCreateIncidentPage() {
 
       const html = buildIncidentClipboardHtml(title, incidentType, description);
       const text = buildIncidentClipboardText(title, incidentType, description);
-      await copyToClipboard(
-        html,
-        text,
-        null,
-      );
+      await copyToClipboard(html, text, null);
 
       sessionStorage.setItem(
         "incident-created-notice",
