@@ -143,12 +143,13 @@ function getNextActionNumber(actions = []) {
   return highest + 1;
 }
 
-function getNextStageDue(stageDueFromIncidentStart) {
-  return Number(stageDueFromIncidentStart || 0);
-}
+function getStageStartTime(stage, stages) {
+  const orderedStages = [...stages].sort(
+    (a, b) => a.stage_number - b.stage_number,
+  );
+  const stageIndex = orderedStages.findIndex((item) => item.id === stage.id);
 
-function getNextIncidentDue(stageDueFromIncidentStart) {
-  return Number(stageDueFromIncidentStart || 0);
+  return Number(orderedStages[stageIndex - 1]?.due_from_incident_start ?? 0);
 }
 
 function getNextStageNumber(stages = []) {
@@ -298,10 +299,8 @@ function renderTemplateMatrix(plan, isDraft) {
                     class="btn btn-secondary btn-add-action"
                     data-stage-id="${stage.id}"
                     data-next-action-number="${getNextActionNumber(stage.actions)}"
-                    data-next-stage-due="${getNextStageDue(stage.due_from_incident_start)}"
-                    data-next-incident-due="${getNextIncidentDue(
-                      stage.due_from_incident_start,
-                    )}"
+                    data-stage-start="${getStageStartTime(stage, stages)}"
+                    data-stage-end="${stage.due_from_incident_start}"
                   >
                     + Action
                   </button>
@@ -402,6 +401,8 @@ function renderTemplateMatrix(plan, isDraft) {
                     data-stage-id="${action.plan_stage_id}"
                     data-due-stage="${action.due_from_stage_start}"
                     data-due-incident="${action.due_from_incident_start}"
+                    data-stage-start="${getStageStartTime(stage, stages)}"
+                    data-stage-end="${stage.due_from_incident_start}"
                     data-role-ids='${JSON.stringify(
                       action.roles.map((role) => role.id),
                     )}'
@@ -505,6 +506,10 @@ function wireEditActionButtons() {
         button.dataset.dueStage;
       document.getElementById("modal-action-incident-due").value =
         button.dataset.dueIncident;
+      configureActionDueInputs(
+        button.dataset.stageStart,
+        button.dataset.stageEnd,
+      );
       document.getElementById("modal-action-title").textContent = "Edit Action";
       document.getElementById("modal-action-submit").textContent =
         "Update Action";
@@ -513,7 +518,6 @@ function wireEditActionButtons() {
       document.getElementById("modal-action-title-input").disabled = false;
       document.getElementById("modal-action-description").disabled = false;
       document.getElementById("modal-action-stage-due").disabled = false;
-      document.getElementById("modal-action-incident-due").disabled = false;
 
       document.getElementById("modal-action-submit").style.display = "";
 
@@ -1075,10 +1079,13 @@ function wireActionButtons() {
         button.dataset.nextActionNumber;
       document.getElementById("modal-action-title-input").value = "";
       document.getElementById("modal-action-description").value = "";
-      document.getElementById("modal-action-stage-due").value =
-        button.dataset.nextStageDue;
+      document.getElementById("modal-action-stage-due").value = "0";
       document.getElementById("modal-action-incident-due").value =
-        button.dataset.nextIncidentDue;
+        button.dataset.stageStart;
+      configureActionDueInputs(
+        button.dataset.stageStart,
+        button.dataset.stageEnd,
+      );
       document.getElementById("modal-action-title").textContent = "Add Action";
       document.getElementById("modal-action-submit").textContent =
         "Create Action";
@@ -1086,4 +1093,19 @@ function wireActionButtons() {
       document.getElementById("modal-form-action").classList.remove("hidden");
     });
   });
+}
+
+function configureActionDueInputs(stageStart, stageEnd) {
+  const stageDueInput = document.getElementById("modal-action-stage-due");
+  const incidentDueInput = document.getElementById("modal-action-incident-due");
+  const start = Number(stageStart);
+  const end = Number(stageEnd);
+
+  stageDueInput.min = "0";
+  stageDueInput.max = String(Math.max(0, end - start));
+  stageDueInput.oninput = () => {
+    const offset = Number(stageDueInput.value);
+    incidentDueInput.value = stageDueInput.value ? String(start + offset) : "";
+  };
+  stageDueInput.oninput();
 }

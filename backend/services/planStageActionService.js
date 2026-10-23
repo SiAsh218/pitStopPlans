@@ -6,6 +6,38 @@ const planStageRepository = require("../data/repositories/planStageRepository");
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 
 class PlanStageActionService {
+  _getActionDueTimes(stage, dueFromStageStart) {
+    const stages = planStageRepository
+      .findByTemplateId(stage.plan_template_id)
+      .sort((a, b) => a.stage_number - b.stage_number);
+    const stageIndex = stages.findIndex((item) => item.id === stage.id);
+    const stageStart = Number(
+      stages[stageIndex - 1]?.due_from_incident_start ?? 0,
+    );
+    const stageEnd = Number(stage.due_from_incident_start);
+    const offset = Number(dueFromStageStart);
+    const maxOffset = stageEnd - stageStart;
+
+    if (
+      stageIndex < 0 ||
+      !Number.isInteger(offset) ||
+      offset < 0 ||
+      !Number.isFinite(maxOffset) ||
+      maxOffset < 0 ||
+      offset > maxOffset
+    ) {
+      throw new AppError(
+        `Action due time must be between 0 and ${Math.max(0, maxOffset)} minutes after stage start`,
+        400,
+      );
+    }
+
+    return {
+      due_from_stage_start: offset,
+      due_from_incident_start: stageStart + offset,
+    };
+  }
+
   /**
    * Gets a stage or throws.
    *
@@ -86,6 +118,7 @@ class PlanStageActionService {
     const stage = this._getStageOrThrow(data.plan_stage_id);
 
     this._ensureTemplateEditable(stage.plan_template_id);
+    const dueTimes = this._getActionDueTimes(stage, data.due_from_stage_start);
 
     const duplicate = planStageActionRepository.findByStageAndActionNumber(
       data.plan_stage_id,
@@ -103,8 +136,7 @@ class PlanStageActionService {
       action_number: data.action_number,
       title: data.title,
       description: data.description,
-      due_from_stage_start: data.due_from_stage_start,
-      due_from_incident_start: data.due_from_incident_start,
+      ...dueTimes,
     });
 
     planStageActionRepository.setRoles(result.lastInsertRowid, data.role_ids);
@@ -129,6 +161,10 @@ class PlanStageActionService {
     const stage = this._getStageOrThrow(existing.plan_stage_id);
 
     this._ensureTemplateEditable(stage.plan_template_id);
+    const dueTimes = this._getActionDueTimes(
+      stage,
+      updates.due_from_stage_start ?? existing.due_from_stage_start,
+    );
 
     planStageActionRepository.updateById(id, {
       action_number: updates.action_number ?? existing.action_number,
@@ -137,11 +173,7 @@ class PlanStageActionService {
 
       description: updates.description ?? existing.description,
 
-      due_from_stage_start:
-        updates.due_from_stage_start ?? existing.due_from_stage_start,
-
-      due_from_incident_start:
-        updates.due_from_incident_start ?? existing.due_from_incident_start,
+      ...dueTimes,
     });
 
     if (Array.isArray(updates.role_ids)) {

@@ -48,16 +48,19 @@
             class="modal-form__input"
             type="number"
             id="modal-action-stage-due"
+            min="0"
+            required
           />
         </div>
 
         <div class="modal-form__group">
-          <label> Due From Incident Start </label>
+          <label> Due From Incident Start (calculated) </label>
 
           <input
             class="modal-form__input"
             type="number"
             id="modal-action-incident-due"
+            readonly
           />
         </div>
 

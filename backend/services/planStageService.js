@@ -1,4 +1,5 @@
 const planStageRepository = require("../data/repositories/planStageRepository");
+const planStageActionRepository = require("../data/repositories/planStageActionRepository");
 const planTemplateRepository = require("../data/repositories/planTemplateRepository");
 
 const AppError = require("../utils/AppError");
@@ -84,6 +85,13 @@ class PlanStageService {
   createStage(data) {
     this._getEditableTemplateOrThrow(data.plan_template_id);
 
+    if (
+      !Number.isFinite(Number(data.due_from_incident_start)) ||
+      Number(data.due_from_incident_start) < 0
+    ) {
+      throw new AppError("Stage due time cannot be negative", 400);
+    }
+
     const existing = planStageRepository.findByTemplateAndStageNumber(
       data.plan_template_id,
       data.stage_number,
@@ -133,6 +141,46 @@ class PlanStageService {
       due_from_incident_start:
         updates.due_from_incident_start ?? stage.due_from_incident_start,
     };
+
+    if (
+      !Number.isFinite(Number(updated.due_from_incident_start)) ||
+      Number(updated.due_from_incident_start) < 0
+    ) {
+      throw new AppError("Stage due time cannot be negative", 400);
+    }
+
+    const stages = planStageRepository
+      .findByTemplateId(stage.plan_template_id)
+      .map((item) => (item.id === id ? { ...item, ...updated } : item))
+      .sort((a, b) => a.stage_number - b.stage_number);
+
+    for (let index = 0; index < stages.length; index += 1) {
+      const currentStage = stages[index];
+      const stageStart = Number(
+        stages[index - 1]?.due_from_incident_start ?? 0,
+      );
+      const stageEnd = Number(currentStage.due_from_incident_start);
+      const actions = planStageActionRepository.findByStageId(currentStage.id);
+      const maxActionOffset = actions.reduce(
+        (maximum, action) =>
+          Math.max(maximum, Number(action.due_from_stage_start || 0)),
+        0,
+      );
+
+      if (!Number.isFinite(stageEnd) || stageEnd < stageStart) {
+        throw new AppError(
+          "Stage due times must follow the previous stage",
+          400,
+        );
+      }
+
+      if (maxActionOffset > stageEnd - stageStart) {
+        throw new AppError(
+          "Stage due time cannot be earlier than its latest action deadline",
+          400,
+        );
+      }
+    }
 
     const existing = planStageRepository.findByTemplateAndStageNumber(
       stage.plan_template_id,

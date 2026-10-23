@@ -43,10 +43,6 @@ export function initModalAction() {
           document.getElementById("modal-action-stage-due").value,
         ),
 
-        due_from_incident_start: Number(
-          document.getElementById("modal-action-incident-due").value,
-        ),
-
         role_ids,
       };
 
