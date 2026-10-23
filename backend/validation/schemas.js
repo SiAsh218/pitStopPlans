@@ -50,6 +50,18 @@ const updateUserRolesSchema = z
   })
   .strict();
 
+const reorderStagesSchema = z
+  .object({
+    stage_ids: z.array(positiveInt).min(1).max(100),
+  })
+  .strict();
+
+const reorderActionsSchema = z
+  .object({
+    action_ids: z.array(positiveInt).min(1).max(500),
+  })
+  .strict();
+
 const createIncidentSchema = z
   .object({
     incident_type_id: positiveInt,
@@ -121,6 +133,8 @@ module.exports = {
   createUserSchema,
   updateUserSchema,
   updateUserRolesSchema,
+  reorderStagesSchema,
+  reorderActionsSchema,
   createIncidentSchema,
   updateCcilSchema,
   updateTinSchema,

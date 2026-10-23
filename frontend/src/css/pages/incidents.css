@@ -144,6 +144,22 @@
   font-size: 0.78rem;
 }
 
+.template-matrix .btn-move-stage,
+.template-matrix .btn-move-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.stage-order-controls {
+  display: flex;
+  gap: 0.35rem;
+}
+
 .incident-matrix .matrix-action__buttons {
   display: flex;
   gap: 0.4rem;

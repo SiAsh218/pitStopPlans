@@ -10,6 +10,7 @@ class PlanStageController {
     this.getById = this.getById.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
+    this.reorder = this.reorder.bind(this);
     this.delete = this.delete.bind(this);
   }
 
@@ -105,6 +106,19 @@ class PlanStageController {
     this._sendJSON(res, 200, {
       success: true,
       data: updated,
+    });
+  }
+
+  reorder(req, res) {
+    const templateId = Number(req.params.templateId);
+    const stages = planStageService.reorderStages(
+      templateId,
+      req.body.stage_ids,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: stages,
     });
   }
 

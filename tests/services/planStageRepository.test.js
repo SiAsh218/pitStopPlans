@@ -83,6 +83,17 @@ describe("PlanStageRepository", () => {
     });
   });
 
+  describe("reorderForTemplate", () => {
+    it("updates stage numbers to match the requested order", () => {
+      planStageRepository.reorderForTemplate(1, [3, 2, 1]);
+
+      const result = planStageRepository.findByTemplateId(1);
+
+      expect(result.map((stage) => stage.id)).toEqual([3, 2, 1]);
+      expect(result.map((stage) => stage.stage_number)).toEqual([1, 2, 3]);
+    });
+  });
+
   describe("findByTemplateIdWithQuery", () => {
     it("returns paginated stages for a template", () => {
       const result = planStageRepository.findByTemplateIdWithQuery(1, {

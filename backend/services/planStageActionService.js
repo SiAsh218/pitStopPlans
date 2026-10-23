@@ -153,6 +153,32 @@ class PlanStageActionService {
     return planStageActionRepository.getWithRoles(id);
   }
 
+  reorderActions(stageId, actionIds) {
+    const stage = this._getStageOrThrow(stageId);
+
+    this._ensureTemplateEditable(stage.plan_template_id);
+
+    const currentIds = planStageActionRepository
+      .findByStageId(stageId)
+      .map((action) => action.id);
+    const requestedIds = [...actionIds].sort((a, b) => a - b);
+    const expectedIds = [...currentIds].sort((a, b) => a - b);
+
+    if (
+      requestedIds.length !== expectedIds.length ||
+      requestedIds.some((id, index) => id !== expectedIds[index])
+    ) {
+      throw new AppError(
+        "Action order must include every action exactly once",
+        400,
+      );
+    }
+
+    planStageActionRepository.reorderForStage(stageId, actionIds);
+
+    return planStageActionRepository.findByStageIdWithRoles(stageId);
+  }
+
   /**
    * Deletes a stage action.
    *

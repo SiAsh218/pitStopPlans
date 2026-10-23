@@ -148,6 +148,30 @@ class PlanStageService {
     return this.getStageById(id);
   }
 
+  reorderStages(templateId, stageIds) {
+    this._getEditableTemplateOrThrow(templateId);
+
+    const currentIds = planStageRepository
+      .findByTemplateId(templateId)
+      .map((stage) => stage.id);
+    const requestedIds = [...stageIds].sort((a, b) => a - b);
+    const expectedIds = [...currentIds].sort((a, b) => a - b);
+
+    if (
+      requestedIds.length !== expectedIds.length ||
+      requestedIds.some((id, index) => id !== expectedIds[index])
+    ) {
+      throw new AppError(
+        "Stage order must include every stage exactly once",
+        400,
+      );
+    }
+
+    planStageRepository.reorderForTemplate(templateId, stageIds);
+
+    return this.getStagesByTemplate(templateId).rows;
+  }
+
   /**
    * Deletes a stage.
    *

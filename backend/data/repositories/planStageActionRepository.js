@@ -91,6 +91,41 @@ class PlanStageActionRepository extends BaseRepository {
       .get(stageId, actionNumber);
   }
 
+  reorderForStage(stageId, actionIds) {
+    const transaction = this.db.transaction(() => {
+      const currentActions = this.findByStageId(stageId);
+      const offset =
+        currentActions.reduce(
+          (maximum, action) => Math.max(maximum, action.action_number),
+          0,
+        ) +
+        currentActions.length +
+        1;
+
+      this.db
+        .prepare(
+          `
+          UPDATE plan_stage_actions
+          SET action_number = action_number + ?
+          WHERE plan_stage_id = ?
+        `,
+        )
+        .run(offset, stageId);
+
+      const updateActionNumber = this.db.prepare(`
+        UPDATE plan_stage_actions
+        SET action_number = ?
+        WHERE id = ? AND plan_stage_id = ?
+      `);
+
+      actionIds.forEach((actionId, index) => {
+        updateActionNumber.run(index + 1, actionId, stageId);
+      });
+    });
+
+    transaction();
+  }
+
   /**
    * Gets roles assigned to an action.
    *

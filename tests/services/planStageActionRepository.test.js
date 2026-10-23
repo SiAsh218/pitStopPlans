@@ -172,6 +172,17 @@ describe("PlanStageActionRepository", () => {
     });
   });
 
+  describe("reorderForStage", () => {
+    it("updates action numbers to match the requested order", () => {
+      planStageActionRepository.reorderForStage(1, [3, 2, 1]);
+
+      const result = planStageActionRepository.findByStageId(1);
+
+      expect(result.map((action) => action.id)).toEqual([3, 2, 1]);
+      expect(result.map((action) => action.action_number)).toEqual([1, 2, 3]);
+    });
+  });
+
   describe("findByStageIdWithQuery", () => {
     it("returns paginated actions for a stage", () => {
       const result = planStageActionRepository.findByStageIdWithQuery(1, {

@@ -6,11 +6,24 @@ const validate = require("../middleware/validate");
 const {
   planStageIdParamSchema,
   idParamSchema,
+  reorderActionsSchema,
 } = require("../validation/schemas");
 
 const planStageActionController = require("../controllers/planStageActionController");
 
 module.exports = [
+  {
+    method: "POST",
+    path: "/api/plan_stages/:stageId/actions/reorder",
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      validate("params", planStageIdParamSchema),
+      validate("body", reorderActionsSchema),
+      planStageActionController.reorder,
+    ],
+  },
+
   {
     method: "GET",
     path: "/api/plan_stages/:stageId/actions",

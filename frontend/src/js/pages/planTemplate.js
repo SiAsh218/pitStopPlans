@@ -10,6 +10,7 @@ import {
   updateStage,
   createStage,
   deleteStage,
+  reorderStages,
 } from "../services/planStageService.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
@@ -23,6 +24,7 @@ import {
   createAction,
   updateAction,
   deleteAction,
+  reorderActions,
 } from "../services/planStageActionService.js";
 import { getCurrentUser } from "../auth.js";
 
@@ -214,6 +216,7 @@ function renderTemplateMatrix(plan, isDraft) {
   const stages = [...plan.stages].sort(
     (a, b) => a.stage_number - b.stage_number,
   );
+  const orderedStages = stages;
 
   const table = document.createElement("table");
 
@@ -239,6 +242,10 @@ function renderTemplateMatrix(plan, isDraft) {
   `;
 
   stages.forEach((stage) => {
+    const orderedActions = [...stage.actions].sort(
+      (a, b) => a.action_number - b.action_number,
+    );
+
     html += `
       <tr>
 
@@ -262,6 +269,31 @@ function renderTemplateMatrix(plan, isDraft) {
             isDraft && user.role !== "user"
               ? `
                 <div class="stage-actions">
+                  <div class="stage-order-controls" aria-label="Reorder stages">
+                    <button
+                      class="btn btn-secondary btn-move-stage"
+                      type="button"
+                      data-stage-id="${stage.id}"
+                      data-direction="up"
+                      aria-label="Move stage ${stage.stage_number} up"
+                      title="Move stage up"
+                      ${orderedStages[0]?.id === stage.id ? "disabled" : ""}
+                    >
+                      &#8593;
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-move-stage"
+                      type="button"
+                      data-stage-id="${stage.id}"
+                      data-direction="down"
+                      aria-label="Move stage ${stage.stage_number} down"
+                      title="Move stage down"
+                      ${orderedStages.at(-1)?.id === stage.id ? "disabled" : ""}
+                    >
+                      &#8595;
+                    </button>
+                  </div>
+
                   <button
                     class="btn btn-secondary btn-add-action"
                     data-stage-id="${stage.id}"
@@ -301,7 +333,7 @@ function renderTemplateMatrix(plan, isDraft) {
     `;
 
     roles.forEach((roleName) => {
-      const matchingActions = stage.actions.filter((action) =>
+      const matchingActions = orderedActions.filter((action) =>
         action.roles.some((role) => role.name === roleName),
       );
 
@@ -330,6 +362,35 @@ function renderTemplateMatrix(plan, isDraft) {
             isDraft && user.role !== "user"
               ? `
                 <div class="matrix-action__buttons">
+                  ${
+                    action.roles[0]?.name === roleName
+                      ? `
+                        <button
+                          class="btn btn-secondary btn-move-action"
+                          type="button"
+                          data-action-id="${action.id}"
+                          data-direction="up"
+                          aria-label="Move action ${action.action_number} up"
+                          title="Move action up"
+                          ${orderedActions[0]?.id === action.id ? "disabled" : ""}
+                        >
+                          &#8593;
+                        </button>
+
+                        <button
+                          class="btn btn-secondary btn-move-action"
+                          type="button"
+                          data-action-id="${action.id}"
+                          data-direction="down"
+                          aria-label="Move action ${action.action_number} down"
+                          title="Move action down"
+                          ${orderedActions.at(-1)?.id === action.id ? "disabled" : ""}
+                        >
+                          &#8595;
+                        </button>
+                      `
+                      : ""
+                  }
 
                   <button
                     class="btn btn-secondary btn-edit-action"
@@ -385,6 +446,8 @@ function renderTemplateMatrix(plan, isDraft) {
   if (isDraft) {
     wireStageButtons();
     wireActionButtons();
+    wireStageOrderButtons(plan);
+    wireActionOrderButtons(plan);
 
     wireEditActionButtons();
     wireDeleteActionButtons();
@@ -468,7 +531,8 @@ function wireViewActionCards() {
     card.addEventListener("click", (event) => {
       if (
         event.target.closest(".btn-edit-action") ||
-        event.target.closest(".btn-delete-action")
+        event.target.closest(".btn-delete-action") ||
+        event.target.closest(".btn-move-action")
       ) {
         return;
       }
@@ -476,6 +540,85 @@ function wireViewActionCards() {
       const actionId = card.dataset.actionId;
 
       openTemplateActionModal(actionId);
+    });
+  });
+}
+
+function wireStageOrderButtons(plan) {
+  const templateId = plan.id;
+
+  document.querySelectorAll(".btn-move-stage").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const stages = [...plan.stages].sort(
+        (a, b) => a.stage_number - b.stage_number,
+      );
+      const stageIndex = stages.findIndex(
+        (stage) => stage.id === Number(button.dataset.stageId),
+      );
+      const targetIndex =
+        stageIndex + (button.dataset.direction === "up" ? -1 : 1);
+
+      if (targetIndex < 0 || targetIndex >= stages.length) {
+        return;
+      }
+
+      [stages[stageIndex], stages[targetIndex]] = [
+        stages[targetIndex],
+        stages[stageIndex],
+      ];
+
+      try {
+        await reorderStages(
+          templateId,
+          stages.map((stage) => stage.id),
+        );
+        await refreshPlanTemplatePage();
+      } catch (err) {
+        console.error(err);
+        showError("Failed to reorder stages");
+      }
+    });
+  });
+}
+
+function wireActionOrderButtons(plan) {
+  document.querySelectorAll(".btn-move-action").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const actionId = Number(button.dataset.actionId);
+      const stage = plan.stages.find((item) =>
+        item.actions.some((action) => action.id === actionId),
+      );
+
+      if (!stage) {
+        return;
+      }
+
+      const actions = [...stage.actions].sort(
+        (a, b) => a.action_number - b.action_number,
+      );
+      const actionIndex = actions.findIndex((action) => action.id === actionId);
+      const targetIndex =
+        actionIndex + (button.dataset.direction === "up" ? -1 : 1);
+
+      if (targetIndex < 0 || targetIndex >= actions.length) {
+        return;
+      }
+
+      [actions[actionIndex], actions[targetIndex]] = [
+        actions[targetIndex],
+        actions[actionIndex],
+      ];
+
+      try {
+        await reorderActions(
+          stage.id,
+          actions.map((action) => action.id),
+        );
+        await refreshPlanTemplatePage();
+      } catch (err) {
+        console.error(err);
+        showError("Failed to reorder actions");
+      }
     });
   });
 }

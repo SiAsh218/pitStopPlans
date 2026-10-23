@@ -6,6 +6,15 @@ export async function updateStage(id, data) {
   return result.data;
 }
 
+export async function reorderStages(templateId, stageIds) {
+  const result = await api.post(
+    `/api/plan_templates/${templateId}/stages/reorder`,
+    { stage_ids: stageIds },
+  );
+
+  return result.data;
+}
+
 export async function createStage(data) {
   const result = await api.post("/api/plan_stages", data);
 
