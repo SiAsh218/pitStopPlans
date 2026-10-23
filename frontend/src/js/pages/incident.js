@@ -10,7 +10,7 @@ import {
   updateIncidentMeta,
 } from "../services/incidentService.js";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
-import { showWarning, showError } from "../utils/myAlert.js";
+import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
 import { getCurrentUser } from "../auth.js";
 
@@ -72,6 +72,13 @@ export async function initIncidentPage() {
   try {
     const incidentId = window.location.pathname.split("/").pop();
     const dashboard = await getDashboard(incidentId);
+
+    const createdNotice = sessionStorage.getItem("incident-created-notice");
+    if (createdNotice) {
+      sessionStorage.removeItem("incident-created-notice");
+      showSuccess(createdNotice, 3000);
+    }
+
     currentSummary = dashboard.summary;
 
     renderIncidentMeta(dashboard);

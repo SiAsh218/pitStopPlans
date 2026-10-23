@@ -25,7 +25,9 @@ export const copyToClipboard = async (
       fallbackCopyRichText(html);
     }
 
-    showSuccess(message);
+    if (message) {
+      showSuccess(message);
+    }
   } catch (err) {
     console.error(err);
     showError(err?.message || "Failed to copy to clipboard");

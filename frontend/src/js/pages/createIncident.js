@@ -1,5 +1,5 @@
 import { getIncidentTypes } from "../services/incidentTypeService.js";
-import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
+import { showWarning, showError } from "../utils/myAlert.js";
 import { createIncident } from "../services/incidentService.js";
 import { copyToClipboard } from "../utils/copyToClipboard.js";
 
@@ -50,12 +50,14 @@ export async function initCreateIncidentPage() {
       await copyToClipboard(
         html,
         text,
-        "Creating Incident... Holding Message Data Copied to Clipboard",
+        null,
       );
 
-      setTimeout(() => {
-        window.location.href = `/incidents/${incident.id}`;
-      }, 1000);
+      sessionStorage.setItem(
+        "incident-created-notice",
+        "Holding message data copied to clipboard",
+      );
+      window.location.href = `/incidents/${incident.id}`;
     } catch (err) {
       console.error(err);
 
