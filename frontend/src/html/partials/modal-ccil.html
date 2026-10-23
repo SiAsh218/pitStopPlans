@@ -21,8 +21,20 @@
             class="modal-form__input"
             id="modal-ccil-number"
             type="text"
-            placeholder="Enter CCIL Number"
+            inputmode="numeric"
+            pattern="(?:[0-9]+|NA)"
+            title="Enter digits or NA"
+            required
+            placeholder="Digits or NA"
           />
+          <p
+            class="field-validation-message"
+            id="modal-ccil-error"
+            role="alert"
+            hidden
+          >
+            Enter digits only, or NA.
+          </p>
         </div>
 
         <button class="btn btn-primary" id="modal-ccil-submit" type="submit">

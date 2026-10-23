@@ -74,13 +74,21 @@ const createIncidentSchema = z
 
 const updateCcilSchema = z
   .object({
-    ccil_number: z.string().trim().max(100).nullable(),
+    ccil_number: z
+      .string()
+      .trim()
+      .regex(/^(?:\d+|NA)$/i)
+      .transform((value) => (value.toUpperCase() === "NA" ? "NA" : value)),
   })
   .strict();
 
 const updateTinSchema = z
   .object({
-    tin_number: z.string().trim().max(100).nullable(),
+    tin_number: z
+      .string()
+      .trim()
+      .regex(/^(?:\d+|NA)$/i)
+      .transform((value) => (value.toUpperCase() === "NA" ? "NA" : value)),
   })
   .strict();
 

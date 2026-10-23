@@ -34,9 +34,12 @@ function stream(req, res) {
     }
   }, 30000);
 
-  const connectionLifetime = setTimeout(() => {
-    res.end();
-  }, 5 * 60 * 1000);
+  const connectionLifetime = setTimeout(
+    () => {
+      res.end();
+    },
+    5 * 60 * 1000,
+  );
 
   eventService.addClient(res);
 

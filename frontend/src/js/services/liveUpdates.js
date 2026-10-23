@@ -114,9 +114,7 @@ function dispatchMessage(message) {
     const payload = JSON.parse(data);
     if (!payload?.type) return;
 
-    window.dispatchEvent(
-      new CustomEvent(payload.type, { detail: payload }),
-    );
+    window.dispatchEvent(new CustomEvent(payload.type, { detail: payload }));
   } catch (error) {
     console.error("[SSE] Failed to parse message", error);
   }

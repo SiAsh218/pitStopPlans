@@ -247,6 +247,8 @@ function wireCopyToClipboardButton() {
 
 function wireCcilModal() {
   const modal = document.getElementById("modal-form-incident-ccil");
+  const input = document.getElementById("modal-ccil-number");
+  const error = document.getElementById("modal-ccil-error");
 
   if (!modal) {
     return;
@@ -265,13 +267,19 @@ function wireCcilModal() {
     ?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      input.value = input.value.trim();
+      if (!input.checkValidity()) {
+        error.hidden = false;
+        input.focus();
+        return;
+      }
+      error.hidden = true;
+
       const incidentId = document.getElementById(
         "modal-ccil-incident-id",
       ).value;
 
-      const ccilNumber = document
-        .getElementById("modal-ccil-number")
-        .value.trim();
+      const ccilNumber = input.value.toUpperCase();
 
       try {
         await updateIncidentCcil(incidentId, ccilNumber || null);
@@ -283,10 +291,16 @@ function wireCcilModal() {
         showUnexpectedError(err);
       }
     });
+
+  input.addEventListener("input", () => {
+    error.hidden = true;
+  });
 }
 
 function wireTinModal() {
   const modal = document.getElementById("modal-form-incident-tin");
+  const input = document.getElementById("modal-tin-number");
+  const error = document.getElementById("modal-tin-error");
 
   if (!modal) {
     return;
@@ -305,11 +319,17 @@ function wireTinModal() {
     ?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      input.value = input.value.trim();
+      if (!input.checkValidity()) {
+        error.hidden = false;
+        input.focus();
+        return;
+      }
+      error.hidden = true;
+
       const incidentId = document.getElementById("modal-tin-incident-id").value;
 
-      const tinNumber = document
-        .getElementById("modal-tin-number")
-        .value.trim();
+      const tinNumber = input.value.toUpperCase();
 
       try {
         await updateIncidentTin(incidentId, tinNumber || null);
@@ -321,6 +341,10 @@ function wireTinModal() {
         showUnexpectedError(err);
       }
     });
+
+  input.addEventListener("input", () => {
+    error.hidden = true;
+  });
 }
 
 function wireIncidentMetaModal() {
