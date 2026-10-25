@@ -29,6 +29,158 @@ function ensureRolesActiveColumn() {
 }
 
 /**
+ * Allows user deletion without removing audit history.
+ *
+ * @returns {void}
+ */
+function ensureAuditLogUserSetNull() {
+  const columns = db.prepare("PRAGMA table_info(audit_logs)").all();
+  const userIdColumn = columns.find((column) => column.name === "user_id");
+  const userForeignKey = db
+    .prepare("PRAGMA foreign_key_list(audit_logs)")
+    .all()
+    .find((foreignKey) => foreignKey.from === "user_id");
+
+  if (
+    userIdColumn &&
+    !userIdColumn.notnull &&
+    userForeignKey?.on_delete === "SET NULL"
+  ) {
+    return;
+  }
+
+  db.transaction(() => {
+    db.exec(`
+      CREATE TABLE audit_logs_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        action TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER,
+        details TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (user_id)
+          REFERENCES users(id)
+          ON DELETE SET NULL
+      );
+
+      INSERT INTO audit_logs_new (
+        id,
+        user_id,
+        action,
+        entity_type,
+        entity_id,
+        details,
+        created_at
+      )
+      SELECT
+        id,
+        user_id,
+        action,
+        entity_type,
+        entity_id,
+        details,
+        created_at
+      FROM audit_logs;
+
+      DROP TABLE audit_logs;
+      ALTER TABLE audit_logs_new RENAME TO audit_logs;
+    `);
+  })();
+}
+
+/**
+ * Preserves plan templates when their creator or approver is deleted.
+ *
+ * @returns {void}
+ */
+function ensurePlanTemplateUserSetNull() {
+  const columns = db.prepare("PRAGMA table_info(plan_templates)").all();
+  const foreignKeys = db.prepare("PRAGMA foreign_key_list(plan_templates)").all();
+  const requiresMigration = ["created_by", "approved_by"].some((columnName) => {
+    const column = columns.find((entry) => entry.name === columnName);
+    const foreignKey = foreignKeys.find((entry) => entry.from === columnName);
+
+    return (
+      !column ||
+      column.notnull ||
+      foreignKey?.on_delete !== "SET NULL"
+    );
+  });
+
+  if (!requiresMigration) {
+    return;
+  }
+
+  const foreignKeysEnabled = db.pragma("foreign_keys", { simple: true });
+
+  if (foreignKeysEnabled) {
+    db.pragma("foreign_keys = OFF");
+  }
+
+  try {
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE plan_templates_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          incident_type_id INTEGER NOT NULL,
+          version INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'draft',
+          created_by INTEGER,
+          approved_by INTEGER,
+          approved_at DATETIME,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE (
+            incident_type_id,
+            version
+          ),
+          FOREIGN KEY (incident_type_id)
+            REFERENCES incident_types(id),
+          FOREIGN KEY (created_by)
+            REFERENCES users(id)
+            ON DELETE SET NULL,
+          FOREIGN KEY (approved_by)
+            REFERENCES users(id)
+            ON DELETE SET NULL
+        );
+
+        INSERT INTO plan_templates_new (
+          id,
+          incident_type_id,
+          version,
+          title,
+          status,
+          created_by,
+          approved_by,
+          approved_at,
+          created_at
+        )
+        SELECT
+          id,
+          incident_type_id,
+          version,
+          title,
+          status,
+          created_by,
+          approved_by,
+          approved_at,
+          created_at
+        FROM plan_templates;
+
+        DROP TABLE plan_templates;
+        ALTER TABLE plan_templates_new RENAME TO plan_templates;
+      `);
+    })();
+  } finally {
+    if (foreignKeysEnabled) {
+      db.pragma("foreign_keys = ON");
+    }
+  }
+}
+
+/**
  * Creates and updates the application database schema.
  *
  * Responsibilities:
@@ -179,7 +331,7 @@ function initialiseDatabase() {
       version INTEGER NOT NULL,
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
-      created_by INTEGER NOT NULL,
+      created_by INTEGER,
       approved_by INTEGER,
       approved_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -190,11 +342,16 @@ function initialiseDatabase() {
       FOREIGN KEY (incident_type_id)
         REFERENCES incident_types(id),
       FOREIGN KEY (created_by)
-        REFERENCES users(id),
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+
       FOREIGN KEY (approved_by)
         REFERENCES users(id)
+        ON DELETE SET NULL
     );
   `);
+
+  ensurePlanTemplateUserSetNull();
 
   /**
    * ============================================================
@@ -353,7 +510,7 @@ function initialiseDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER,
       action TEXT NOT NULL,
       entity_type TEXT NOT NULL,
       entity_id INTEGER,
@@ -362,8 +519,11 @@ function initialiseDatabase() {
 
       FOREIGN KEY (user_id)
         REFERENCES users(id)
+        ON DELETE SET NULL
     );
   `);
+
+  ensureAuditLogUserSetNull();
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_preferences (

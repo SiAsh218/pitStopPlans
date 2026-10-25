@@ -85,4 +85,15 @@ module.exports = [
       userController.updateRoles,
     ],
   },
+
+  {
+    method: "DELETE",
+    path: "/api/users/:id",
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      userController.delete,
+    ],
+  },
 ];

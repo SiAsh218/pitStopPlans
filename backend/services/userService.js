@@ -208,6 +208,46 @@ class UserService {
 
     return this.getUserById(userId);
   }
+
+  deleteUser(userId, currentUserId) {
+    const user = this._getUserOrThrow(userId);
+
+    if (userId === currentUserId) {
+      throw new AppError("You cannot delete your own account", 400);
+    }
+
+    if (user.role === "admin" && user.active) {
+      const activeAdmins = userRepository
+        .findAll()
+        .filter((candidate) => candidate.role === "admin" && candidate.active);
+
+      if (activeAdmins.length === 1) {
+        throw new AppError(
+          "At least one active administrator must remain",
+          400,
+        );
+      }
+    }
+
+    try {
+      userRepository.deleteUser(userId);
+    } catch (error) {
+      if (error.code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
+        throw new AppError(
+          "User cannot be deleted because they are referenced by existing records",
+          409,
+        );
+      }
+
+      throw error;
+    }
+
+    auditService.log(currentUserId, "DELETE_USER", "user", userId, {
+      email: user.email,
+    });
+
+    return true;
+  }
 }
 
 module.exports = new UserService();

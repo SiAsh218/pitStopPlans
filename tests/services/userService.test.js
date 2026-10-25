@@ -336,4 +336,96 @@ describe("UserService", () => {
       expect(() => userService.enableUser(999, 99)).toThrow(AppError);
     });
   });
+
+  describe("deleteUser", () => {
+    it("deletes a user and records the action", () => {
+      userRepository.findById.mockReturnValue({
+        id: 2,
+        email: "user@test.com",
+        role: "user",
+        active: true,
+      });
+
+      userService.deleteUser(2, 99);
+
+      expect(userRepository.deleteUser).toHaveBeenCalledWith(2);
+      expect(auditService.log).toHaveBeenCalledWith(
+        99,
+        "DELETE_USER",
+        "user",
+        2,
+        { email: "user@test.com" },
+      );
+    });
+
+    it("throws when the user does not exist", () => {
+      userRepository.findById.mockReturnValue(null);
+
+      expect(() => userService.deleteUser(999, 99)).toThrow(AppError);
+    });
+
+    it("prevents deleting yourself", () => {
+      userRepository.findById.mockReturnValue({
+        id: 1,
+        role: "admin",
+        active: true,
+      });
+
+      expect(() => userService.deleteUser(1, 1)).toThrow(
+        "You cannot delete your own account",
+      );
+      expect(userRepository.deleteUser).not.toHaveBeenCalled();
+    });
+
+    it("prevents deleting the last active administrator", () => {
+      userRepository.findById.mockReturnValue({
+        id: 1,
+        role: "admin",
+        active: true,
+      });
+      userRepository.findAll.mockReturnValue([
+        {
+          id: 1,
+          role: "admin",
+          active: true,
+        },
+      ]);
+
+      expect(() => userService.deleteUser(1, 99)).toThrow(
+        "At least one active administrator must remain",
+      );
+      expect(userRepository.deleteUser).not.toHaveBeenCalled();
+    });
+
+    it("returns a conflict when the user is referenced by existing records", () => {
+      userRepository.findById.mockReturnValue({
+        id: 2,
+        email: "user@test.com",
+        role: "user",
+        active: true,
+      });
+      userRepository.deleteUser.mockImplementation(() => {
+        const error = new Error("Foreign key constraint failed");
+        error.code = "SQLITE_CONSTRAINT_FOREIGNKEY";
+        throw error;
+      });
+
+      let thrownError;
+
+      try {
+        userService.deleteUser(2, 99);
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(AppError);
+      expect(thrownError).toMatchObject({
+        message:
+          "User cannot be deleted because they are referenced by existing records",
+        statusCode: 409,
+      });
+
+      expect(auditService.log).not.toHaveBeenCalled();
+    });
+  });
 });

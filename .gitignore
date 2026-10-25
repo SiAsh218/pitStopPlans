@@ -1,6 +1,7 @@
 
 node_modules
 api-test-script.http
+delete-user.http
 .env
 backend/data/database.sqlite
 backend/data/database.sqlite-shm

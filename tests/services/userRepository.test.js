@@ -127,6 +127,20 @@ describe("UserRepository", () => {
     });
   });
 
+  describe("deleteUser", () => {
+    it("deletes a user by ID", () => {
+      db.prepare(`
+        INSERT INTO users (id, email, password, role)
+        VALUES (4, 'delete@test.com', 'hash', 'user')
+      `).run();
+
+      const result = userRepository.deleteUser(4);
+
+      expect(result.changes).toBe(1);
+      expect(userRepository.findById(4)).toBeUndefined();
+    });
+  });
+
   describe("updateUser", () => {
     it("returns null when the user does not exist", () => {
       const result = userRepository.updateUser(999, {

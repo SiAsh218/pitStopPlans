@@ -13,6 +13,7 @@ class UserController {
     this.disable = this.disable.bind(this);
     this.enable = this.enable.bind(this);
     this.updateRoles = this.updateRoles.bind(this);
+    this.delete = this.delete.bind(this);
   }
 
   /**
@@ -152,6 +153,18 @@ class UserController {
     this._sendJSON(res, 200, {
       success: true,
       data: user,
+    });
+  }
+
+  /**
+   * Delete user.
+   */
+  delete(req, res) {
+    userService.deleteUser(this._getId(req.params.id), req.user.id);
+
+    this._sendJSON(res, 200, {
+      success: true,
+      message: "User deleted",
     });
   }
 }

@@ -93,6 +93,16 @@ class UserRepository extends BaseRepository {
     return this.findById(userId);
   }
 
+  /**
+   * Deletes a user.
+   *
+   * @param {number} userId
+   * @returns {object}
+   */
+  deleteUser(userId) {
+    return this.deleteById(userId);
+  }
+
   findAllWithQuery(options = {}) {
     const limit = Math.max(1, Math.min(Number(options.limit) || 25, 200));
 
