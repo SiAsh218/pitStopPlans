@@ -73,4 +73,21 @@ describe("EventService", () => {
     expect(client.destroy).toHaveBeenCalledTimes(1);
     expect(eventService.clients.has(client)).toBe(false);
   });
+
+  it("removes clients whose write throws", () => {
+    const client = {
+      writable: true,
+      write: jest.fn(() => {
+        throw new Error("Connection failed");
+      }),
+    };
+    eventService.addClient(client);
+
+    eventService.broadcast({
+      type: "incident-created",
+      incidentId: 15,
+    });
+
+    expect(eventService.clients.has(client)).toBe(false);
+  });
 });

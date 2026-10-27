@@ -15,6 +15,7 @@ import { showConfirm } from "../modals/modalConfirm.js";
 import { getCurrentUser } from "../auth.js";
 
 import { copyToClipboard } from "../utils/copyToClipboard.js";
+import liveUpdateSubscriptions from "../services/liveUpdateSubscriptions.cjs";
 
 import {
   getPreferences,
@@ -1336,39 +1337,11 @@ function buildMatrixTable(actions, roles, stages) {
 function registerLiveUpdateListeners() {
   if (sseListenersRegistered) return;
 
-  window.addEventListener("incident-action-updated", handleIncidentUpdate);
-
-  window.addEventListener("incident-action-assigned", handleIncidentUpdate);
-
-  window.addEventListener("incident-closed", handleIncidentClosed);
-
-  window.addEventListener("incident-reopened", handleIncidentUpdate);
-
-  window.addEventListener("incident-ccil-updated", handleIncidentUpdate);
-
-  window.addEventListener("incident-tin-updated", handleIncidentUpdate);
-
-  window.addEventListener("live-update-reconnected", refreshIncidentPage);
+  liveUpdateSubscriptions.registerIncidentLiveUpdates(
+    window,
+    () => window.location.pathname.split("/").pop(),
+    refreshIncidentPage,
+  );
 
   sseListenersRegistered = true;
-}
-
-async function handleIncidentUpdate(event) {
-  const currentIncidentId = Number(window.location.pathname.split("/").pop());
-
-  if (event.detail.incidentId !== currentIncidentId) {
-    return;
-  }
-
-  await refreshIncidentPage();
-}
-
-async function handleIncidentClosed(event) {
-  const currentIncidentId = Number(window.location.pathname.split("/").pop());
-
-  if (event.detail.incidentId !== currentIncidentId) {
-    return;
-  }
-
-  await refreshIncidentPage();
 }

@@ -5,6 +5,7 @@
 import { getIncidentTypes } from "../services/incidentTypeService.js";
 import { getIncidents } from "../services/incidentService.js";
 import { formatDateTime } from "../utils/dateHandler.js";
+import liveUpdateSubscriptions from "../services/liveUpdateSubscriptions.cjs";
 
 // -----------------------------------------------------------------------------
 // State
@@ -149,14 +150,6 @@ function renderIncidents(incidents = []) {
     });
     container.appendChild(card);
   });
-}
-
-function handleIncidentUpdated(event) {
-  if (event.detail?.incidentId) loadIncidents();
-}
-
-function handleIncidentStatusChanged(event) {
-  if (event.detail?.incidentId) loadIncidents();
 }
 
 function renderPagination(meta = {}) {
@@ -352,17 +345,10 @@ function openIncident(incidentId) {
 export function registerDashboardLiveUpdates() {
   if (state.sseListenersRegistered) return;
 
-  window.addEventListener("incident-created", loadIncidents);
-
-  window.addEventListener("incident-closed", handleIncidentStatusChanged);
-
-  window.addEventListener("incident-reopened", handleIncidentStatusChanged);
-
-  window.addEventListener("incident-action-updated", handleIncidentUpdated);
-
-  window.addEventListener("incident-action-assigned", handleIncidentUpdated);
-
-  window.addEventListener("live-update-reconnected", loadIncidents);
+  liveUpdateSubscriptions.registerDashboardLiveUpdates(
+    window,
+    loadIncidents,
+  );
 
   state.sseListenersRegistered = true;
 }
