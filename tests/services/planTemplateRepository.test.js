@@ -21,6 +21,7 @@ describe("PlanTemplateRepository", () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         incident_type_id INTEGER NOT NULL,
         version INTEGER NOT NULL,
+        revision INTEGER NOT NULL DEFAULT 1,
         title TEXT NOT NULL,
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,

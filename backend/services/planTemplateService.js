@@ -19,6 +19,7 @@ class PlanTemplateService {
       id: row.id,
       title: row.title,
       version: row.version,
+      revision: row.revision,
       status: row.status,
       created_at: row.created_at,
       approved_at: row.approved_at,

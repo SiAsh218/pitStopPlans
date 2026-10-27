@@ -654,7 +654,7 @@ function wireStageOrderButtons(plan) {
         await refreshPlanTemplatePage();
       } catch (err) {
         console.error(err);
-        showError("Failed to reorder stages");
+        showError(err.message || "Failed to reorder stages");
       }
     });
   });
@@ -708,7 +708,7 @@ function wireActionOrderButtons(plan) {
         await refreshPlanTemplatePage();
       } catch (err) {
         console.error(err);
-        showError("Failed to reorder actions");
+        showError(err.message || "Failed to reorder actions");
       }
     });
   });
@@ -780,7 +780,7 @@ function wireDeleteActionButtons() {
 
         await refreshPlanTemplatePage();
       } catch (err) {
-        showError("Failed to delete action");
+        showError(err.message || "Failed to delete action");
       }
     });
   });
@@ -837,7 +837,7 @@ function wireStageButtons() {
       } catch (err) {
         console.error(err);
 
-        showError("Failed to delete stage");
+        showError(err.message || "Failed to delete stage");
       }
     });
   });
@@ -893,7 +893,7 @@ function wireApproveTemplateButton(templateId) {
     } catch (err) {
       console.error(err);
 
-      showError("Failed to approve template");
+      showError(err.message || "Failed to approve template");
     }
   });
 }
@@ -924,7 +924,7 @@ function wireDeleteDraftButton(templateId) {
     } catch (err) {
       console.error(err);
 
-      showError("Failed to remove draft");
+      showError(err.message || "Failed to remove draft");
     }
   });
 }
@@ -951,7 +951,7 @@ function wireRetireTemplateButton(templateId) {
     } catch (err) {
       console.error(err);
 
-      showError("Failed to retire template");
+      showError(err.message || "Failed to retire template");
     }
   });
 }

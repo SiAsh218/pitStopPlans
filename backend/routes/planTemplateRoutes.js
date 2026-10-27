@@ -6,6 +6,7 @@ const validate = require("../middleware/validate");
 const { idParamSchema } = require("../validation/schemas");
 
 const planTemplateController = require("../controllers/planTemplateController");
+const requireTemplateRevision = require("../middleware/templateRevision");
 
 module.exports = [
   {
@@ -62,7 +63,7 @@ module.exports = [
       auth,
       requireRole("admin", "editor"),
       validate("params", idParamSchema),
-      planTemplateController.update,
+      requireTemplateRevision(planTemplateController.update),
     ],
   },
 
@@ -73,7 +74,7 @@ module.exports = [
       auth,
       requireRole("admin", "editor"),
       validate("params", idParamSchema),
-      planTemplateController.removeDraft,
+      requireTemplateRevision(planTemplateController.removeDraft),
     ],
   },
 
@@ -84,7 +85,7 @@ module.exports = [
       auth,
       requireRole("admin", "editor"),
       validate("params", idParamSchema),
-      planTemplateController.approve,
+      requireTemplateRevision(planTemplateController.approve),
     ],
   },
 
@@ -106,7 +107,7 @@ module.exports = [
       auth,
       requireRole("admin"),
       validate("params", idParamSchema),
-      planTemplateController.retire,
+      requireTemplateRevision(planTemplateController.retire),
     ],
   },
 

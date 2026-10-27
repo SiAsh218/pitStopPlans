@@ -10,6 +10,7 @@ const {
 } = require("../validation/schemas");
 
 const planStageController = require("../controllers/planStageController.js");
+const requireTemplateRevision = require("../middleware/templateRevision");
 
 module.exports = [
   {
@@ -20,7 +21,7 @@ module.exports = [
       requireRole("admin", "editor"),
       validate("params", planTemplateIdParamSchema),
       validate("body", reorderStagesSchema),
-      planStageController.reorder,
+      requireTemplateRevision(planStageController.reorder),
     ],
   },
 
@@ -49,7 +50,11 @@ module.exports = [
   {
     method: "POST",
     path: "/api/plan_stages",
-    handler: [auth, requireRole("admin", "editor"), planStageController.create],
+    handler: [
+      auth,
+      requireRole("admin", "editor"),
+      requireTemplateRevision(planStageController.create),
+    ],
   },
 
   {
@@ -59,7 +64,7 @@ module.exports = [
       auth,
       requireRole("admin", "editor"),
       validate("params", idParamSchema),
-      planStageController.update,
+      requireTemplateRevision(planStageController.update),
     ],
   },
 
@@ -70,7 +75,7 @@ module.exports = [
       auth,
       requireRole("admin"),
       validate("params", idParamSchema),
-      planStageController.delete,
+      requireTemplateRevision(planStageController.delete),
     ],
   },
 ];

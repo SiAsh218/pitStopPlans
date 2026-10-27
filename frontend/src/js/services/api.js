@@ -1,5 +1,7 @@
 import { getToken, refreshAccessToken } from "../auth.js";
 
+let templateRevision = null;
+
 function buildQueryString(params = {}) {
   return Object.entries(params)
     .filter(
@@ -18,16 +20,29 @@ async function request(method, url, body = null, params = null, options = {}) {
       ? `${url}?${buildQueryString(params)}`
       : url;
 
+  const isTemplateMutation =
+    method !== "GET" &&
+    (/^\/api\/plan_templates\/\d+(?:\/(?:approve|retire|stages\/reorder))?$/.test(
+      url,
+    ) ||
+      /^\/api\/plan_stages(?:\/\d+)?(?:\/actions\/reorder)?$/.test(url) ||
+      /^\/api\/plan_stage_actions(?:\/\d+)?$/.test(url));
+  const headers = {
+    Authorization: `Bearer ${getToken()}`,
+    "Content-Type": "application/json",
+  };
+
+  if (isTemplateMutation && templateRevision !== null) {
+    headers["If-Match"] = String(templateRevision);
+  }
+
   const response = await fetch(fullUrl, {
     method,
 
     // Required so the browser sends authentication cookies.
     credentials: "include",
 
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-      "Content-Type": "application/json",
-    },
+    headers,
 
     ...(body && {
       body: JSON.stringify(body),
@@ -54,6 +69,19 @@ async function request(method, url, body = null, params = null, options = {}) {
 
   if (!response.ok) {
     throw new Error(json.error || "Request failed");
+  }
+
+  const receivedTemplateRevision = Number(json.data?.revision);
+
+  if (
+    method === "GET" &&
+    /^\/api\/plan_templates\/\d+$/.test(url) &&
+    Number.isSafeInteger(receivedTemplateRevision) &&
+    receivedTemplateRevision >= 1
+  ) {
+    templateRevision = receivedTemplateRevision;
+  } else if (isTemplateMutation && templateRevision !== null) {
+    templateRevision += 1;
   }
 
   return options.raw ? json : json.data;

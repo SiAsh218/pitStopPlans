@@ -14,6 +14,7 @@ class PlanTemplateRepository extends BaseRepository {
     return `
       pt.id,
       pt.version,
+      pt.revision,
       pt.title,
       pt.status,
       pt.created_at,

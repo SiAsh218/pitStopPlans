@@ -49,6 +49,20 @@ function ensurePlanTemplateProposedIncidentTypeColumns() {
   }
 }
 
+function ensurePlanTemplateRevisionColumn() {
+  const columns = db
+    .prepare("PRAGMA table_info(plan_templates)")
+    .all()
+    .map((column) => column.name);
+
+  if (!columns.includes("revision")) {
+    db.exec(`
+      ALTER TABLE plan_templates
+      ADD COLUMN revision INTEGER NOT NULL DEFAULT 1;
+    `);
+  }
+}
+
 /**
  * Allows user deletion without removing audit history.
  *
@@ -147,8 +161,11 @@ function ensurePlanTemplateUserSetNull() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           incident_type_id INTEGER NOT NULL,
           version INTEGER NOT NULL,
+          revision INTEGER NOT NULL DEFAULT 1,
           title TEXT NOT NULL,
           status TEXT NOT NULL DEFAULT 'draft',
+          proposed_incident_type_name TEXT,
+          proposed_incident_type_description TEXT,
           created_by INTEGER,
           approved_by INTEGER,
           approved_at DATETIME,
@@ -171,8 +188,11 @@ function ensurePlanTemplateUserSetNull() {
           id,
           incident_type_id,
           version,
+          revision,
           title,
           status,
+          proposed_incident_type_name,
+          proposed_incident_type_description,
           created_by,
           approved_by,
           approved_at,
@@ -182,8 +202,11 @@ function ensurePlanTemplateUserSetNull() {
           id,
           incident_type_id,
           version,
+          revision,
           title,
           status,
+          proposed_incident_type_name,
+          proposed_incident_type_description,
           created_by,
           approved_by,
           approved_at,
@@ -350,6 +373,7 @@ function initialiseDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       incident_type_id INTEGER NOT NULL,
       version INTEGER NOT NULL,
+      revision INTEGER NOT NULL DEFAULT 1,
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
       created_by INTEGER,
@@ -373,6 +397,7 @@ function initialiseDatabase() {
   `);
 
   ensurePlanTemplateProposedIncidentTypeColumns();
+  ensurePlanTemplateRevisionColumn();
   ensurePlanTemplateUserSetNull();
 
   /**
