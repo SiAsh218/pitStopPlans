@@ -66,7 +66,7 @@ export async function initCreateIncidentPage() {
 }
 
 function buildIncidentClipboardText(title, incidentType, description) {
-  return `HOLDING MESSAGE
+  return `NEW INCIDENT
 
 Incident Title: ${title}
 Incident Type: ${incidentType}
@@ -79,7 +79,7 @@ function buildIncidentClipboardHtml(title, incidentType, description) {
   const formattedDescription = description.replace(/\n/g, "<br>");
 
   return `
-<h2>HOLDING MESSAGE</h2>
+<h2>NEW INCIDENT</h2>
 
 <p>
   <strong>Incident Title:</strong> ${title}<br>

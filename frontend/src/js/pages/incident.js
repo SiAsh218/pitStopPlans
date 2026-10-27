@@ -641,18 +641,6 @@ function renderActionPanel(action, updates = []) {
         <strong>Due From Incident Start:</strong>
         ${action.due_from_incident_start} mins
       </p>
-      <p>
-        <strong>Started:</strong>
-        ${formatDateTime(action.started_at)}
-      </p>
-      <p>
-        <strong>Completed:</strong>
-        ${formatDateTime(action.completed_at)}
-      </p>
-      <p>
-        <strong>Assigned User:</strong>
-        ${action.assigned_user_id ?? "-"}
-      </p>
       <h3>
         Updates
       </h3>
