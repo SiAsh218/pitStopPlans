@@ -192,6 +192,103 @@ class UserRepository extends BaseRepository {
       },
     };
   }
+
+  findAllForReportingWithQuery(options = {}) {
+    const columns = ["id", "email", "role", "active", "created_at"];
+    const filters = {};
+    const reservedKeys = new Set([
+      "filters",
+      "search",
+      "q",
+      "sortBy",
+      "sort",
+      "order",
+      "limit",
+      "page",
+      "offset",
+    ]);
+
+    if (options.filters && typeof options.filters === "object") {
+      Object.assign(filters, options.filters);
+    }
+
+    for (const [key, value] of Object.entries(options)) {
+      if (!reservedKeys.has(key) && columns.includes(key)) {
+        filters[key] = value;
+      }
+    }
+
+    const clauses = [];
+    const params = [];
+
+    for (const [column, value] of Object.entries(filters)) {
+      if (!columns.includes(column)) {
+        continue;
+      }
+
+      if (value === null || value === "null") {
+        clauses.push(`${column} IS NULL`);
+      } else if (typeof value === "string" && value.includes("%")) {
+        clauses.push(`${column} LIKE ?`);
+        params.push(value);
+      } else if (value === "true" || value === "false") {
+        clauses.push(`${column} = ?`);
+        params.push(value === "true" ? 1 : 0);
+      } else {
+        clauses.push(`${column} = ?`);
+        params.push(value);
+      }
+    }
+
+    const search = options.search ?? options.q;
+
+    if (search) {
+      clauses.push("(email LIKE ? OR role LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    const whereClause = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    const sortBy = options.sortBy || options.sort;
+    const sortOrder = options.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
+    const orderClause =
+      sortBy && columns.includes(sortBy)
+        ? `ORDER BY ${sortBy} ${sortOrder}`
+        : "ORDER BY id ASC";
+    const limit = Math.max(1, Math.min(Number(options.limit) || 200, 200));
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset =
+      options.offset !== undefined
+        ? Math.max(0, Number(options.offset) || 0)
+        : (page - 1) * limit;
+
+    const rows = this.db
+      .prepare(
+        `
+        SELECT id, email, role, active, created_at
+        FROM users
+        ${whereClause}
+        ${orderClause}
+        LIMIT ?
+        OFFSET ?
+      `,
+      )
+      .all(...params, limit, offset);
+
+    const total = this.db
+      .prepare(`SELECT COUNT(*) AS total FROM users ${whereClause}`)
+      .get(...params).total;
+
+    return {
+      rows,
+      meta: {
+        total,
+        limit,
+        offset,
+        page,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
 }
 
 module.exports = new UserRepository();
