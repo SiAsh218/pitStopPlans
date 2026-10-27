@@ -29,7 +29,7 @@ const state = {
 // Initialisation
 // -----------------------------------------------------------------------------
 
-export async function loadIncidents() {
+export async function loadIncidents({ showLoading = true } = {}) {
   const incidentList = document.getElementById("incident-list");
 
   if (!incidentList) {
@@ -37,7 +37,10 @@ export async function loadIncidents() {
   }
 
   try {
-    incidentList.innerHTML = "<p>Loading incidents...</p>";
+    if (showLoading) {
+      incidentList.innerHTML = "<p>Loading incidents...</p>";
+    }
+
     const result = await getIncidents({
       page: state.page,
       limit: state.limit,
@@ -347,7 +350,7 @@ export function registerDashboardLiveUpdates() {
 
   liveUpdateSubscriptions.registerDashboardLiveUpdates(
     window,
-    loadIncidents,
+    () => loadIncidents({ showLoading: false }),
   );
 
   state.sseListenersRegistered = true;

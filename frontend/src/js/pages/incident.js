@@ -140,7 +140,7 @@ function renderIncidentMeta(dashboard) {
         </button>
       `;
 
-  container.innerHTML = `
+  const markup = `
     <div class="incident-meta__summary">
       <h1 id="incident-title" ${canEditIncident ? "class='incident-meta__editable'" : ""}">${incident.title}</h1>
       ${incident.description ? `<p id="incident-description" class="incident-meta__description${canEditIncident ? " incident-meta__editable" : ""}"">${incident.description}</p>` : ""}
@@ -165,6 +165,12 @@ function renderIncidentMeta(dashboard) {
       ${incidentButton}
     </div>
   `;
+
+  if (container.innerHTML === markup) {
+    return;
+  }
+
+  container.innerHTML = markup;
 
   wireCloseIncidentButton(incident.id);
   wireReopenIncidentButton(incident.id);
@@ -412,7 +418,7 @@ function renderSummary(summary) {
 
   const overdueCount = getOverdueActionCount(currentActions);
 
-  container.innerHTML = `
+  const markup = `
     <div class="card">
       <div class="incident-progress-header">
         <h3>Progress</h3>
@@ -450,6 +456,10 @@ function renderSummary(summary) {
     </div>
   `;
 
+  if (container.innerHTML !== markup) {
+    container.innerHTML = markup;
+  }
+
   const fill = container.querySelector(".progress-bar__fill");
 
   if (fill) {
@@ -474,7 +484,9 @@ function renderActions(actions) {
   renderRolePicker(allRoles);
 
   if (!actions.length) {
-    container.innerHTML = "<p>No actions found.</p>";
+    if (container.innerHTML !== "<p>No actions found.</p>") {
+      container.innerHTML = "<p>No actions found.</p>";
+    }
     return;
   }
 
@@ -484,8 +496,13 @@ function renderActions(actions) {
 
   table.className = "incident-matrix";
   table.innerHTML = buildMatrixTable(actions, roles, stages);
-  container.innerHTML = "";
-  container.appendChild(table);
+
+  const existingTable = container.querySelector(".incident-matrix");
+  if (existingTable?.innerHTML === table.innerHTML) {
+    return;
+  }
+
+  container.replaceChildren(table);
 
   wireActionCards();
   wireStartActionButtons();
@@ -848,7 +865,7 @@ function renderRolePicker(allRoles) {
     selectedRoles = [...allRoles];
   }
 
-  container.innerHTML = `
+  const markup = `
   <div class="role-picker">
     <div class="role-picker__header">
       <h3>Visible Roles</h3>
@@ -875,6 +892,11 @@ function renderRolePicker(allRoles) {
   </div>
 `;
 
+  if (container.innerHTML === markup) {
+    return;
+  }
+
+  container.innerHTML = markup;
   wireRolePicker(allRoles);
 }
 
