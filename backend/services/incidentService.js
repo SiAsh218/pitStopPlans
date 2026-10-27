@@ -158,6 +158,7 @@ class IncidentService {
    */
   getAllIncidents(options = {}) {
     const result = incidentRepository.findAllWithDetailsQuery(options);
+    const now = Date.now();
 
     return {
       rows: result.rows.map((incident) => {
@@ -173,6 +174,11 @@ class IncidentService {
         );
 
         dto.summary = this._getActionSummary(actions);
+        dto.summary.overdue_actions = this._getOverdueActionCountForIncident(
+          incident,
+          actions,
+          now,
+        );
 
         return dto;
       }),
@@ -402,6 +408,7 @@ class IncidentService {
         .length,
       resolvedToday: this._getResolvedTodayCount(incidents),
       openWorkload: this._getOpenWorkload(incidents),
+      overdueActions: this._getOverdueActionCount(incidents),
     };
   }
 
@@ -452,6 +459,50 @@ class IncidentService {
 
         return total + (actions.length - completed);
       }, 0);
+  }
+
+  _getOverdueActionCount(incidents) {
+    const now = Date.now();
+
+    return incidents
+      .filter(
+        (incident) =>
+          incident.status === "active" && incident.started_at,
+      )
+      .reduce((total, incident) => {
+        const actions = incidentActionRepository.findByIncidentIdWithRoles(
+          incident.id,
+        );
+        return (
+          total +
+          this._getOverdueActionCountForIncident(incident, actions, now)
+        );
+      }, 0);
+  }
+
+  _getOverdueActionCountForIncident(incident, actions, now = Date.now()) {
+    if (incident.status !== "active" || !incident.started_at) {
+      return 0;
+    }
+
+    const incidentStartedAt = new Date(incident.started_at).getTime();
+    if (!Number.isFinite(incidentStartedAt)) {
+      return 0;
+    }
+
+    return actions.filter((action) => {
+      if (action.status === "completed") {
+        return false;
+      }
+
+      const dueOffset = Number(action.due_from_incident_start);
+      if (!Number.isFinite(dueOffset)) {
+        return false;
+      }
+
+      const dueAt = incidentStartedAt + dueOffset * 60 * 1000;
+      return now > dueAt;
+    }).length;
   }
 
   updateCcilNumber(id, ccilNumber, userId) {

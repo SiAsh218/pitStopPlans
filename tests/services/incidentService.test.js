@@ -346,14 +346,17 @@ describe("IncidentService", () => {
         {
           id: 101,
           status: "completed",
+          due_from_incident_start: 0,
         },
         {
           id: 102,
           status: "in_progress",
+          due_from_incident_start: 0,
         },
         {
           id: 103,
           status: "pending",
+          due_from_incident_start: 0,
         },
       ]);
 
@@ -400,6 +403,7 @@ describe("IncidentService", () => {
             in_progress_actions: 1,
             pending_actions: 1,
             completion_percentage: 33,
+            overdue_actions: 2,
           },
         }),
       );
@@ -771,6 +775,7 @@ describe("IncidentService", () => {
           id: 1,
           status: "active",
           closed_at: null,
+          started_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
         },
         {
           id: 2,
@@ -788,9 +793,9 @@ describe("IncidentService", () => {
         (incidentId) => {
           if (incidentId === 1) {
             return [
-              { status: "completed" },
-              { status: "pending" },
-              { status: "in_progress" },
+              { status: "completed", due_from_incident_start: 0 },
+              { status: "pending", due_from_incident_start: 0 },
+              { status: "in_progress", due_from_incident_start: 0 },
             ];
           }
 
@@ -804,6 +809,7 @@ describe("IncidentService", () => {
         active: 1,
         resolvedToday: 1,
         openWorkload: 2,
+        overdueActions: 2,
       });
     });
 
@@ -816,6 +822,7 @@ describe("IncidentService", () => {
         active: 0,
         resolvedToday: 0,
         openWorkload: 0,
+        overdueActions: 0,
       });
     });
 
@@ -832,6 +839,43 @@ describe("IncidentService", () => {
 
       expect(result.resolvedToday).toBe(0);
       expect(result.openWorkload).toBe(0);
+      expect(result.overdueActions).toBe(0);
+    });
+
+    it("counts only overdue incomplete actions in active incidents", () => {
+      incidentRepository.findAllWithDetails.mockReturnValue([
+        {
+          id: 1,
+          status: "active",
+          started_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 2,
+          status: "active",
+          started_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 3,
+          status: "closed",
+          started_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        },
+      ]);
+      incidentActionRepository.findByIncidentIdWithRoles.mockImplementation(
+        (incidentId) => {
+          if (incidentId === 1) {
+            return [
+              { status: "pending", due_from_incident_start: 0 },
+              { status: "completed", due_from_incident_start: 0 },
+              { status: "pending", due_from_incident_start: 120 },
+            ];
+          }
+          return [{ status: "pending", due_from_incident_start: 0 }];
+        },
+      );
+
+      const result = incidentService.getDashboardStatistics();
+
+      expect(result.overdueActions).toBe(1);
     });
   });
 

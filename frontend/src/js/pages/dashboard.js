@@ -270,6 +270,12 @@ function updateStatistics(stats) {
   if (openActionCount) {
     openActionCount.textContent = stats.openWorkload;
   }
+
+  const overdueActionCount = document.getElementById("overdue-action-count");
+
+  if (overdueActionCount) {
+    overdueActionCount.textContent = stats.overdueActions;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -298,6 +304,7 @@ function buildIncidentCard(incident) {
     100,
     Math.max(0, Math.round(Number(summary.completion_percentage) || 0)),
   );
+  const overdueActions = Number(summary.overdue_actions) || 0;
 
   return `
       <div class="incident-card__header">
@@ -330,6 +337,9 @@ function buildIncidentCard(incident) {
         /
         ${summary.total_actions}
         actions completed
+      </small>
+      <small class="incident-card__overdue${overdueActions > 0 ? " incident-card__overdue--active" : ""}">
+        (${overdueActions} overdue)
       </small>
       <div class="incident-card__actions">
         <button

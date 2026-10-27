@@ -17,6 +17,10 @@
   color: var(--color-text-secondary);
 }
 
+.incident-card__overdue--active {
+  color: var(--color-danger) !important;
+}
+
 .incident-card__actions {
   display: flex;
   justify-content: flex-start;
