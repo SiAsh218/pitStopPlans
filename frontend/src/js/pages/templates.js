@@ -56,6 +56,9 @@ function renderTemplates(templates) {
   }
 
   container.innerHTML = Object.entries(grouped)
+    .sort(([firstName], [secondName]) =>
+      firstName.localeCompare(secondName, undefined, { sensitivity: "base" }),
+    )
     .map(
       ([name, versions]) => `
       <article class="template-card">
