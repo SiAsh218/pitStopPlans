@@ -44,7 +44,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       "Train Failure",
-      "An incident involving a train failure that impacts service.",
+      "A train failure affecting rail services.",
     );
 
   const incidentTypeId = incidentTypeResult.lastInsertRowid;
@@ -120,7 +120,7 @@ function seedTrainFailureTemplate(adminUser) {
         VALUES (?, ?, ?, ?)
       `,
     )
-    .run(templateId, 2, "Access & Assessments", 30);
+    .run(templateId, 2, "Access & Assessment", 30);
 
   const stage2Id = stage2Result.lastInsertRowid;
 
@@ -142,7 +142,7 @@ function seedTrainFailureTemplate(adminUser) {
         VALUES (?, ?, ?, ?)
       `,
     )
-    .run(templateId, 3, "Planned Response", 60);
+    .run(templateId, 3, "Response Planning", 60);
 
   const stage3Id = stage3Result.lastInsertRowid;
 
@@ -191,8 +191,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       1,
-      "NR Senior Leader Advised",
-      "On-Call Network Rail senior leader is advised of the incident and its potential impact.",
+      "Notify NR Senior Leader",
+      "Notify the on-call Network Rail senior leader of the incident and its impact.",
       10,
       10,
     );
@@ -222,8 +222,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       2,
-      "TOC Senior Leader Advised",
-      "On-Call TOC senior leader is advised of the incident and its potential impact.",
+      "Notify TOC Senior Leader",
+      "Notify the on-call TOC senior leader of the incident and its impact.",
       10,
       10,
     );
@@ -253,8 +253,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       3,
-      "Responders to site",
-      "The correct responders have been sent to site to assess the incident and its potential impact.",
+      "Deploy Responders",
+      "Send the appropriate responders to assess the incident and its impact.",
       10,
       10,
     );
@@ -284,8 +284,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       4,
-      "TOC Duty Control Manager Advised",
-      "The TOC Duty Control Manager has been advised of the incident.",
+      "Notify TOC Duty Control Manager",
+      "Notify the TOC Duty Control Manager of the incident.",
       10,
       10,
     );
@@ -315,8 +315,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       5,
-      "Confirm Tactical Plan",
-      "Confirm the tactical plan with the IC and TOC control lead.  Prepare for escalation if necessary.",
+      "Agree Tactical Plan",
+      "Agree the plan with the IC and TOC control lead; prepare to escalate if needed.",
       10,
       10,
     );
@@ -346,8 +346,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       6,
-      "Categorisation of Incident",
-      "Confirm the incident Categorisation",
+      "Confirm Incident Category",
+      "Confirm the incident category.",
       10,
       10,
     );
@@ -377,8 +377,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       7,
-      "Communicate Initial Categorisation",
-      "Send initial BLACK, RED, AMBER to stakeholders based on latest information currently available",
+      "Share Initial Status",
+      "Share the initial Black, Red or Amber status with stakeholders.",
       10,
       10,
     );
@@ -408,8 +408,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       8,
-      "Gather Incident Information",
-      "Understand as much about the incident as possible.",
+      "Gather Incident Details",
+      "Gather key details about the incident.",
       10,
       10,
     );
@@ -439,8 +439,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       9,
-      "Confirmed Failure?",
-      "Fitters dispatched and ETA?  Has suitable Assistance been identified and what is the ETA?",
+      "Confirm Failure Details",
+      "Confirm fitters are dispatched and their ETA; identify suitable assistance and its ETA.",
       10,
       10,
     );
@@ -470,8 +470,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       10,
-      "Receive Infromation from IC as to the nature of the failure",
-      "Liasse with TOC and agree recovery arrangements as directed by the IC",
+      "Confirm Failure with IC",
+      "Confirm the failure details with the IC and agree recovery arrangements with the TOC.",
       10,
       10,
     );
@@ -501,8 +501,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       11,
-      "Confirm immediate tactical plan",
-      "Confirm immediate tactical plan and prepare for escalation as necessary",
+      "Agree Immediate Plan",
+      "Agree the immediate tactical plan and prepare to escalate if needed.",
       10,
       10,
     );
@@ -532,8 +532,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       12,
-      "Identify Contingency Plan",
-      "Identify the relevant contingency plan based on the information you have",
+      "Select Contingency Plan",
+      "Select the relevant plan using the available information.",
       10,
       10,
     );
@@ -563,8 +563,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       13,
-      "TOCs Informed of Contingency Plan",
-      "Train Operators have been informed of which contingency plan is being put in place",
+      "Inform TOCs of Contingency Plan",
+      "Tell train operators which contingency plan is being used.",
       10,
       10,
     );
@@ -594,8 +594,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       1,
-      "Command Structure Established",
-      "Does the command structure need to be established? If so, establish it.",
+      "Establish Command Structure",
+      "Establish a command structure if required.",
       20,
       30,
     );
@@ -625,8 +625,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       2,
-      "Train Service Management Conference",
-      "If required, a Train Service Management Conference is held to discuss the incident and its potential impact.",
+      "Train Service Conference",
+      "Hold a Train Service Management Conference if required.",
       20,
       30,
     );
@@ -657,7 +657,7 @@ function seedTrainFailureTemplate(adminUser) {
       stage2Id,
       3,
       "Incident Management Conference",
-      "Incident management conference held including those on the on call matrix",
+      "Hold the conference with staff on the on-call matrix.",
       20,
       30,
     );
@@ -687,8 +687,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       4,
-      "Advise NOC",
-      "Advise NOC if in the Thames Valley Area",
+      "Notify NOC",
+      "Notify NOC for incidents in the Thames Valley area.",
       20,
       30,
     );
@@ -718,8 +718,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       5,
-      "Huddles with IC & TRC teams",
-      "Following Tactical/Strategic Conferences huddles be undertaken to provide details of decisions and vreate a shared solutional awareness, recorded in CCIL",
+      "Hold IC/TRC Huddles",
+      "After tactical or strategic conferences, share decisions and situational updates with IC and TRC teams; record them in CCIL.",
       20,
       30,
     );
@@ -749,8 +749,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       6,
-      "Confirm MFSdC process has been implemented",
-      "If appropriate",
+      "Confirm MFSdC Process",
+      "Confirm the MFSdC process is in place, if required.",
       20,
       30,
     );
@@ -780,8 +780,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       7,
-      "Confirm MFSdC process has been implemented",
-      "If appropriate",
+      "Confirm MFSdC Process",
+      "Confirm the MFSdC process is in place, if required.",
       20,
       30,
     );
@@ -811,8 +811,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       8,
-      "Confirm MFSdC process has been implemented",
-      "If appropriate",
+      "Confirm MFSdC Process",
+      "Confirm the MFSdC process is in place, if required.",
       20,
       30,
     );
@@ -842,8 +842,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       9,
-      "Confirm MFSdC process has been implemented",
-      "If appropriate",
+      "Confirm MFSdC Process",
+      "Confirm the MFSdC process is in place, if required.",
       20,
       30,
     );
@@ -873,8 +873,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       10,
-      "Can Train Be Moved",
-      "Is there an option to move the train by carrying out a move in the wrong direction?  Do any level crossings need to be staffed to permit the wrong direction movement",
+      "Assess Wrong-Direction Move",
+      "Can the train move in the wrong direction? Identify any level crossings that need staffing.",
       20,
       30,
     );
@@ -904,8 +904,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       11,
-      "Other TOC assistance",
-      "If no immediate assistance available can another train operator provide assistance more quickly",
+      "Seek Other TOC Assistance",
+      "If help is not immediately available, check whether another operator can respond sooner.",
       20,
       30,
     );
@@ -935,8 +935,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       12,
-      "Other Support",
-      "Is other support needed on site?  Consider BTP, Land Sherrifs, Additional MOM.  Are evacuation ramps available?",
+      "Arrange Additional Support",
+      "Assess the need for BTP, Land Sheriffs, an additional MOM or evacuation ramps.",
       20,
       30,
     );
@@ -966,8 +966,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       13,
-      "Work with TOC/FOC to Amend Train Service",
-      "As per contingency plan identifying opportunities and risks to train service upon start of full service",
+      "Amend Train Service",
+      "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       20,
       30,
     );
@@ -997,8 +997,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       14,
-      "MFSdD process",
-      "Has the MFSdD process been implemented (if appropriate)",
+      "Confirm MFSdD Process",
+      "Confirm the MFSdD process is in place, if required.",
       20,
       30,
     );
@@ -1028,8 +1028,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage3Id,
       1,
-      "Conference with Signallers",
-      "SNDM to chair conference with signallers to agree recovery plan",
+      "Agree Recovery Plan",
+      "SNDM to chair a conference with signallers and agree the recovery plan.",
       30,
       60,
     );
@@ -1060,7 +1060,7 @@ function seedTrainFailureTemplate(adminUser) {
       stage3Id,
       2,
       "Monitor Milestone Plan",
-      "Monitor Milestone Plan against activities",
+      "Track progress against the milestone plan.",
       30,
       60,
     );
@@ -1090,8 +1090,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage3Id,
       3,
-      "Stranded Trains Risk Assessment",
-      "Complete Stranded Trains RA and complete plans A, B and C",
+      "Assess Stranded Trains",
+      "Complete the stranded-train risk assessment and plans A, B and C.",
       30,
       60,
     );
@@ -1121,8 +1121,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage3Id,
       4,
-      "Communicate Updated Black, Red, Amber",
-      "Communicate updated status to stakeholders based on latest information",
+      "Share Updated Status",
+      "Share the latest Black, Red or Amber status with stakeholders.",
       30,
       60,
     );
@@ -1152,8 +1152,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage3Id,
       5,
-      "Undertake the 11-30 Minutes Cross Check",
-      "Undertake the 11-30 Minutes Cross Check",
+      "Complete 11-30 Minute Cross-Check",
+      "Complete the 11-30 minute cross-check.",
       30,
       60,
     );
@@ -1183,8 +1183,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage3Id,
       6,
-      "Amend Train Service with TOC/FOC",
-      "Work with the TOC/FOC to amend train service as per contingency plan identifying opportunities and risks to train service upon start up of full service",
+      "Amend Train Service",
+      "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       30,
       60,
     );
@@ -1215,7 +1215,7 @@ function seedTrainFailureTemplate(adminUser) {
       stage4Id,
       1,
       "Oversee Service Recovery",
-      "And escalate as necessary",
+      "Monitor recovery and escalate if needed.",
       30,
       90,
     );
@@ -1245,8 +1245,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage4Id,
       2,
-      "Stranded Trains Log",
-      "Copy Stranded Trains Information into CCIL",
+      "Update Stranded Train Log",
+      "Record stranded-train details in CCIL.",
       30,
       90,
     );
@@ -1276,8 +1276,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage4Id,
       3,
-      "Oversee TOC Recovery Plan",
-      "Oversee TOC Recovery Plan",
+      "Oversee TOC Recovery",
+      "Monitor the TOC recovery plan.",
       30,
       90,
     );
@@ -1307,8 +1307,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage4Id,
       4,
-      "Declare Service Recovery Complete",
-      "Declare Service Recovery Complete",
+      "Confirm Service Recovery",
+      "Confirm service recovery is complete.",
       30,
       90,
     );
@@ -1338,8 +1338,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage4Id,
       5,
-      "Stranded Trains Log",
-      "Copy Stranded Trains Information into CCIL",
+      "Update Stranded Train Log",
+      "Record stranded-train details in CCIL.",
       30,
       90,
     );
@@ -1369,8 +1369,8 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage4Id,
       6,
-      "Support Effected TOCs/FOCs",
-      "On the resumption of the train service following disruption",
+      "Support Affected TOCs/FOCs",
+      "Support operators as train services resume.",
       30,
       90,
     );

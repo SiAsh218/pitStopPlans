@@ -44,7 +44,7 @@ function seedAddActivationTemplate(adminUser) {
     )
     .run(
       "ADD Activation",
-      "An incident involving an ADD Activation that impacts service.",
+      "An ADD activation affecting rail services.",
     );
 
   const incidentTypeId = incidentTypeResult.lastInsertRowid;
@@ -115,7 +115,7 @@ function seedAddActivationTemplate(adminUser) {
         VALUES (?, ?, ?, ?)
       `,
     )
-    .run(templateId, 2, "Access & Assessments", 30);
+    .run(templateId, 2, "Access & Assessment", 30);
 
   const stage2Id = stage2Result.lastInsertRowid;
 
@@ -137,7 +137,7 @@ function seedAddActivationTemplate(adminUser) {
         VALUES (?, ?, ?, ?)
       `,
     )
-    .run(templateId, 3, "Planned Response", 60);
+    .run(templateId, 3, "Response Planning", 60);
 
   const stage3Id = stage3Result.lastInsertRowid;
 
@@ -186,8 +186,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       1,
-      "NR Senior Leader Advised",
-      "On-Call Network Rail senior leader is advised of the incident and its potential impact.",
+      "Notify NR Senior Leader",
+      "Notify the on-call Network Rail senior leader of the incident and its impact.",
       10,
       10,
     );
@@ -217,8 +217,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       2,
-      "TOC Senior Leader Advised",
-      "On-Call TOC senior leader is advised of the incident and its potential impact.",
+      "Notify TOC Senior Leader",
+      "Notify the on-call TOC senior leader of the incident and its impact.",
       10,
       10,
     );
@@ -248,8 +248,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       3,
-      "Responders to site",
-      "The correct responders have been sent to site to assess the incident and its potential impact.",
+      "Deploy Responders",
+      "Send the appropriate responders to assess the incident and its impact.",
       10,
       10,
     );
@@ -279,8 +279,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       4,
-      "TOC Duty Control Manager Advised",
-      "The TOC Duty Control Manager has been advised of the incident.",
+      "Notify TOC Duty Control Manager",
+      "Notify the TOC Duty Control Manager of the incident.",
       10,
       10,
     );
@@ -310,8 +310,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       5,
-      "Confirm Tactical Plan",
-      "Confirm the tactical plan with the IC and TOC control lead.  Prepare for escalation if necessary.",
+      "Agree Tactical Plan",
+      "Agree the plan with the IC and TOC control lead; prepare to escalate if needed.",
       10,
       10,
     );
@@ -341,8 +341,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       6,
-      "Categorisation of Incident",
-      "Confirm the incident Categorisation",
+      "Confirm Incident Category",
+      "Confirm the incident category.",
       10,
       10,
     );
@@ -372,8 +372,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       7,
-      "Communicate Initial Categorisation",
-      "Send initial BLACK, RED, AMBER to stakeholders based on latest information currently available",
+      "Share Initial Status",
+      "Share the initial Black, Red or Amber status with stakeholders.",
       10,
       10,
     );
@@ -403,8 +403,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       8,
-      "ADD Activation Impact",
-      "Understand the full impact of the ADD sctivation.  Lines, limits of section affected and has there been a tripping?",
+      "Assess ADD Activation Impact",
+      "Identify affected lines and section limits, and confirm whether a trip occurred.",
       10,
       10,
     );
@@ -434,8 +434,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       9,
-      "ADD Activation Cause",
-      "Can the TOC identify the cause of the ADD activation, is it a train fault?",
+      "Identify ADD Activation Cause",
+      "Ask the TOC to identify the cause and whether a train fault is involved.",
       10,
       10,
     );
@@ -465,8 +465,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       10,
-      "Rapid Brief",
-      "30 second brief to the TRC/TOC leads, SNDM & RCM on the incident",
+      "Brief Incident Leads",
+      "Brief TRC/TOC leads, SNDM and RCM within 30 seconds.",
       10,
       10,
     );
@@ -496,8 +496,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       11,
-      "Stranded Trains",
-      "Identify any stranded trains and consider recovery options",
+      "Assess Stranded Trains",
+      "Identify stranded trains and assess recovery options.",
       10,
       10,
     );
@@ -527,8 +527,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       13,
-      "IC Brief",
-      "Recieved brief from IC to fully understand the infrastructure restrictions",
+      "Get IC Brief",
+      "Obtain the IC's briefing on infrastructure restrictions.",
       10,
       10,
     );
@@ -558,8 +558,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       14,
-      "Contingency Plan",
-      "Identify the relevant contingency plan based on the information gathered to this point",
+      "Select Contingency Plan",
+      "Select the relevant plan using the information gathered.",
       10,
       10,
     );
@@ -589,8 +589,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       1,
-      "Command Structure",
-      "Does the command structure need setting up",
+      "Establish Command Structure",
+      "Establish a command structure if required.",
       20,
       30,
     );
@@ -620,8 +620,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       2,
-      "Service Management Conference",
-      "Train Service Management Conference held?",
+      "Train Service Conference",
+      "Hold a Train Service Management Conference if required.",
       20,
       30,
     );
@@ -652,7 +652,7 @@ function seedAddActivationTemplate(adminUser) {
       stage2Id,
       3,
       "Incident Management Conference",
-      "Incident Management Conference held as per staff on call matrix",
+      "Hold the conference with staff on the on-call matrix.",
       20,
       30,
     );
@@ -682,8 +682,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       4,
-      "Stranded Trains RA",
-      "Complete Stranded Trains Risk Assessment and prepare plans A, B and C",
+      "Assess Stranded Trains",
+      "Complete the stranded-train risk assessment and plans A, B and C.",
       20,
       30,
     );
@@ -714,7 +714,7 @@ function seedAddActivationTemplate(adminUser) {
       stage2Id,
       5,
       "Dynamic Risk Assessment",
-      "Consider the use of a dynamic risk assessment.  If the incident is in the Thames Valley advise NOC London",
+      "Consider a dynamic risk assessment; notify NOC London for Thames Valley incidents.",
       20,
       30,
     );
@@ -744,8 +744,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       6,
-      "Huddles",
-      "Following Tactical/Strategic conferences huddles with IC and TRC teams to be undertaken to provide details of decisions and create a shared situational awareness",
+      "Hold IC/TRC Huddles",
+      "After tactical or strategic conferences, share decisions and situational updates with IC and TRC teams.",
       20,
       30,
     );
@@ -775,8 +775,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       7,
-      "Agree Cross Check",
-      "Agree with RCM who will cross check the first 10 minutes",
+      "Assign First 10-Minute Check",
+      "Agree with RCM who will cross-check the first 10 minutes.",
       20,
       30,
     );
@@ -806,8 +806,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       8,
-      "Cross Check",
-      "Carry Out cross check of the first 10 minutes",
+      "Complete First 10-Minute Check",
+      "Cross-check the first 10 minutes.",
       20,
       30,
     );
@@ -837,8 +837,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       9,
-      "Communicate Status",
-      "Send updated Black, Red, Amber to stakeholders on latest information",
+      "Share Updated Status",
+      "Share the latest Black, Red or Amber status with stakeholders.",
       20,
       30,
     );
@@ -869,7 +869,7 @@ function seedAddActivationTemplate(adminUser) {
       stage2Id,
       10,
       "Appoint ARM",
-      "If OLE Damage and request milestone plane",
+      "If OLE is damaged, appoint an ARM and request a milestone plan.",
       20,
       30,
     );
@@ -899,8 +899,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       11,
-      "Access",
-      "Consider Access requirements with signaller and ARM/MOM/OLE team",
+      "Arrange Access",
+      "Agree access requirements with the signaller and ARM/MOM/OLE team.",
       20,
       30,
     );
@@ -930,8 +930,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage2Id,
       12,
-      "Coast",
-      "If able to coast are coasting boards being resourced.  ETA to site",
+      "Arrange Coasting Boards",
+      "If the train can coast, arrange coasting boards and confirm their ETA.",
       20,
       30,
     );
@@ -962,7 +962,7 @@ function seedAddActivationTemplate(adminUser) {
       stage2Id,
       13,
       "Amend Train Service",
-      "Work with TOC/FOC to amend the train service as per contingency plan identifying opportunities and risks to train service upon start up of full service",
+      "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       20,
       30,
     );
@@ -992,8 +992,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       1,
-      "Tyrell",
-      "Continue to update Tyrell/Amber messages based on the information available",
+      "Update Tyrell/Amber Messages",
+      "Update Tyrell/Amber messages with the latest information.",
       30,
       60,
     );
@@ -1023,8 +1023,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       2,
-      "Stranded Trains",
-      "Update the stranded trains board where applicable.  Stand up RIC if more than 3 stranded trains",
+      "Update Stranded Train Board",
+      "Update the board; establish RIC if more than three trains are stranded.",
       30,
       60,
     );
@@ -1054,8 +1054,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       3,
-      "Re-energising Timeline",
-      "Understand the timeline and process for re-energising the OLE",
+      "Confirm Re-energisation Plan",
+      "Confirm the OLE re-energisation timeline and process.",
       30,
       60,
     );
@@ -1085,8 +1085,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       4,
-      "Milestone Plan",
-      "Develop a milestone recovery train service plan for each train through the affected area after recovery of the OLE (if applicable)",
+      "Create Recovery Milestone Plan",
+      "Plan each train's recovery through the affected area after OLE recovery, if applicable.",
       30,
       60,
     );
@@ -1116,8 +1116,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       5,
-      "Stranded Trains",
-      "Monitor Stranded Train management against the Risk Assessment",
+      "Monitor Stranded Trains",
+      "Track stranded-train management against the risk assessment.",
       30,
       60,
     );
@@ -1147,8 +1147,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       6,
-      "11-30 min Check",
-      "Undertake the 11-30 minutes cross check",
+      "Complete 11-30 Minute Cross-Check",
+      "Complete the 11-30 minute cross-check.",
       30,
       60,
     );
@@ -1178,8 +1178,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage3Id,
       7,
-      "Milestone Plan",
-      "Develop a milestone recovery train service plan for each train through the affected area after recovery of the OLE (if applicable)",
+      "Create Recovery Milestone Plan",
+      "Plan each train's recovery through the affected area after OLE recovery, if applicable.",
       30,
       60,
     );
@@ -1210,7 +1210,7 @@ function seedAddActivationTemplate(adminUser) {
       stage3Id,
       8,
       "Amend Train Service",
-      "Work with TOC/FOC to amend the train service as per contingency plan identifying opportunities and risks to train service upon start up of full service",
+      "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       30,
       60,
     );
@@ -1240,8 +1240,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage4Id,
       1,
-      "Service Recovery",
-      "Oversee progress with service recovery and escalate as necessary",
+      "Oversee Service Recovery",
+      "Monitor recovery and escalate if needed.",
       30,
       90,
     );
@@ -1295,8 +1295,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage4Id,
       3,
-      "Service Recovered",
-      "Declare service recovery complete",
+      "Confirm Service Recovery",
+      "Confirm service recovery is complete.",
       30,
       90,
     );
@@ -1326,8 +1326,8 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage4Id,
       4,
-      "Support Effected TOCs/FOCs",
-      "On the resumption of the train service following disruption",
+      "Support Affected TOCs/FOCs",
+      "Support operators as train services resume.",
       30,
       90,
     );

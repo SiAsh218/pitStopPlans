@@ -13,6 +13,29 @@
 
 const seedTrainFailureTemplate = require("./seeds/seedTrainFailureTemp.js");
 const seedAddActivationTemplate = require("./seeds/seedAddActivationTemp.js");
+const additionalTemplateSeeders = [
+  require("./seeds/seed650PowerTurnOff.js"),
+  require("./seeds/seedAnimalOnLine.js"),
+  require("./seeds/seedAxleCounterFailure.js"),
+  require("./seeds/seedBridgeStrike.js"),
+  require("./seeds/seedDangerousGoodsIncident.js"),
+  require("./seeds/seedFailureToTransition.js"),
+  require("./seeds/seedLinesideFire.js"),
+  require("./seeds/seedOLEEmergencySwitchOff.js"),
+  require("./seeds/seedOLEIncident.js"),
+  require("./seeds/seedPersonStruckByTrain.js"),
+  require("./seeds/seedPointsFailure.js"),
+  require("./seeds/seedPossessionOverrun.js"),
+  require("./seeds/seedRepeatFailure.js"),
+  require("./seeds/seedSecurityIncident.js"),
+  require("./seeds/seedSignallingIrregularitiesWSF.js"),
+  require("./seeds/seedSignallingSystemFailure.js"),
+  require("./seeds/seedSuspectedCrackedCrossing.js"),
+  require("./seeds/seedSuspectedTrackDefect.js"),
+  require("./seeds/seedTrackCircuitFailure.js"),
+  require("./seeds/seedTrespassIncident.js"),
+  require("./seeds/seedWeatherFloodingIncident.js"),
+];
 
 const db = require("./db");
 const bcrypt = require("bcrypt");
@@ -134,6 +157,10 @@ function seedDatabase() {
     console.log("✅ Roles seeded");
   }
 
+  db.prepare("INSERT OR IGNORE INTO roles (name) VALUES (?)").run(
+    "Infrastructure Controller",
+  );
+
   /**
    * ============================================================
    * Assign Test User Role
@@ -183,6 +210,10 @@ function seedDatabase() {
     seedTrainFailureTemplate(adminUser);
     seedAddActivationTemplate(adminUser);
   }
+
+  additionalTemplateSeeders.forEach((seedTemplate) =>
+    seedTemplate(adminUser),
+  );
 
   return;
 
