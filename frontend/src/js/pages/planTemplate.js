@@ -1,5 +1,6 @@
 import {
   getTemplate,
+  updateTemplate,
   approveTemplate,
   retireTemplate,
   deleteDraftTemplate,
@@ -57,6 +58,7 @@ export async function initPlanTemplatePage() {
     if (isDraft) {
       wireAddStageButton(plan);
 
+      wireEditIncidentTypeButton(template);
       wireApproveTemplateButton(template.id);
       wireDeleteDraftButton(template.id);
     }
@@ -89,7 +91,17 @@ function renderTemplateMeta(template, isDraft) {
       <div class="template-page__hero-main">
         <div>
           <p class="template-page__eyebrow">Template overview</p>
-          <h1>${template.title}</h1>
+          <h1>${template.incident_type.name}</h1>
+          ${
+            template.incident_type.description
+              ? `<p>${template.incident_type.description}</p>`
+              : ""
+          }
+          ${
+            template.proposed_incident_type
+              ? `<p class="template-page__pending-change">Pending approval — Template name: ${template.proposed_incident_type.name}; Template description: ${template.proposed_incident_type.description || "None"}</p>`
+              : ""
+          }
         </div>
 
         <div class="template-page__badges">
@@ -108,6 +120,14 @@ function renderTemplateMeta(template, isDraft) {
             ? `
               <button id="btn-add-stage" class="btn btn-primary">
                 Add Stage
+              </button>
+
+              <button
+                id="btn-edit-incident-type"
+                class="btn btn-secondary"
+                type="button"
+              >
+                Edit Incident Type
               </button>
 
               <button id="btn-approve-template" class="btn btn-primary">
@@ -132,6 +152,58 @@ function renderTemplateMeta(template, isDraft) {
       </div>
     </div>
   `;
+}
+
+function wireEditIncidentTypeButton(template) {
+  const button = document.getElementById("btn-edit-incident-type");
+  const modal = document.getElementById("modal-form-template-incident-type");
+  const form = document.getElementById("form-template-incident-type");
+
+  if (!button || !modal || !form) {
+    return;
+  }
+
+  button.addEventListener("click", () => {
+    const proposed = template.proposed_incident_type;
+    document.getElementById("modal-template-incident-type-name").value =
+      proposed?.name || template.incident_type.name;
+    document.getElementById(
+      "modal-template-incident-type-description",
+    ).value =
+      proposed?.description ?? template.incident_type.description ?? "";
+    modal.classList.remove("hidden");
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const name = document
+      .getElementById("modal-template-incident-type-name")
+      .value.trim();
+    const description = document
+      .getElementById("modal-template-incident-type-description")
+      .value.trim();
+
+    if (!name) {
+      showError("Please enter an incident type name.");
+      return;
+    }
+
+    try {
+      await updateTemplate(template.id, {
+        proposed_incident_type: {
+          name,
+          description,
+        },
+      });
+      modal.classList.add("hidden");
+      showSuccess("Incident type changes saved for approval.");
+      await refreshPlanTemplatePage();
+    } catch (err) {
+      console.error(err);
+      showError(err.message || "Failed to update incident type.");
+    }
+  });
 }
 
 function getNextActionNumber(actions = []) {
@@ -369,10 +441,11 @@ function renderTemplateMatrix(plan, isDraft) {
                           class="btn btn-secondary btn-move-action"
                           type="button"
                           data-action-id="${action.id}"
+                          data-role-id="${action.roles[0].id}"
                           data-direction="up"
                           aria-label="Move action ${action.action_number} up"
                           title="Move action up"
-                          ${orderedActions[0]?.id === action.id ? "disabled" : ""}
+                          ${matchingActions[0]?.id === action.id ? "disabled" : ""}
                         >
                           &#8593;
                         </button>
@@ -381,10 +454,11 @@ function renderTemplateMatrix(plan, isDraft) {
                           class="btn btn-secondary btn-move-action"
                           type="button"
                           data-action-id="${action.id}"
+                          data-role-id="${action.roles[0].id}"
                           data-direction="down"
                           aria-label="Move action ${action.action_number} down"
                           title="Move action down"
-                          ${orderedActions.at(-1)?.id === action.id ? "disabled" : ""}
+                          ${matchingActions.at(-1)?.id === action.id ? "disabled" : ""}
                         >
                           &#8595;
                         </button>
@@ -601,23 +675,35 @@ function wireActionOrderButtons(plan) {
       const actions = [...stage.actions].sort(
         (a, b) => a.action_number - b.action_number,
       );
-      const actionIndex = actions.findIndex((action) => action.id === actionId);
+      const roleId = Number(button.dataset.roleId);
+      const roleActions = actions.filter((action) =>
+        action.roles.some((role) => role.id === roleId),
+      );
+      const roleActionIndex = roleActions.findIndex(
+        (action) => action.id === actionId,
+      );
       const targetIndex =
-        actionIndex + (button.dataset.direction === "up" ? -1 : 1);
+        roleActionIndex + (button.dataset.direction === "up" ? -1 : 1);
 
-      if (targetIndex < 0 || targetIndex >= actions.length) {
+      if (targetIndex < 0 || targetIndex >= roleActions.length) {
         return;
       }
 
-      [actions[actionIndex], actions[targetIndex]] = [
-        actions[targetIndex],
-        actions[actionIndex],
+      [roleActions[roleActionIndex], roleActions[targetIndex]] = [
+        roleActions[targetIndex],
+        roleActions[roleActionIndex],
       ];
+      let roleActionIndexInOrder = 0;
+      const reorderedActions = actions.map((action) =>
+        action.roles.some((role) => role.id === roleId)
+          ? roleActions[roleActionIndexInOrder++]
+          : action,
+      );
 
       try {
         await reorderActions(
           stage.id,
-          actions.map((action) => action.id),
+          reorderedActions.map((action) => action.id),
         );
         await refreshPlanTemplatePage();
       } catch (err) {
@@ -1082,9 +1168,12 @@ function wireActionButtons() {
         button.dataset.nextActionNumber;
       document.getElementById("modal-action-title-input").value = "";
       document.getElementById("modal-action-description").value = "";
-      document.getElementById("modal-action-stage-due").value = "0";
-      document.getElementById("modal-action-incident-due").value =
-        button.dataset.stageStart;
+      document.getElementById("modal-action-stage-due").value = String(
+        Math.max(
+          0,
+          Number(button.dataset.stageEnd) - Number(button.dataset.stageStart),
+        ),
+      );
       configureActionDueInputs(
         button.dataset.stageStart,
         button.dataset.stageEnd,

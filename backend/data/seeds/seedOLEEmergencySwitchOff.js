@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "OLE Emergency Switch Off",
     "description": "OLE Emergency Switch Off affecting rail services.",
     "version": 1,
-    "title": "OLE Emergency Switch Off Plan",
+    "title": "OLE Emergency Switch Off",
     "stages": [
       {
         "name": "Initial Response",

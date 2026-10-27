@@ -64,8 +64,8 @@ function renderTemplates(templates) {
       <article class="template-card">
         <div class="template-card__header">
           <div>
-            <h2>${name}</h2>
-            <p>${versions.incidentType?.name || name}</p>
+            <h2>${versions.incidentType?.name || name}</h2>
+            <p>${versions.incidentType?.description || versions.incidentType?.name || name}</p>
           </div>
 
           <div class="template-card__badges">
@@ -242,12 +242,14 @@ function wireCreateTemplateButton() {
           .getElementById("modal-template-incident-description")
           .value.trim(),
       },
-      title: document.getElementById("modal-template-title").value.trim(),
+      title: document
+        .getElementById("modal-template-incident-name")
+        .value.trim(),
     };
 
-    if (!payload.incidentType.name || !payload.title) {
-      showError("Please complete the incident type and template title.");
-      return;
+    if (!payload.incidentType.name) {
+    showError("Please enter an incident type name.");
+    return;
     }
 
     try {

@@ -17,6 +17,9 @@ const planTemplateService = require("../../backend/services/planTemplateService"
 describe("PlanTemplateService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    planTemplateRepository.db = {
+      transaction: (callback) => callback,
+    };
   });
 
   describe("approveTemplate", () => {
@@ -48,6 +51,48 @@ describe("PlanTemplateService", () => {
       expect(auditService.log).toHaveBeenCalled();
 
       expect(result.status).toBe("approved");
+    });
+
+    it("applies proposed incident type changes only when approving", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "draft",
+        incident_type_id: 10,
+        proposed_incident_type_name: "Updated Incident",
+        proposed_incident_type_description: "Updated description",
+      });
+      incidentTypeRepository.findById.mockReturnValue({
+        id: 10,
+        name: "Original Incident",
+        description: "Original description",
+      });
+      planTemplateRepository.findByIdWithIncidentType.mockReturnValue({
+        id: 1,
+        title: "Updated Incident",
+        version: 1,
+        status: "approved",
+        incident_type_id: 10,
+        incident_type_name: "Updated Incident",
+        incident_type_description: "Updated description",
+      });
+
+      planTemplateService.approveTemplate(1, 99);
+
+      expect(incidentTypeRepository.updateById).toHaveBeenCalledWith(10, {
+        name: "Updated Incident",
+        description: "Updated description",
+      });
+      expect(
+        planTemplateRepository.updateTitlesByIncidentType,
+      ).toHaveBeenCalledWith(10, "Updated Incident");
+      expect(planTemplateRepository.updateById).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          status: "approved",
+          proposed_incident_type_name: null,
+          proposed_incident_type_description: null,
+        }),
+      );
     });
 
     it("throws when template does not exist", () => {
@@ -507,6 +552,56 @@ describe("PlanTemplateService", () => {
       expect(result.title).toBe("New Title");
     });
 
+    it("saves incident type edits as proposed changes on the draft", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "draft",
+        incident_type_id: 10,
+      });
+      planTemplateRepository.findByIdWithIncidentType
+        .mockReturnValueOnce({
+          id: 1,
+          title: "Original Incident",
+          version: 1,
+          status: "draft",
+          incident_type_id: 10,
+          incident_type_name: "Original Incident",
+          incident_type_description: "Original description",
+        })
+        .mockReturnValueOnce({
+          id: 1,
+          title: "Original Incident",
+          version: 1,
+          status: "draft",
+          incident_type_id: 10,
+          incident_type_name: "Original Incident",
+          incident_type_description: "Original description",
+          proposed_incident_type_name: "Updated Incident",
+          proposed_incident_type_description: "Updated description",
+        });
+
+      const result = planTemplateService.updatePlanTemplate(
+        1,
+        {
+          proposed_incident_type: {
+            name: "Updated Incident",
+            description: "Updated description",
+          },
+        },
+        99,
+      );
+
+      expect(incidentTypeRepository.updateById).not.toHaveBeenCalled();
+      expect(planTemplateRepository.updateById).toHaveBeenCalledWith(1, {
+        proposed_incident_type_name: "Updated Incident",
+        proposed_incident_type_description: "Updated description",
+      });
+      expect(result.proposed_incident_type).toEqual({
+        name: "Updated Incident",
+        description: "Updated description",
+      });
+    });
+
     it("rejects updating approved templates", () => {
       planTemplateRepository.findById.mockReturnValue({
         id: 1,
@@ -574,12 +669,18 @@ describe("PlanTemplateService", () => {
           status: "draft",
           incident_type_id: 10,
           incident_type_name: "Train Failure",
+          incident_type_description: "A train failure affecting services.",
         },
       ]);
 
       const result = planTemplateService.getTemplateSummary();
 
       expect(result).toHaveLength(1);
+      expect(result[0].incident_type).toEqual({
+        id: 10,
+        name: "Train Failure",
+        description: "A train failure affecting services.",
+      });
     });
   });
 

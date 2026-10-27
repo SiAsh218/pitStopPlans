@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Bridge Strike",
     "description": "Bridge Strike affecting rail services.",
     "version": 4,
-    "title": "Bridge Strike Plan",
+    "title": "Bridge Strike",
     "stages": [
       {
         "name": "Initial Response",

@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Suspected Track Defect",
     "description": "Suspected Track Defect affecting rail services.",
     "version": 6,
-    "title": "Suspected Track Defect Plan",
+    "title": "Suspected Track Defect",
     "stages": [
       {
         "name": "Initial Response",

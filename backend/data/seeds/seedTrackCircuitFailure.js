@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Track Circuit Failure",
     "description": "Track Circuit Failure affecting rail services.",
     "version": 7,
-    "title": "Track Circuit Failure Plan",
+    "title": "Track Circuit Failure",
     "stages": [
       {
         "name": "Initial Response",

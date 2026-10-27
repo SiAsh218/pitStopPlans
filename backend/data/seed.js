@@ -215,6 +215,22 @@ function seedDatabase() {
     seedTemplate(adminUser),
   );
 
+  db.prepare(
+    `
+      UPDATE plan_templates
+      SET title = (
+        SELECT name
+        FROM incident_types
+        WHERE incident_types.id = plan_templates.incident_type_id
+      )
+      WHERE incident_type_id IN (
+        SELECT id
+        FROM incident_types
+        WHERE name IN (?, ?)
+      )
+    `,
+  ).run("Train Failure", "ADD Activation");
+
   return;
 
   /**

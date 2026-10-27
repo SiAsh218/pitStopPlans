@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Lineside Fire",
     "description": "Lineside Fire affecting rail services.",
     "version": 6,
-    "title": "Lineside Fire Plan",
+    "title": "Lineside Fire",
     "stages": [
       {
         "name": "Initial Response",

@@ -28,6 +28,27 @@ function ensureRolesActiveColumn() {
   }
 }
 
+function ensurePlanTemplateProposedIncidentTypeColumns() {
+  const columns = db
+    .prepare("PRAGMA table_info(plan_templates)")
+    .all()
+    .map((column) => column.name);
+
+  if (!columns.includes("proposed_incident_type_name")) {
+    db.exec(`
+      ALTER TABLE plan_templates
+      ADD COLUMN proposed_incident_type_name TEXT;
+    `);
+  }
+
+  if (!columns.includes("proposed_incident_type_description")) {
+    db.exec(`
+      ALTER TABLE plan_templates
+      ADD COLUMN proposed_incident_type_description TEXT;
+    `);
+  }
+}
+
 /**
  * Allows user deletion without removing audit history.
  *
@@ -351,6 +372,7 @@ function initialiseDatabase() {
     );
   `);
 
+  ensurePlanTemplateProposedIncidentTypeColumns();
   ensurePlanTemplateUserSetNull();
 
   /**

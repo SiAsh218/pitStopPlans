@@ -13,7 +13,8 @@ describe("PlanTemplateRepository", () => {
     db.exec(`
       CREATE TABLE incident_types (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT ''
       );
 
       CREATE TABLE plan_templates (
@@ -24,16 +25,18 @@ describe("PlanTemplateRepository", () => {
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,
         approved_at TEXT,
+        proposed_incident_type_name TEXT,
+        proposed_incident_type_description TEXT,
         FOREIGN KEY (incident_type_id) REFERENCES incident_types(id)
       );
     `);
 
     db.exec(`
-      INSERT INTO incident_types (id, name)
+      INSERT INTO incident_types (id, name, description)
       VALUES
-        (1, 'Train Failure'),
-        (2, 'Signal Failure'),
-        (3, 'Power Failure');
+        (1, 'Train Failure', 'A train failure affecting services.'),
+        (2, 'Signal Failure', 'A signal failure affecting services.'),
+        (3, 'Power Failure', 'A power failure affecting services.');
 
       INSERT INTO plan_templates (
         id,
@@ -190,6 +193,31 @@ describe("PlanTemplateRepository", () => {
           incident_type_name: "Power Failure",
         }),
       );
+    });
+
+    describe("updateTitlesByIncidentType", () => {
+      it("updates titles for every template version of the incident type", () => {
+        const result = planTemplateRepository.updateTitlesByIncidentType(
+          1,
+          "Updated Train Failure",
+        );
+
+        expect(result.changes).toBe(3);
+        expect(
+          planTemplateRepository
+            .findByIncidentTypeId(1)
+            .map((template) => template.title),
+        ).toEqual([
+          "Updated Train Failure",
+          "Updated Train Failure",
+          "Updated Train Failure",
+        ]);
+        expect(
+          planTemplateRepository
+            .findByIncidentTypeId(2)
+            .every((template) => template.title !== "Updated Train Failure"),
+        ).toBe(true);
+      });
     });
 
     it("finds a template by ID with incident type details", () => {

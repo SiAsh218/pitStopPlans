@@ -50,6 +50,10 @@
   color: var(--color-primary);
 }
 
+.stat-number--overdue {
+  color: var(--color-danger);
+}
+
 .stat-label {
   display: block;
   margin-top: 0.5rem;

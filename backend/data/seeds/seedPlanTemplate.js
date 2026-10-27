@@ -13,6 +13,9 @@ function seedPlanTemplate(adminUser, plan) {
     .get(plan.name);
 
   if (existingType) {
+    db.prepare(
+      "UPDATE plan_templates SET title = ? WHERE incident_type_id = ?",
+    ).run(plan.name, existingType.id);
     return;
   }
 
@@ -66,7 +69,7 @@ function seedPlanTemplate(adminUser, plan) {
       .run(
         incidentType.lastInsertRowid,
         plan.version,
-        plan.title,
+        plan.name,
         adminUser.id,
         adminUser.id,
       );

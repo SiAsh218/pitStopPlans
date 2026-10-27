@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Animal on Line",
     "description": "Animal on Line affecting rail services.",
     "version": 1,
-    "title": "Animal on Line Plan",
+    "title": "Animal on Line",
     "stages": [
       {
         "name": "Initial Response",

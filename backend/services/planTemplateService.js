@@ -26,7 +26,18 @@ class PlanTemplateService {
       incident_type: {
         id: row.incident_type_id,
         name: row.incident_type_name,
+        description: row.incident_type_description,
       },
+      proposed_incident_type:
+        row.proposed_incident_type_name !== null &&
+        row.proposed_incident_type_name !== undefined
+          ? {
+              name: row.proposed_incident_type_name,
+              description:
+                row.proposed_incident_type_description ??
+                row.incident_type_description,
+            }
+          : null,
     };
   }
 
@@ -185,6 +196,30 @@ class PlanTemplateService {
       fields.status = updates.status;
     }
 
+    if (updates.proposed_incident_type !== undefined) {
+      const proposed = updates.proposed_incident_type;
+      const name = proposed?.name?.trim();
+      const description = proposed?.description?.trim();
+
+      if (!name || description === undefined) {
+        throw new AppError(
+          "Incident type name and description are required",
+          400,
+        );
+      }
+
+      const existingType = incidentTypeRepository.findByName(name);
+      if (
+        existingType &&
+        existingType.id !== template.incident_type_id
+      ) {
+        throw new AppError("Incident type already exists", 409);
+      }
+
+      fields.proposed_incident_type_name = name;
+      fields.proposed_incident_type_description = description;
+    }
+
     if (Object.keys(fields).length === 0) {
       return beforeTemplate;
     }
@@ -261,21 +296,63 @@ class PlanTemplateService {
     }
 
     const beforeStatus = template.status;
+    const approvalDate = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+    const incidentType = incidentTypeRepository.findById(
+      template.incident_type_id,
+    );
+    const proposedName = template.proposed_incident_type_name;
+    const proposedDescription = template.proposed_incident_type_description;
+    const applyIncidentTypeChanges =
+      proposedName !== null &&
+      proposedName !== undefined &&
+      incidentType !== null &&
+      incidentType !== undefined;
+    const conflictingIncidentType = applyIncidentTypeChanges
+      ? incidentTypeRepository.findByName(proposedName)
+      : null;
 
-    planTemplateRepository.updateById(id, {
-      status: "approved",
-      approved_by: userId,
-      approved_at: new Date().toISOString().replace("T", " ").substring(0, 19),
+    if (
+      conflictingIncidentType &&
+      conflictingIncidentType.id !== template.incident_type_id
+    ) {
+      throw new AppError("Incident type already exists", 409);
+    }
+
+    const approve = planTemplateRepository.db.transaction(() => {
+      if (applyIncidentTypeChanges) {
+        incidentTypeRepository.updateById(template.incident_type_id, {
+          name: proposedName,
+          description: proposedDescription ?? incidentType.description,
+        });
+        planTemplateRepository.updateTitlesByIncidentType(
+          template.incident_type_id,
+          proposedName,
+        );
+      }
+
+      planTemplateRepository.updateById(id, {
+        status: "approved",
+        approved_by: userId,
+        approved_at: approvalDate,
+        proposed_incident_type_name: null,
+        proposed_incident_type_description: null,
+      });
     });
+    approve();
 
     const afterTemplate = this.getPlanTemplateById(id);
 
     auditService.log(userId, "APPROVE_TEMPLATE", "plan_template", id, {
       before: {
         status: beforeStatus,
+        incidentTypeName: incidentType?.name,
       },
       after: {
         status: afterTemplate.status,
+        incidentTypeName: afterTemplate.incident_type.name,
       },
       approvedBy: userId,
     });

@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "OLE Incident",
     "description": "OLE Incident affecting rail services.",
     "version": 8,
-    "title": "OLE Incident Plan",
+    "title": "OLE Incident",
     "stages": [
       {
         "name": "Initial Response",

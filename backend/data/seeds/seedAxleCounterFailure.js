@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Axle Counter Failure",
     "description": "Axle Counter Failure affecting rail services.",
     "version": 7,
-    "title": "Axle Counter Failure Plan",
+    "title": "Axle Counter Failure",
     "stages": [
       {
         "name": "Initial Response",

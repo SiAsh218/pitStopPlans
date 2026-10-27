@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Dangerous Goods Incident",
     "description": "Dangerous Goods Incident affecting rail services.",
     "version": 4,
-    "title": "Dangerous Goods Incident Plan",
+    "title": "Dangerous Goods Incident",
     "stages": [
       {
         "name": "Initial Response",

@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Signalling System Failure",
     "description": "Signalling System Failure affecting rail services.",
     "version": 8,
-    "title": "Signalling System Failure Plan",
+    "title": "Signalling System Failure",
     "stages": [
       {
         "name": "Initial Response",

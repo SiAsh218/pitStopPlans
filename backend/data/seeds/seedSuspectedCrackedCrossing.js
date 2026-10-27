@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Suspected Cracked Crossing",
     "description": "Suspected Cracked Crossing affecting rail services.",
     "version": 1,
-    "title": "Suspected Cracked Crossing Plan",
+    "title": "Suspected Cracked Crossing",
     "stages": [
       {
         "name": "Initial Response",

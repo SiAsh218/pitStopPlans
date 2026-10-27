@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Possession Overrun",
     "description": "Possession Overrun affecting rail services.",
     "version": 5,
-    "title": "Possession Overrun Plan",
+    "title": "Possession Overrun",
     "stages": [
       {
         "name": "Initial Response",

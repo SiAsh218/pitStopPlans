@@ -1,4 +1,5 @@
 import { getIncidentTypes } from "../services/incidentTypeService.js";
+import { getTemplateSummary } from "../services/planTemplateService.js";
 import { showWarning, showError } from "../utils/myAlert.js";
 import { createIncident } from "../services/incidentService.js";
 import { copyToClipboard } from "../utils/copyToClipboard.js";
@@ -10,11 +11,26 @@ export async function initCreateIncidentPage() {
     return;
   }
 
-  const incidentTypes = await getIncidentTypes();
+  const [incidentTypes, templates] = await Promise.all([
+    getIncidentTypes(),
+    getTemplateSummary(),
+  ]);
+  const activeIncidentTypeIds = new Set(
+    templates
+      .filter((template) => template.status === "approved")
+      .map((template) => template.incident_type.id),
+  );
 
   const select = document.getElementById("incident-type");
+  const sortedIncidentTypes = incidentTypes
+    .filter((type) => activeIncidentTypeIds.has(type.id))
+    .sort((first, second) =>
+      first.name.localeCompare(second.name, undefined, {
+        sensitivity: "base",
+      }),
+    );
 
-  incidentTypes.forEach((type) => {
+  sortedIncidentTypes.forEach((type) => {
     const option = document.createElement("option");
 
     option.value = type.id;

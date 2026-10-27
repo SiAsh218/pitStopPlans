@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Trespass Incident",
     "description": "Trespass Incident affecting rail services.",
     "version": 8,
-    "title": "Trespass Incident Plan",
+    "title": "Trespass Incident",
     "stages": [
       {
         "name": "Initial Response",

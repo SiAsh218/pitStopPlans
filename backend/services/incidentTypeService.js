@@ -1,4 +1,5 @@
 const incidentTypeRepository = require("../data/repositories/incidentTypeRepository");
+const planTemplateRepository = require("../data/repositories/planTemplateRepository");
 
 class IncidentTypeService {
   /**
@@ -85,10 +86,15 @@ class IncidentTypeService {
       description: updates.description ?? row.description,
     };
 
-    incidentTypeRepository.updateById(id, {
-      name: updatedRow.name,
-      description: updatedRow.description,
+    const update = incidentTypeRepository.db.transaction(() => {
+      incidentTypeRepository.updateById(id, {
+        name: updatedRow.name,
+        description: updatedRow.description,
+      });
+      planTemplateRepository.updateTitlesByIncidentType(id, updatedRow.name);
     });
+
+    update();
 
     return this._toDTO(updatedRow);
   }

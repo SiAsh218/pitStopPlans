@@ -275,6 +275,10 @@ function updateStatistics(stats) {
 
   if (overdueActionCount) {
     overdueActionCount.textContent = stats.overdueActions;
+    overdueActionCount.classList.toggle(
+      "stat-number--overdue",
+      Number(stats.overdueActions) > 0,
+    );
   }
 }
 

@@ -19,7 +19,10 @@ class PlanTemplateRepository extends BaseRepository {
       pt.created_at,
       pt.approved_at,
       pt.incident_type_id,
-      it.name AS incident_type_name
+      it.name AS incident_type_name,
+      it.description AS incident_type_description,
+      pt.proposed_incident_type_name,
+      pt.proposed_incident_type_description
     `;
   }
 
@@ -82,6 +85,18 @@ class PlanTemplateRepository extends BaseRepository {
       `,
       )
       .get(incidentTypeId, version);
+  }
+
+  updateTitlesByIncidentType(incidentTypeId, title) {
+    return this.db
+      .prepare(
+        `
+        UPDATE plan_templates
+        SET title = ?
+        WHERE incident_type_id = ?
+      `,
+      )
+      .run(title, incidentTypeId);
   }
 
   /**

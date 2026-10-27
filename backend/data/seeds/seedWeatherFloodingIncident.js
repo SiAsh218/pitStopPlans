@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Weather Flooding Incident",
     "description": "Weather Flooding Incident affecting rail services.",
     "version": 1,
-    "title": "Weather Flooding Incident Plan",
+    "title": "Weather Flooding Incident",
     "stages": [
       {
         "name": "Initial Response",

@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "650 Power Turn Off",
     "description": "650 Power Turn Off affecting rail services.",
     "version": 1,
-    "title": "650 Power Turn Off Plan",
+    "title": "650 Power Turn Off",
     "stages": [
       {
         "name": "Initial Response",

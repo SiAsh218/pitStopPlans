@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Signalling Irregularities WSF",
     "description": "Signalling Irregularities WSF affecting rail services.",
     "version": 2,
-    "title": "Signalling Irregularities WSF Plan",
+    "title": "Signalling Irregularities WSF",
     "stages": [
       {
         "name": "Initial Response",

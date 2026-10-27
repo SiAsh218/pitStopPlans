@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Repeat Failure",
     "description": "Repeat Failure affecting rail services.",
     "version": 1,
-    "title": "Repeat Failure Plan",
+    "title": "Repeat Failure",
     "stages": [
       {
         "name": "Initial Response",

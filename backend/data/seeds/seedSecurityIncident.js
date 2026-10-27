@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Security Incident",
     "description": "Security Incident affecting rail services.",
     "version": 4,
-    "title": "Security Incident Plan",
+    "title": "Security Incident",
     "stages": [
       {
         "name": "Initial Response",

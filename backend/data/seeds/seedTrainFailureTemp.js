@@ -72,7 +72,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       incidentTypeId,
       1,
-      "Train Failure Plan",
+      "Train Failure",
       "approved",
       adminUser.id,
       adminUser.id,

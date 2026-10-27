@@ -5,7 +5,7 @@ module.exports = function seedTemplate(adminUser) {
     "name": "Person Struck by Train",
     "description": "Person Struck by Train affecting rail services.",
     "version": 11,
-    "title": "Person Struck by Train Plan",
+    "title": "Person Struck by Train",
     "stages": [
       {
         "name": "Initial Response",

@@ -67,7 +67,7 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       incidentTypeId,
       1,
-      "ADD Activation Plan",
+      "ADD Activation",
       "approved",
       adminUser.id,
       adminUser.id,
