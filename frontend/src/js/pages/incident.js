@@ -30,6 +30,7 @@ import {
 } from "../services/incidentActionService.js";
 
 import {
+  getIncidentActionUpdates,
   getActionUpdates,
   addActionUpdate,
 } from "../services/incidentActionUpdateService.js";
@@ -253,9 +254,15 @@ function wireCopyToClipboardButton() {
   document
     .getElementById("btn-copy-to-clipboard")
     ?.addEventListener("click", async () => {
-      const html = buildIncidentClipboardHtml();
-      const text = buildIncidentClipboardText();
-      await copyToClipboard(html, text);
+      try {
+        const updates = await getIncidentActionUpdates(currentIncident.id);
+        const html = buildIncidentClipboardHtml(updates);
+        const text = buildIncidentClipboardText(updates);
+        await copyToClipboard(html, text);
+      } catch (err) {
+        console.error(err);
+        showError(err.message || "Failed to load action updates");
+      }
     });
 }
 
@@ -1053,12 +1060,13 @@ function getOverdueActionCount(actions) {
   return actions.filter((action) => isActionOverdue(action)).length;
 }
 
-function buildIncidentClipboardText() {
+function buildIncidentClipboardText(updates = []) {
   const activeActions = currentActions.filter(
     (a) => a.status === "in_progress",
   );
 
   const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+  const updatesByAction = groupActionUpdates(updates);
 
   return `
 INCIDENT UPDATE
@@ -1093,11 +1101,14 @@ ${
     : "None"
 }
 
+Action Updates:
+${buildActionUpdateText(updatesByAction)}
+
 Last Updated: ${new Date().toLocaleString()}
 `.trim();
 }
 
-function buildIncidentClipboardHtml() {
+function buildIncidentClipboardHtml(updates = []) {
   if (!currentIncident || !currentSummary) {
     return "<p>No incident data available</p>";
   }
@@ -1107,15 +1118,40 @@ function buildIncidentClipboardHtml() {
   );
 
   const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+  const updatesByAction = groupActionUpdates(updates);
+  const actionUpdatesHtml = currentActions
+    .filter((action) => updatesByAction.has(action.id))
+    .map(
+      (action) => `
+        <li>
+          <strong>${escapeClipboardHtml(action.title)}</strong>
+          <ul>
+            ${updatesByAction
+              .get(action.id)
+              .map(
+                (update) => `
+                  <li>
+                    <strong>${escapeClipboardHtml(update.user_email || "User")}</strong>
+                    <small> — ${escapeClipboardHtml(formatDateTime(update.created_at))}</small><br>
+                    ${escapeClipboardHtml(update.note).replace(/\r?\n/g, "<br>")}
+                  </li>
+                `,
+              )
+              .join("")}
+          </ul>
+        </li>
+      `,
+    )
+    .join("");
 
   return `
 <h2>Incident Update</h2>
 
 <p>
-  <strong>Incident:</strong> ${currentIncident.title}<br>
-  <strong>Status:</strong> ${currentIncident.status}<br>
-  <strong>CCIL:</strong> ${currentIncident.ccil_number}<br>
-  <strong>TIN:</strong> ${currentIncident.tin_number}<br>
+  <strong>Incident:</strong> ${escapeClipboardHtml(currentIncident.title)}<br>
+  <strong>Status:</strong> ${escapeClipboardHtml(currentIncident.status)}<br>
+  <strong>CCIL:</strong> ${escapeClipboardHtml(currentIncident.ccil_number)}<br>
+  <strong>TIN:</strong> ${escapeClipboardHtml(currentIncident.tin_number)}<br>
   <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
 </p>
 
@@ -1139,8 +1175,8 @@ ${
         ${activeActions
           .map(
             (action) =>
-              `• <strong>${action.title}</strong> (${action.roles
-                .map((r) => r.name)
+              `• <strong>${escapeClipboardHtml(action.title)}</strong> (${action.roles
+                .map((r) => escapeClipboardHtml(r.name))
                 .join(", ")})`,
           )
           .join("<br>")}
@@ -1158,14 +1194,21 @@ ${
         ${overdueActions
           .map(
             (action) =>
-              `• <strong>${action.title}</strong> (${action.roles
-                .map((r) => r.name)
+              `• <strong>${escapeClipboardHtml(action.title)}</strong> (${action.roles
+                .map((r) => escapeClipboardHtml(r.name))
                 .join(", ")})`,
           )
           .join("<br>")}
       </p>
     `
     : ""
+}
+
+<h3>Action Updates</h3>
+${
+  actionUpdatesHtml
+    ? `<ul>${actionUpdatesHtml}</ul>`
+    : "<p>No text updates</p>"
 }
 
 <hr>
@@ -1175,6 +1218,46 @@ ${
   ${new Date().toLocaleString()}
 </p>
 `;
+}
+
+function groupActionUpdates(updates) {
+  const grouped = new Map();
+
+  for (const update of updates) {
+    if (!grouped.has(update.incident_action_id)) {
+      grouped.set(update.incident_action_id, []);
+    }
+
+    grouped.get(update.incident_action_id).push(update);
+  }
+
+  return grouped;
+}
+
+function buildActionUpdateText(updatesByAction) {
+  const sections = currentActions
+    .filter((action) => updatesByAction.has(action.id))
+    .map((action) => {
+      const entries = updatesByAction
+        .get(action.id)
+        .map(
+          (update) =>
+            `  - ${update.user_email || "User"} (${formatDateTime(update.created_at)}):\n    ${update.note.replace(/\r?\n/g, "\n    ")}`,
+        );
+
+      return `${action.title}\n${entries.join("\n")}`;
+    });
+
+  return sections.length ? sections.join("\n\n") : "No text updates";
+}
+
+function escapeClipboardHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 // -----------------------------------------------------------------------------

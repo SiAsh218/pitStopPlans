@@ -7,6 +7,7 @@ const incidentActionUpdateService = require("../services/incidentActionUpdateSer
 class IncidentActionUpdateController {
   constructor() {
     this.getByAction = this.getByAction.bind(this);
+    this.getByIncident = this.getByIncident.bind(this);
     this.create = this.create.bind(this);
   }
 
@@ -43,6 +44,17 @@ class IncidentActionUpdateController {
       success: true,
       data: result.rows,
       meta: result.meta,
+    });
+  }
+
+  getByIncident(req, res) {
+    const updates = incidentActionUpdateService.getIncidentComments(
+      Number(req.params.incidentId),
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: updates,
     });
   }
 

@@ -6,10 +6,22 @@ const controller = require("../controllers/incidentActionUpdateController");
 
 const {
   idParamSchema,
+  incidentIdParamSchema,
   createIncidentActionUpdateSchema,
 } = require("../validation/schemas");
 
 module.exports = [
+  {
+    method: "GET",
+    path: "/api/incidents/:incidentId/action-updates",
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      validate("params", incidentIdParamSchema),
+      controller.getByIncident,
+    ],
+  },
+
   /**
    * Get updates for an action.
    */

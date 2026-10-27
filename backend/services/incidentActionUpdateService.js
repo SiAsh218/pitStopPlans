@@ -1,6 +1,7 @@
 const AppError = require("../utils/AppError");
 
 const incidentActionRepository = require("../data/repositories/incidentActionRepository");
+const incidentRepository = require("../data/repositories/incidentRepository");
 
 const incidentActionUpdateRepository = require("../data/repositories/incidentActionUpdateRepository");
 const eventService = require("./eventService");
@@ -34,6 +35,14 @@ class IncidentActionUpdateService {
       incidentActionId,
       options,
     );
+  }
+
+  getIncidentComments(incidentId) {
+    if (!incidentRepository.findById(incidentId)) {
+      throw new AppError("Incident not found", 404);
+    }
+
+    return incidentActionUpdateRepository.findCommentsByIncidentId(incidentId);
   }
 
   /**

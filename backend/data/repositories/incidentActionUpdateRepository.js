@@ -40,6 +40,30 @@ class IncidentActionUpdateRepository extends BaseRepository {
       .all(incidentActionId);
   }
 
+  findCommentsByIncidentId(incidentId) {
+    return this.db
+      .prepare(
+        `
+        SELECT
+          iau.incident_action_id,
+          ia.title AS action_title,
+          iau.note,
+          iau.created_at,
+          u.email AS user_email
+        FROM incident_action_updates iau
+        INNER JOIN incident_actions ia
+          ON ia.id = iau.incident_action_id
+        INNER JOIN users u
+          ON u.id = iau.user_id
+        WHERE ia.incident_id = ?
+          AND iau.update_type = 'comment'
+          AND TRIM(COALESCE(iau.note, '')) != ''
+        ORDER BY iau.created_at, iau.id
+      `,
+      )
+      .all(incidentId);
+  }
+
   /**
    * Gets paginated updates for an incident action.
    *

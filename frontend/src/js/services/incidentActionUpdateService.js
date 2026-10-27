@@ -4,6 +4,10 @@ export function getActionUpdates(id) {
   return api.get(`/api/incident_actions/${id}/updates`);
 }
 
+export function getIncidentActionUpdates(incidentId) {
+  return api.get(`/api/incidents/${incidentId}/action-updates`);
+}
+
 export function addActionUpdate(id, note) {
   return api.post(`/api/incident_actions/${id}/updates`, {
     note,
