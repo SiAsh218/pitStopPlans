@@ -23,7 +23,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Share Status Update",
+            title: "Confirm Status Update",
             description: "Confirm the catgory of the Incident Black Red Amber",
             roles: ["Information Controller"],
           },
@@ -260,12 +260,6 @@ module.exports = function seedTemplate(adminUser) {
             description:
               "Prepare for resumption of service or contingency options.",
             roles: ["RCM"],
-          },
-          {
-            title: "Share Status Update",
-            description:
-              "Send updated BLACK / RED/ AMBER to stakeholders based on latest information currently available:",
-            roles: ["Information Controller"],
           },
         ],
       },
