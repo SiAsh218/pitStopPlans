@@ -34,7 +34,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Incident Controller"],
           },
           {
-            title: "Notify Incident Teams",
+            title: "Receive IC Brief",
             description:
               "Receive information from the IC as to the nature of the failure.",
             roles: ["Train Running Controller"],
@@ -52,7 +52,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Incident Controller"],
           },
           {
-            title: "Notify Incident Teams",
+            title: "Select Train Response",
             description:
               "Based on the information you have to hand, identify the action to be taken with the train service.",
             roles: ["Train Running Controller"],

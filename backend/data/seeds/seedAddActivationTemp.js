@@ -279,7 +279,7 @@ function seedAddActivationTemplate(adminUser) {
     .run(
       stage1Id,
       4,
-      "Notify TOC Duty Control Manager",
+      "Notify TOC Duty Manager",
       "Notify the TOC Duty Control Manager of the incident.",
       10,
       10,

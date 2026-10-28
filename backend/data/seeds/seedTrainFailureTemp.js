@@ -284,7 +284,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       4,
-      "Notify TOC Duty Control Manager",
+      "Notify TOC Duty Manager",
       "Notify the TOC Duty Control Manager of the incident.",
       10,
       10,
@@ -563,7 +563,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage1Id,
       13,
-      "Inform TOCs of Contingency Plan",
+      "Share TOC Contingency Plan",
       "Tell train operators which contingency plan is being used.",
       10,
       10,
@@ -811,7 +811,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       8,
-      "Confirm MFSdC Process",
+      "Verify MFSdC Process",
       "Confirm the MFSdC process is in place, if required.",
       20,
       30,
@@ -842,7 +842,7 @@ function seedTrainFailureTemplate(adminUser) {
     .run(
       stage2Id,
       9,
-      "Confirm MFSdC Process",
+      "Check MFSdC Process",
       "Confirm the MFSdC process is in place, if required.",
       20,
       30,

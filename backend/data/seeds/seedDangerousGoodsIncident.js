@@ -76,7 +76,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["SNDM"],
           },
           {
-            title: "Brief Control Teams",
+            title: "Brief Control Leads",
             description:
               "30 second brief to the TRC / TOC Leads, SNDM & RCM on the incident. Check that trains are being held back and not heading towards the incident.",
             roles: ["Incident Controller"],
@@ -99,7 +99,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Brief Control Teams",
+            title: "Update Control Teams",
             description:
               "Ensure Control Team and TOC / FOC control teams are fully aware of Incident. Are any passenger trains stranded as a result of the incident?",
             roles: ["Incident Controller"],

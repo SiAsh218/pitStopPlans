@@ -59,7 +59,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Information Controller"],
           },
           {
-            title: "Plan Passenger Evacuation",
+            title: "Assess Station Options",
             description:
               "If on a train at a station, can other services call or has the station been closed. Can trains run but not call? Can the use of drones assist with any examination?",
             roles: ["Incident Controller"],
@@ -77,7 +77,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Plan Passenger Evacuation",
+            title: "Plan Safe Evacuation",
             description:
               "If on a train, establish where the train ran run to safely evacuate the passengers.",
             roles: ["Incident Controller"],

@@ -23,7 +23,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Share Status Update",
+            title: "Confirm Incident Category",
             description: "Confirm the catgory of the Incident Black Red Amber",
             roles: ["Information Controller"],
           },
@@ -52,7 +52,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Share Status Update",
+            title: "Send Initial Update",
             description:
               "Create initial BLACK / RED / AMBER Message and inform stakeholders of whats happened, impact, where, when etc.",
             roles: ["Information Controller"],
@@ -270,7 +270,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["SNDM"],
           },
           {
-            title: "Monitor Service Recovery",
+            title: "Oversee Recovery Plan",
             description: "Gain recovery plan and oversee service recovery",
             roles: ["RCM"],
           },
@@ -287,7 +287,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["SNDM"],
           },
           {
-            title: "Monitor Service Recovery",
+            title: "Coordinate TOC Recovery",
             description: "Liaise with TOCs to maximise service recovery",
             roles: ["RCM"],
           },

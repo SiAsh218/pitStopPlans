@@ -267,7 +267,7 @@ module.exports = function seedTemplate(adminUser) {
         name: "Service Recovery",
         actions: [
           {
-            title: "Monitor Service Recovery",
+            title: "Oversee Recovery Plan",
             description: "Gain Recovery Plan and oversee service recovery.",
             roles: ["RCM"],
           },
@@ -278,7 +278,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Train Running Controller"],
           },
           {
-            title: "Monitor Service Recovery",
+            title: "Coordinate TOC Recovery",
             description: "Liaise with TOCs to maximise service recovery.",
             roles: ["RCM"],
           },
