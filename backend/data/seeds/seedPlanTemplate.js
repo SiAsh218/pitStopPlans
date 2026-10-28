@@ -1,7 +1,7 @@
 const db = require("../db");
 
-const STAGE_DUE_TIMES = [10, 30, 60, 90];
-const ACTION_DUE_TIMES = [10, 20, 30, 30];
+const STAGE_DUE_TIMES = [10, 30, 60, 1440];
+const ACTION_DUE_TIMES = [10, 20, 30, 1380];
 
 function seedPlanTemplate(adminUser, plan) {
   if (!adminUser || !adminUser.id) {
