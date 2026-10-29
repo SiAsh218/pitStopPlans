@@ -6,7 +6,8 @@ Pit Stop Plans uses a single SQLite database at `backend/data/database.sqlite`.
 The shared connection and SQLite settings are configured in `backend/data/db.js`;
 the schema is created and migrated at application startup by
 `backend/data/init.js`. Foreign-key enforcement is enabled on the shared
-connection.
+connection, write-ahead logging (WAL) is enabled, and synchronous mode is set
+to `NORMAL`.
 
 The schema has three main areas:
 
@@ -134,6 +135,9 @@ One serialized preferences document per user.
 | `updated_at` | `DATETIME DEFAULT CURRENT_TIMESTAMP` |
 
 The application serializes/deserializes the preferences value as JSON.
+The `theme` preference is stored in this document. The frontend also caches
+the current user's theme in `localStorage` for early page rendering; the
+database preference remains the persisted source of truth.
 
 ### Plan definition
 
@@ -151,7 +155,8 @@ Catalog of incident categories.
 #### `plan_templates`
 
 Versioned plan for an incident type. Only one template per incident type and
-version is allowed. A template can optionally propose incident-type details.
+version is allowed. A template can optionally propose incident-type details
+and stores the display order of its operational-role columns.
 
 | Column | Definition |
 |---|---|
@@ -161,6 +166,7 @@ version is allowed. A template can optionally propose incident-type details.
 | `revision` | `INTEGER NOT NULL DEFAULT 1` |
 | `title` | `TEXT NOT NULL` |
 | `status` | `TEXT NOT NULL DEFAULT 'draft'` |
+| `role_order` | `TEXT NOT NULL DEFAULT '[]'` — JSON array of role IDs |
 | `proposed_incident_type_name` | `TEXT` |
 | `proposed_incident_type_description` | `TEXT` |
 | `created_by` | `INTEGER FK -> users.id ON DELETE SET NULL` |
@@ -168,6 +174,9 @@ version is allowed. A template can optionally propose incident-type details.
 | `approved_at` | `DATETIME` |
 | `created_at` | `DATETIME DEFAULT CURRENT_TIMESTAMP` |
 | Unique constraint | (`incident_type_id`, `version`) |
+
+`role_order` controls the role-column order in the template matrix. It is
+serialized as JSON in SQLite and exposed as an array by the template service.
 
 #### `plan_stages`
 
