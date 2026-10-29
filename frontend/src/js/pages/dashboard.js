@@ -330,6 +330,11 @@ function buildIncidentCard(incident) {
       <p>
         <strong>Started:</strong>
         ${formatDateTime(incident.started_at)}
+        ${
+          incident.status === "closed" && incident.closed_at
+            ? `<strong>Closed:</strong> ${formatDateTime(incident.closed_at)}`
+            : ""
+        }
       </p>
       <div class="progress-bar">
         <div

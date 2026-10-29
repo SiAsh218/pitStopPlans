@@ -149,6 +149,7 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip">Status: ${incident.status}</span>
         <span class="incident-meta__chip">Type: ${incident.incident_type.name}</span>
         <span class="incident-meta__chip">Template: v${incident.template.version}</span>
+        <span class="incident-meta__chip">Started: ${formatDateTime(incident.started_at)}</span>
         <span class="incident-meta__chip" id="incident-duration"> 🕒 Loading...</span>
         <span class="incident-meta__chip${canEditIncident ? " incident-meta__chip--interactive" : ""}" id="chip-ccil">
           CCIL: ${incident.ccil_number || "Click to Add"}

@@ -15,7 +15,16 @@ export function parseUtcDate(dateInput) {
     return null;
   }
 
-  return typeof dateInput === "string"
-    ? new Date(dateInput.replace(" ", "T") + "Z")
-    : new Date(dateInput);
+  let date;
+
+  if (typeof dateInput === "string") {
+    const normalized = dateInput.replace(" ", "T");
+    const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
+
+    date = new Date(hasTimezone ? normalized : `${normalized}Z`);
+  } else {
+    date = new Date(dateInput);
+  }
+
+  return Number.isNaN(date.getTime()) ? null : date;
 }
