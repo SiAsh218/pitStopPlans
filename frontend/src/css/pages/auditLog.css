@@ -61,20 +61,23 @@
 }
 
 .dashboard-toolbar__controls {
-  display: flex;
+  display: grid;
+  flex: 1 1 auto;
+  min-width: min(100%, 220px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .dashboard-filter {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  min-width: min(180px, 100%);
+  min-width: 0;
 }
 
 .dashboard-filter input,
 .dashboard-filter select {
+  width: 100%;
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
