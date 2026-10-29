@@ -41,3 +41,14 @@
   opacity: 0;
   transform: translateX(100%);
 }
+
+@media (max-width: 420px) {
+  .my-alert-container {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .my-alert {
+    min-width: 0;
+  }
+}

@@ -1,11 +1,116 @@
-.container {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 0;
+  scroll-padding-top: 1rem;
+}
+
+body {
+  min-width: 0;
+  line-height: 1.5;
+}
+
+img,
+svg,
+video,
+canvas {
   max-width: 100%;
+}
+
+.container {
+  width: 100%;
+  max-width: 1600px;
   margin: 18px auto 24px;
-  padding: 14px 18px 18px;
+  padding: clamp(12px, 2vw, 24px);
 }
 
 .train-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+@media (max-width: 700px) {
+  .container {
+    margin: 12px auto 16px;
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: clamp(1.4rem, 6vw, 1.8rem);
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-toolbar,
+  .dashboard-toolbar__controls {
+    width: 100%;
+  }
+
+  .dashboard-toolbar__controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+
+  .dashboard-filter {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dashboard-filter input,
+  .dashboard-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-toolbar > .btn {
+    flex: 1 1 100%;
+  }
+
+  .header {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .header-actions > .btn,
+  .header-actions > .header-dropdown,
+  .header-dropdown__toggle {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .header-dropdown__menu {
+    min-width: min(180px, calc(100vw - 1.5rem));
+  }
+
+  .template-page__section-card,
+  #incident-actions,
+  #template-matrix {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding: 8px;
+  }
+
+  .btn {
+    padding: 0.65rem 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .header h1 {
+    font-size: 1.2rem;
+  }
 }

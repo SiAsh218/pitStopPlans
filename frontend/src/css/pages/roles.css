@@ -1,5 +1,5 @@
 .dashboard-filter select {
-  min-width: 150px;
+  min-width: min(150px, 100%);
 }
 
 #roles-pagination {
@@ -19,6 +19,19 @@
 #roles-list .card__actions {
   display: flex;
   gap: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  #roles-list .card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  #roles-list .card__actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
 }
 
 .empty-state {

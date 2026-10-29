@@ -1,4 +1,25 @@
 .auth-card {
   max-width: 480px;
-  margin: 10vh auto;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+}
+
+.login-page > .container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 420px) {
+  .auth-card {
+    padding: 1rem;
+  }
 }
