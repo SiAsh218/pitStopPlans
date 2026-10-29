@@ -53,7 +53,7 @@ export async function initPlanTemplatePage() {
 
     renderVersionHistory(history, template.id);
 
-    renderTemplateMatrix(plan, isDraft);
+    renderTemplateMatrix(plan, isDraft, template);
 
     if (isDraft) {
       wireAddStageButton(plan);
@@ -251,7 +251,7 @@ function getNextStageTime(stages = []) {
   return lastTime + 5;
 }
 
-function renderTemplateMatrix(plan, isDraft) {
+function renderTemplateMatrix(plan, isDraft, template) {
   const container = document.getElementById("template-matrix");
 
   if (!container) {
@@ -280,11 +280,20 @@ function renderTemplateMatrix(plan, isDraft) {
     })),
   );
 
-  const roles = [
-    ...new Set(
-      actions.flatMap((action) => action.roles.map((role) => role.name)),
-    ),
+  const roleById = new Map();
+  actions.forEach((action) => {
+    action.roles.forEach((role) => {
+      roleById.set(Number(role.id), { ...role, id: Number(role.id) });
+    });
+  });
+  const assignedRoleIds = [...roleById.keys()];
+  const savedRoleIds = Array.isArray(template.role_order)
+    ? template.role_order.map(Number).filter((roleId) => roleById.has(roleId))
+    : [];
+  const orderedRoleIds = [
+    ...new Set([...savedRoleIds, ...assignedRoleIds]),
   ];
+  const roles = orderedRoleIds.map((roleId) => roleById.get(roleId));
 
   const stages = [...plan.stages].sort(
     (a, b) => a.stage_number - b.stage_number,
@@ -301,9 +310,43 @@ function renderTemplateMatrix(plan, isDraft) {
         <th>Stage</th>
   `;
 
-  roles.forEach((role) => {
+  roles.forEach((role, roleIndex) => {
     html += `
-      <th>${role}</th>
+      <th>
+        <div class="template-matrix__role-header">
+          <span>${role.name}</span>
+          ${
+            isDraft && user.role !== "user"
+              ? `
+                <div class="template-matrix__role-controls" aria-label="Reorder roles">
+                  <button
+                    class="btn btn-secondary btn-move-role"
+                    type="button"
+                    data-role-id="${role.id}"
+                    data-direction="left"
+                    aria-label="Move ${role.name} column left"
+                    title="Move column left"
+                    ${roleIndex === 0 ? "disabled" : ""}
+                  >
+                    &#8592;
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-move-role"
+                    type="button"
+                    data-role-id="${role.id}"
+                    data-direction="right"
+                    aria-label="Move ${role.name} column right"
+                    title="Move column right"
+                    ${roleIndex === roles.length - 1 ? "disabled" : ""}
+                  >
+                    &#8594;
+                  </button>
+                </div>
+              `
+              : ""
+          }
+        </div>
+      </th>
     `;
   });
 
@@ -404,9 +447,9 @@ function renderTemplateMatrix(plan, isDraft) {
         </td>
     `;
 
-    roles.forEach((roleName) => {
+    roles.forEach((role) => {
       const matchingActions = orderedActions.filter((action) =>
-        action.roles.some((role) => role.name === roleName),
+        action.roles.some((actionRole) => Number(actionRole.id) === role.id),
       );
 
       html += `
@@ -435,7 +478,7 @@ function renderTemplateMatrix(plan, isDraft) {
               ? `
                 <div class="matrix-action__buttons">
                   ${
-                    action.roles[0]?.name === roleName
+                    Number(action.roles[0]?.id) === role.id
                       ? `
                         <button
                           class="btn btn-secondary btn-move-action"
@@ -524,11 +567,44 @@ function renderTemplateMatrix(plan, isDraft) {
     wireActionButtons();
     wireStageOrderButtons(plan);
     wireActionOrderButtons(plan);
+    wireRoleOrderButtons(plan.id, roles);
 
     wireEditActionButtons();
     wireDeleteActionButtons();
   }
   wireViewActionCards();
+}
+
+function wireRoleOrderButtons(templateId, roles) {
+  document.querySelectorAll(".btn-move-role").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const currentIndex = roles.findIndex(
+        (role) => role.id === Number(button.dataset.roleId),
+      );
+      const targetIndex =
+        currentIndex + (button.dataset.direction === "left" ? -1 : 1);
+
+      if (currentIndex < 0 || targetIndex < 0 || targetIndex >= roles.length) {
+        return;
+      }
+
+      const reorderedRoles = [...roles];
+      [reorderedRoles[currentIndex], reorderedRoles[targetIndex]] = [
+        reorderedRoles[targetIndex],
+        reorderedRoles[currentIndex],
+      ];
+
+      try {
+        await updateTemplate(templateId, {
+          role_order: reorderedRoles.map((role) => role.id),
+        });
+        await refreshPlanTemplatePage();
+      } catch (err) {
+        console.error(err);
+        showError(err.message || "Failed to reorder roles");
+      }
+    });
+  });
 }
 
 function wireEditActionButtons() {

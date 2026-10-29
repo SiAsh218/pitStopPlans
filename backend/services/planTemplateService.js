@@ -21,6 +21,7 @@ class PlanTemplateService {
       version: row.version,
       revision: row.revision,
       status: row.status,
+      role_order: JSON.parse(row.role_order || "[]"),
       created_at: row.created_at,
       approved_at: row.approved_at,
 
@@ -197,6 +198,44 @@ class PlanTemplateService {
       fields.status = updates.status;
     }
 
+    if (updates.role_order !== undefined) {
+      if (
+        !Array.isArray(updates.role_order) ||
+        updates.role_order.some(
+          (roleId) => !Number.isSafeInteger(roleId) || roleId <= 0,
+        ) ||
+        new Set(updates.role_order).size !== updates.role_order.length
+      ) {
+        throw new AppError("Invalid role order", 400);
+      }
+
+      const currentRoleIds = new Set(
+        planStageRepository
+          .findByTemplateId(id)
+          .flatMap((stage) =>
+            planStageActionRepository
+              .findByStageId(stage.id)
+              .flatMap((action) =>
+                planStageActionRepository
+                  .getRoles(action.id)
+                  .map((role) => role.id),
+              ),
+          ),
+      );
+
+      if (
+        updates.role_order.length !== currentRoleIds.size ||
+        updates.role_order.some((roleId) => !currentRoleIds.has(roleId))
+      ) {
+        throw new AppError(
+          "Role order must include every template role exactly once",
+          400,
+        );
+      }
+
+      fields.role_order = JSON.stringify(updates.role_order);
+    }
+
     if (updates.proposed_incident_type !== undefined) {
       const proposed = updates.proposed_incident_type;
       const name = proposed?.name?.trim();
@@ -233,10 +272,12 @@ class PlanTemplateService {
       before: {
         title: beforeTemplate.title,
         status: beforeTemplate.status,
+        role_order: beforeTemplate.role_order,
       },
       after: {
         title: afterTemplate.title,
         status: afterTemplate.status,
+        role_order: afterTemplate.role_order,
       },
     });
 
@@ -401,6 +442,7 @@ class PlanTemplateService {
         version: nextVersion,
         title: template.title,
         status: "draft",
+        role_order: template.role_order || "[]",
         created_by: userId,
       });
 

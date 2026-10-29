@@ -226,6 +226,7 @@ describe("PlanTemplateService", () => {
         incident_type_id: 1,
         title: "Template",
         version: 1,
+        role_order: "[3,2]",
       });
 
       planTemplateRepository.findByIncidentTypeAndStatus.mockReturnValue([]);
@@ -260,6 +261,7 @@ describe("PlanTemplateService", () => {
       expect(planTemplateRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           version: 2,
+          role_order: "[3,2]",
         }),
       );
 
@@ -550,6 +552,64 @@ describe("PlanTemplateService", () => {
       });
 
       expect(result.title).toBe("New Title");
+    });
+
+    it("persists a validated role column order", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "draft",
+      });
+      planTemplateRepository.findByIdWithIncidentType
+        .mockReturnValueOnce({
+          id: 1,
+          title: "Template",
+          version: 1,
+          status: "draft",
+          incident_type_id: 1,
+          incident_type_name: "Test",
+          role_order: "[]",
+        })
+        .mockReturnValueOnce({
+          id: 1,
+          title: "Template",
+          version: 1,
+          status: "draft",
+          incident_type_id: 1,
+          incident_type_name: "Test",
+          role_order: "[4,2]",
+        });
+      planStageRepository.findByTemplateId.mockReturnValue([{ id: 8 }]);
+      planStageActionRepository.findByStageId.mockReturnValue([{ id: 22 }]);
+      planStageActionRepository.getRoles.mockReturnValue([
+        { id: 2 },
+        { id: 4 },
+      ]);
+
+      const result = planTemplateService.updatePlanTemplate(
+        1,
+        { role_order: [4, 2] },
+        99,
+      );
+
+      expect(planTemplateRepository.updateById).toHaveBeenCalledWith(1, {
+        role_order: "[4,2]",
+      });
+      expect(result.role_order).toEqual([4, 2]);
+    });
+
+    it("rejects duplicate role IDs in a role order", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "draft",
+      });
+
+      expect(() =>
+        planTemplateService.updatePlanTemplate(
+          1,
+          { role_order: [2, 2] },
+          99,
+        ),
+      ).toThrow("Invalid role order");
     });
 
     it("saves incident type edits as proposed changes on the draft", () => {

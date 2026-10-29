@@ -24,6 +24,7 @@ describe("PlanTemplateRepository", () => {
         revision INTEGER NOT NULL DEFAULT 1,
         title TEXT NOT NULL,
         status TEXT NOT NULL,
+        role_order TEXT NOT NULL DEFAULT '[]',
         created_at TEXT NOT NULL,
         approved_at TEXT,
         proposed_incident_type_name TEXT,

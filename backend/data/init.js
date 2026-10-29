@@ -63,6 +63,20 @@ function ensurePlanTemplateRevisionColumn() {
   }
 }
 
+function ensurePlanTemplateRoleOrderColumn() {
+  const columns = db
+    .prepare("PRAGMA table_info(plan_templates)")
+    .all()
+    .map((column) => column.name);
+
+  if (!columns.includes("role_order")) {
+    db.exec(`
+      ALTER TABLE plan_templates
+      ADD COLUMN role_order TEXT NOT NULL DEFAULT '[]';
+    `);
+  }
+}
+
 /**
  * Allows user deletion without removing audit history.
  *
@@ -148,6 +162,9 @@ function ensurePlanTemplateUserSetNull() {
     return;
   }
 
+  const roleOrderValue = columns.some((column) => column.name === "role_order")
+    ? "role_order"
+    : "'[]'";
   const foreignKeysEnabled = db.pragma("foreign_keys", { simple: true });
 
   if (foreignKeysEnabled) {
@@ -164,6 +181,7 @@ function ensurePlanTemplateUserSetNull() {
           revision INTEGER NOT NULL DEFAULT 1,
           title TEXT NOT NULL,
           status TEXT NOT NULL DEFAULT 'draft',
+          role_order TEXT NOT NULL DEFAULT '[]',
           proposed_incident_type_name TEXT,
           proposed_incident_type_description TEXT,
           created_by INTEGER,
@@ -191,6 +209,7 @@ function ensurePlanTemplateUserSetNull() {
           revision,
           title,
           status,
+          role_order,
           proposed_incident_type_name,
           proposed_incident_type_description,
           created_by,
@@ -205,6 +224,7 @@ function ensurePlanTemplateUserSetNull() {
           revision,
           title,
           status,
+          ${roleOrderValue},
           proposed_incident_type_name,
           proposed_incident_type_description,
           created_by,
@@ -376,6 +396,7 @@ function initialiseDatabase() {
       revision INTEGER NOT NULL DEFAULT 1,
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
+      role_order TEXT NOT NULL DEFAULT '[]',
       created_by INTEGER,
       approved_by INTEGER,
       approved_at DATETIME,
@@ -399,6 +420,7 @@ function initialiseDatabase() {
   ensurePlanTemplateProposedIncidentTypeColumns();
   ensurePlanTemplateRevisionColumn();
   ensurePlanTemplateUserSetNull();
+  ensurePlanTemplateRoleOrderColumn();
 
   /**
    * ============================================================

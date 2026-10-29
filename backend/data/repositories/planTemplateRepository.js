@@ -17,6 +17,7 @@ class PlanTemplateRepository extends BaseRepository {
       pt.revision,
       pt.title,
       pt.status,
+      pt.role_order,
       pt.created_at,
       pt.approved_at,
       pt.incident_type_id,
