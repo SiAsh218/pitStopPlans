@@ -423,7 +423,8 @@ function renderSummary(summary) {
     return;
   }
 
-  const overdueCount = getOverdueActionCount(currentActions);
+  const flagLabel = getActionTimingLabel();
+  const flaggedActionCount = getFlaggedActionCount(currentActions);
 
   const markup = `
     <div class="card">
@@ -451,9 +452,9 @@ function renderSummary(summary) {
           <strong>In Progress</strong>
           <span>${summary.in_progress_actions}</span>
         </div>
-        <div class="incident-progress-metric ${overdueCount > 0 ? "incident-progress-metric--overdue" : ""}">
-          <strong>Overdue</strong>
-          <span>${overdueCount}</span>
+        <div class="incident-progress-metric ${flaggedActionCount > 0 ? "incident-progress-metric--overdue" : ""}">
+          <strong>${flagLabel}</strong>
+          <span>${flaggedActionCount}</span>
         </div>
         <div class="incident-progress-metric">
           <strong>Pending</strong>
@@ -1047,17 +1048,67 @@ function isActionOverdue(action) {
     return false;
   }
 
-  const incidentStart = parseUtcDate(incidentStartedAt);
+  const dueDate = getActionDueDate(action);
 
-  const dueDate = new Date(
-    incidentStart.getTime() + action.due_from_incident_start * 60 * 1000,
-  );
-
-  return Date.now() > dueDate.getTime();
+  return dueDate !== null && Date.now() > dueDate.getTime();
 }
 
-function getOverdueActionCount(actions) {
-  return actions.filter((action) => isActionOverdue(action)).length;
+function isActionLate(action) {
+  if (
+    currentIncident?.status !== "closed" ||
+    action.status !== "completed" ||
+    !action.completed_at
+  ) {
+    return false;
+  }
+
+  const dueDate = getActionDueDate(action);
+  const completedAt = parseActionTimestamp(action.completed_at);
+
+  return (
+    dueDate !== null &&
+    completedAt !== null &&
+    !Number.isNaN(completedAt.getTime()) &&
+    completedAt.getTime() > dueDate.getTime()
+  );
+}
+
+function getActionDueDate(action) {
+  const incidentStart = parseActionTimestamp(incidentStartedAt);
+  const dueOffset = Number(action.due_from_incident_start);
+
+  if (!incidentStart || !Number.isFinite(dueOffset)) {
+    return null;
+  }
+
+  return new Date(incidentStart.getTime() + dueOffset * 60 * 1000);
+}
+
+function parseActionTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = value.includes("T")
+    ? value
+    : `${value.replace(" ", "T")}Z`;
+  const date = new Date(timestamp);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getActionTimingLabel() {
+  return currentIncident?.status === "closed" ? "Late" : "Overdue";
+}
+
+function getFlaggedActions(actions) {
+  return currentIncident?.status === "closed"
+    ? actions.filter((action) => isActionLate(action))
+    : actions.filter((action) => isActionOverdue(action));
+}
+
+function getFlaggedActionCount(actions) {
+  return getFlaggedActions(actions).length;
 }
 
 function buildIncidentClipboardText(updates = []) {
@@ -1065,7 +1116,8 @@ function buildIncidentClipboardText(updates = []) {
     (a) => a.status === "in_progress",
   );
 
-  const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+  const flaggedActions = getFlaggedActions(currentActions);
+  const flagLabel = getActionTimingLabel();
   const updatesByAction = groupActionUpdates(updates);
 
   return `
@@ -1081,7 +1133,7 @@ Actions:
 ${currentSummary.completed_actions}/${currentSummary.total_actions} completed
 ${currentSummary.in_progress_actions} in progress
 ${currentSummary.pending_actions} pending
-${getOverdueActionCount(currentActions)} overdue
+${flaggedActions.length} ${flagLabel.toLowerCase()}
 
 Actions In Progress:
 ${
@@ -1092,10 +1144,10 @@ ${
     : "None"
 }
 
-Overdue Actions:
+${flagLabel} Actions:
 ${
-  overdueActions.length
-    ? overdueActions
+  flaggedActions.length
+    ? flaggedActions
         .map((a) => `• ${a.title} (${a.roles.map((r) => r.name).join(", ")})`)
         .join("\n")
     : "None"
@@ -1117,7 +1169,8 @@ function buildIncidentClipboardHtml(updates = []) {
     (a) => a.status === "in_progress",
   );
 
-  const overdueActions = currentActions.filter((a) => isActionOverdue(a));
+  const flaggedActions = getFlaggedActions(currentActions);
+  const flagLabel = getActionTimingLabel();
   const updatesByAction = groupActionUpdates(updates);
   const actionUpdatesHtml = currentActions
     .filter((action) => updatesByAction.has(action.id))
@@ -1163,7 +1216,7 @@ function buildIncidentClipboardHtml(updates = []) {
   ✅ Completed: ${currentSummary.completed_actions}/${currentSummary.total_actions}<br>
   🔄 In Progress: ${currentSummary.in_progress_actions}<br>
   ⏳ Pending: ${currentSummary.pending_actions}<br>
-  ⚠️ Overdue: ${getOverdueActionCount(currentActions)}
+  ⚠️ ${flagLabel}: ${flaggedActions.length}
 </p>
 
 ${
@@ -1186,12 +1239,12 @@ ${
 }
 
 ${
-  overdueActions.length
+  flaggedActions.length
     ? `
-      <h3>⚠️ Overdue Actions</h3>
+      <h3>⚠️ ${flagLabel} Actions</h3>
 
       <p>
-        ${overdueActions
+        ${flaggedActions
           .map(
             (action) =>
               `• <strong>${escapeClipboardHtml(action.title)}</strong> (${action.roles
@@ -1300,13 +1353,15 @@ function buildActionCard(action) {
       ? `${action.due_from_stage_start} mins from stage start`
       : `${action.due_from_incident_start} mins from incident start`;
 
-  const overdueBadge = isActionOverdue(action)
-    ? `
+  const isLate = isActionLate(action);
+  const overdueBadge =
+    isLate || isActionOverdue(action)
+      ? `
       <span class="matrix-action__overdue">
-        ⚠ Overdue
+        ⚠ ${isLate ? "Late" : "Overdue"}
       </span>
     `
-    : "";
+      : "";
 
   const canUpdateActions = currentIncident?.status === "active";
 
