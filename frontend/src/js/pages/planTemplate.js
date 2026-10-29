@@ -50,11 +50,11 @@ export async function initPlanTemplatePage() {
 
     renderTemplateMeta(template, isDraft);
 
-    await renderRoles(isDraft);
+    const roles = await renderRoles(isDraft);
 
     renderVersionHistory(history, template.id);
 
-    renderTemplateMatrix(plan, isDraft, template);
+    renderTemplateMatrix(plan, isDraft, template, roles);
 
     if (isDraft) {
       wireAddStageButton(plan);
@@ -266,7 +266,7 @@ function getNextStageTime(stages = []) {
   return lastTime + 5;
 }
 
-function renderTemplateMatrix(plan, isDraft, template) {
+function renderTemplateMatrix(plan, isDraft, template, currentRoles = []) {
   const container = document.getElementById("template-matrix");
 
   if (!container) {
@@ -295,10 +295,18 @@ function renderTemplateMatrix(plan, isDraft, template) {
     })),
   );
 
+  const currentRolesById = new Map(
+    currentRoles.map((role) => [Number(role.id), role]),
+  );
   const roleById = new Map();
   actions.forEach((action) => {
     action.roles.forEach((role) => {
-      roleById.set(Number(role.id), { ...role, id: Number(role.id) });
+      const roleId = Number(role.id);
+      roleById.set(roleId, {
+        ...role,
+        ...currentRolesById.get(roleId),
+        id: roleId,
+      });
     });
   });
   const assignedRoleIds = [...roleById.keys()];
@@ -1147,7 +1155,7 @@ async function renderRoles(isDraft) {
   const container = document.getElementById("template-roles");
 
   if (!container) {
-    return;
+    return [];
   }
 
   const response = await getRoles();
@@ -1196,6 +1204,8 @@ async function renderRoles(isDraft) {
   if (isDraft) {
     wireAddRoleButton();
   }
+
+  return roles;
 }
 
 function wireAddRoleButton() {

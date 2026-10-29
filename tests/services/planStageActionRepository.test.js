@@ -317,6 +317,25 @@ describe("PlanStageActionRepository", () => {
 
       expect(result).toEqual([]);
     });
+
+    it("uses the current role name without losing template assignments", () => {
+      db.prepare("UPDATE roles SET name = ? WHERE id = ?").run(
+        "Info Controller",
+        1,
+      );
+
+      expect(planStageActionRepository.getRoles(1)).toContainEqual({
+        id: 1,
+        name: "Info Controller",
+      });
+
+      expect(
+        planStageActionRepository.findByStageIdWithRoles(1)[1].roles,
+      ).toContainEqual({
+        id: 1,
+        name: "Info Controller",
+      });
+    });
   });
 
   describe("clearRoles", () => {
