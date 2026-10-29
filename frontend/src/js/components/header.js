@@ -132,6 +132,10 @@ export async function initHeader() {
 }
 
 function applyTheme(isDarkMode) {
+  document.documentElement.style.backgroundColor = isDarkMode
+    ? "#111827"
+    : "#f5f7fa";
+
   if (isDarkMode) {
     document.documentElement.dataset.theme = "dark";
   } else {

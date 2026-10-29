@@ -20,6 +20,8 @@
         delete root.dataset.theme;
       }
 
+      root.style.backgroundColor =
+        theme === "dark" ? "#111827" : "#f5f7fa";
       delete root.dataset.themePending;
     } catch (error) {
       console.warn("Could not read the cached theme preference.", error);
