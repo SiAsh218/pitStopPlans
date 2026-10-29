@@ -1,10 +1,13 @@
 :root {
+  color-scheme: light;
+
   /* ==========================================================
      Brand Colours
      ========================================================== */
   --color-primary: #005fb8;
   --color-primary-hover: #004a91;
   --color-primary-light: #d6ecff;
+  --color-on-primary: #ffffff;
 
   /* ==========================================================
      Backgrounds
@@ -74,4 +77,53 @@
   --border-radius-large: 12px;
   --header-height: 80px;
   --transition-speed: 0.2s;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-primary-light: #1e3a5f;
+  --color-on-primary: #102033;
+
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-surface-secondary: #273449;
+
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #9ca3af;
+
+  --color-border: #475569;
+  --color-border-light: #374151;
+
+  --color-success: #86efac;
+  --color-success-bg: #173c2a;
+  --color-warning: #fcd34d;
+  --color-warning-bg: #493b19;
+  --color-danger: #fca5a5;
+  --color-danger-bg: #4b252a;
+  --color-info: #93c5fd;
+  --color-info-bg: #1e3a5f;
+
+  --incident-active: #fca5a5;
+  --incident-active-bg: #4b252a;
+  --incident-monitoring: #fcd34d;
+  --incident-monitoring-bg: #493b19;
+  --incident-resolved: #86efac;
+  --incident-resolved-bg: #173c2a;
+  --incident-closed: #cbd5e1;
+  --incident-closed-bg: #374151;
+
+  --action-pending: #fcd34d;
+  --action-pending-bg: #493b19;
+  --action-in-progress: #93c5fd;
+  --action-in-progress-bg: #1e3a5f;
+  --action-completed: #86efac;
+  --action-completed-bg: #173c2a;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.4);
 }

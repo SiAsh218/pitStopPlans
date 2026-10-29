@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  initHeader();
+  await initHeader();
   initTemplatesPage();
   initModal();
   initIncidentPage();

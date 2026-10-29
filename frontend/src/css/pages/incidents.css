@@ -23,8 +23,10 @@
 .dashboard-filter input,
 .dashboard-filter select {
   padding: 0.7rem 0.8rem;
-  border: 1px solid #d1d1d1;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
 }
 
 .field-validation-message {
@@ -35,7 +37,7 @@
 
 .empty-state {
   text-align: center;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .stage-section {
@@ -51,7 +53,7 @@
 .progress-bar {
   width: 100%;
   height: 12px;
-  background: #edebe9;
+  background: var(--color-border-light);
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -59,7 +61,7 @@
 
 .progress-bar__fill {
   height: 100%;
-  background: #107c10;
+  background: var(--color-success);
 }
 
 #incident-summary .progress-bar {
@@ -248,7 +250,7 @@
 .matrix-action__due,
 .matrix-action__roles {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .matrix-action__roles {
@@ -256,18 +258,18 @@
 }
 
 .matrix-action--completed {
-  background: #dff6dd;
-  border-left-color: #107c10;
+  background: var(--color-success-bg);
+  border-left-color: var(--color-success);
 }
 
 .matrix-action--in_progress {
-  background: #deecf9;
-  border-left-color: #0078d4;
+  background: var(--color-info-bg);
+  border-left-color: var(--color-info);
 }
 
 .matrix-action--pending {
-  background: #fff4ce;
-  border-left-color: #ffb900;
+  background: var(--color-warning-bg);
+  border-left-color: var(--color-warning);
 }
 
 .matrix-action {
@@ -310,9 +312,13 @@
   gap: 1rem;
   margin-bottom: 1rem;
   padding: 1rem 1.1rem;
-  border: 1px solid #e6ebf1;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: linear-gradient(135deg, #f8fbff 0%, #f5f7fa 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-surface-secondary) 100%
+  );
 }
 
 .incident-meta__summary {
@@ -339,10 +345,10 @@
   display: inline-flex;
   align-items: center;
   padding: 0.38rem 0.7rem;
-  border: 1px solid #dfe7f0;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: white;
-  color: #475569;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   font-size: 0.84rem;
 }
 
@@ -362,13 +368,13 @@
 }
 
 .incident-meta__chip--error {
-  background-color: #fee2e2;
-  border: 2px solid #dc2626;
-  color: #991b1b;
+  background-color: var(--color-danger-bg);
+  border: 2px solid var(--color-danger);
+  color: var(--color-danger);
 }
 
 .incident-meta__chip--error:hover {
-  border-color: #b91c1c;
+  border-color: var(--color-danger);
 }
 
 #incident-summary {
@@ -378,8 +384,12 @@
 #incident-summary .card {
   padding: 1rem 1.1rem;
   border-radius: 14px;
-  border: 1px solid #e7ecf2;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-surface-secondary) 100%
+  );
 }
 
 #incident-summary .card h3 {
@@ -400,8 +410,8 @@
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: #e8f5e9;
-  color: #147d3b;
+  background: var(--color-success-bg);
+  color: var(--color-success);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -413,8 +423,8 @@
 }
 
 .incident-progress-metric {
-  background: white;
-  border: 1px solid #e8edf3;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 0.7rem 0.8rem;
 }
@@ -422,14 +432,14 @@
 .incident-progress-metric strong {
   display: block;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin-bottom: 0.25rem;
 }
 
 .incident-progress-metric span {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .incident-progress-metric--overdue {
@@ -437,7 +447,7 @@
 }
 
 .incident-progress-metric--overdue span {
-  color: #dc2626;
+  color: var(--color-danger);
   font-weight: 700;
 }
 
@@ -506,7 +516,7 @@
   max-height: 90vh;
   max-height: min(90vh, calc(100dvh - 2rem));
   overflow-y: auto;
-  background: white;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
@@ -541,7 +551,7 @@
 }
 
 .action-update {
-  background: #f3f2f1;
+  background: var(--color-surface-secondary);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 0.75rem;
@@ -552,7 +562,7 @@
 }
 
 .action-update small {
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 #action-update-note {
@@ -563,8 +573,8 @@
 .role-picker {
   margin-bottom: 1rem;
   padding: 1rem;
-  background: var(--surface-color, #fff);
-  border: 1px solid #dfe5eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -578,7 +588,7 @@
 }
 
 .role-picker__header small {
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .role-picker__roles {
@@ -603,9 +613,9 @@
   align-items: center;
   padding: 0.45rem 0.85rem;
   border-radius: var(--border-radius);
-  border: 1px solid #dfe5eb;
-  background: #f8fafc;
-  color: #374151;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
   font-size: 0.875rem;
   transition:
     background-color 0.15s ease,
@@ -614,13 +624,13 @@
 }
 
 .role-picker__item:hover .role-picker__pill {
-  border-color: #9ca3af;
+  border-color: var(--color-text-muted);
 }
 
 .role-picker__item input:checked + .role-picker__pill {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .matrix-action__footer {

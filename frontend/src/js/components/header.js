@@ -1,7 +1,11 @@
-import { logout } from "../auth.js";
-import { getCurrentUser } from "../auth.js";
+import { getCurrentUser, logout } from "../auth.js";
+import {
+  getPreferences,
+  savePreferences,
+} from "../services/userPreferenceService.js";
+import { showError } from "../utils/myAlert.js";
 
-export function initHeader() {
+export async function initHeader() {
   const buttonCreateTemplate = document.getElementById("create-template-btn");
   const buttonCreateIncident = document.getElementById("create-incident-btn");
   const logoutBtn = document.getElementById("logout-btn");
@@ -16,8 +20,40 @@ export function initHeader() {
   );
   const adminActionsToggle = document.getElementById("admin-actions-toggle");
   const adminActionsMenu = document.getElementById("admin-actions-menu");
+  const themeToggle = document.getElementById("theme-toggle");
 
   const user = getCurrentUser();
+
+  let isDarkMode = false;
+
+  try {
+    const preferences = await getPreferences();
+    isDarkMode = preferences.theme === "dark";
+    applyTheme(isDarkMode);
+  } catch (error) {
+    showError(error?.message || "Failed to load your display preferences.");
+  }
+
+  updateThemeToggle(themeToggle, isDarkMode);
+
+  themeToggle?.addEventListener("click", async () => {
+    const previousTheme = isDarkMode;
+    isDarkMode = !isDarkMode;
+    applyTheme(isDarkMode);
+    updateThemeToggle(themeToggle, isDarkMode);
+    themeToggle.disabled = true;
+
+    try {
+      await savePreferences({ theme: isDarkMode ? "dark" : "light" });
+    } catch (error) {
+      isDarkMode = previousTheme;
+      applyTheme(isDarkMode);
+      updateThemeToggle(themeToggle, isDarkMode);
+      showError(error?.message || "Failed to save your display preference.");
+    } finally {
+      themeToggle.disabled = false;
+    }
+  });
 
   if (user?.role !== "admin") {
     adminActionsDropdown?.remove();
@@ -88,4 +124,21 @@ export function initHeader() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", logout);
   }
+}
+
+function applyTheme(isDarkMode) {
+  if (isDarkMode) {
+    document.documentElement.dataset.theme = "dark";
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
+}
+
+function updateThemeToggle(button, isDarkMode) {
+  if (!button) {
+    return;
+  }
+
+  button.setAttribute("aria-pressed", String(isDarkMode));
+  button.setAttribute("aria-label", "Dark mode");
 }

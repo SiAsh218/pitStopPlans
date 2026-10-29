@@ -2,8 +2,8 @@ body {
   padding-top: var(--header-height);
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  color: #333;
+  background: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 h1 {
