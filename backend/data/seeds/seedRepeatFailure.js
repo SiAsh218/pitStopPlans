@@ -77,7 +77,7 @@ module.exports = function seedTemplate(adminUser) {
             ]
           },
           {
-            "title": "Confirm Asset Handover",
+            "title": "Agree Signalling Asset Movement Controls",
             "description": "If the asset is handed back with further work planned to fully rectify the fault, make sure the preferred position to maintain the asset has been agreed alongside the respective signalling location; and ensure any movements outside of this agreed position are only undertaken with response teams positioned in the area.",
             "roles": [
               "RCM"

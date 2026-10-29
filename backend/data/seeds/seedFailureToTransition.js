@@ -142,7 +142,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Information Controller"],
           },
           {
-            title: "Review Repair Plan",
+            title: "Review Telecoms Repair Plan",
             description: "Review failure rectification plan with Telecoms",
             roles: ["Incident Controller"],
           },

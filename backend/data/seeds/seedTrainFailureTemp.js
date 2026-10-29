@@ -762,37 +762,6 @@ function seedTrainFailureTemplate(adminUser) {
    * Stage 2 Action 7
    * ========================================
    */
-  const action37Result = db
-    .prepare(
-      `
-        INSERT INTO plan_stage_actions
-        (
-          plan_stage_id,
-          action_number,
-          title,
-          description,
-          due_from_stage_start,
-          due_from_incident_start
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-    )
-    .run(
-      stage2Id,
-      7,
-      "Confirm MFSdC Process",
-      "Confirm the MFSdC process is in place, if required.",
-      20,
-      30,
-    );
-
-  const action37Id = action37Result.lastInsertRowid;
-
-  /**
-   * ========================================
-   * Stage 2 Action 8
-   * ========================================
-   */
   const action38Result = db
     .prepare(
       `
@@ -810,7 +779,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      8,
+      7,
       "Verify MFSdC Process",
       "Confirm the MFSdC process is in place, if required.",
       20,
@@ -821,7 +790,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 9
+   * Stage 2 Action 8
    * ========================================
    */
   const action39Result = db
@@ -841,7 +810,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      9,
+      8,
       "Check MFSdC Process",
       "Confirm the MFSdC process is in place, if required.",
       20,
@@ -852,7 +821,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 10
+   * Stage 2 Action 9
    * ========================================
    */
   const action40Result = db
@@ -872,7 +841,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      10,
+      9,
       "Assess Wrong-Direction Move",
       "Can the train move in the wrong direction? Identify any level crossings that need staffing.",
       20,
@@ -883,7 +852,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 11
+   * Stage 2 Action 10
    * ========================================
    */
   const action41Result = db
@@ -903,7 +872,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      11,
+      10,
       "Seek Other TOC Assistance",
       "If help is not immediately available, check whether another operator can respond sooner.",
       20,
@@ -914,7 +883,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 12
+   * Stage 2 Action 11
    * ========================================
    */
   const action42Result = db
@@ -934,7 +903,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      12,
+      11,
       "Arrange Additional Support",
       "Assess the need for BTP, Land Sheriffs, an additional MOM or evacuation ramps.",
       20,
@@ -945,7 +914,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 13
+   * Stage 2 Action 12
    * ========================================
    */
   const action43Result = db
@@ -965,7 +934,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      13,
+      12,
       "Amend Train Service",
       "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       20,
@@ -976,7 +945,7 @@ function seedTrainFailureTemplate(adminUser) {
 
   /**
    * ========================================
-   * Stage 2 Action 14
+   * Stage 2 Action 13
    * ========================================
    */
   const action44Result = db
@@ -996,7 +965,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage2Id,
-      14,
+      13,
       "Confirm MFSdD Process",
       "Confirm the MFSdD process is in place, if required.",
       20,
@@ -1320,37 +1289,6 @@ function seedTrainFailureTemplate(adminUser) {
    * Stage 4 Action 5
    * ========================================
    */
-  const action75Result = db
-    .prepare(
-      `
-        INSERT INTO plan_stage_actions
-        (
-          plan_stage_id,
-          action_number,
-          title,
-          description,
-          due_from_stage_start,
-          due_from_incident_start
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-    )
-    .run(
-      stage4Id,
-      5,
-      "Update Stranded Train Log",
-      "Record stranded-train details in CCIL.",
-      30,
-      90,
-    );
-
-  const action75Id = action75Result.lastInsertRowid;
-
-  /**
-   * ========================================
-   * Stage 4 Action 6
-   * ========================================
-   */
   const action76Result = db
     .prepare(
       `
@@ -1368,7 +1306,7 @@ function seedTrainFailureTemplate(adminUser) {
     )
     .run(
       stage4Id,
-      6,
+      5,
       "Support Affected TOCs/FOCs",
       "Support operators as train services resume.",
       30,
@@ -1416,7 +1354,7 @@ function seedTrainFailureTemplate(adminUser) {
   insertActionRole.run(action34Id, rcmRole.id);
   insertActionRole.run(action35Id, rcmRole.id);
   insertActionRole.run(action36Id, rcmRole.id);
-  insertActionRole.run(action37Id, infoControllerRole.id);
+  insertActionRole.run(action36Id, infoControllerRole.id);
   insertActionRole.run(action38Id, infoControllerRole.id);
   insertActionRole.run(action39Id, infoControllerRole.id);
   insertActionRole.run(action40Id, incidentControllerRole.id);
@@ -1436,9 +1374,9 @@ function seedTrainFailureTemplate(adminUser) {
   // STAGE 4 ROLES
   insertActionRole.run(action71Id, sndmRole.id);
   insertActionRole.run(action72Id, sndmRole.id);
+  insertActionRole.run(action72Id, rcmRole.id);
   insertActionRole.run(action73Id, rcmRole.id);
   insertActionRole.run(action74Id, rcmRole.id);
-  insertActionRole.run(action75Id, rcmRole.id);
   insertActionRole.run(action76Id, trainRunningControllerRole.id);
 
   console.log("✅ Incident plan train failure seeded");

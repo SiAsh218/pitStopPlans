@@ -186,19 +186,14 @@ module.exports = function seedTemplate(adminUser) {
         actions: [
           {
             title: "Monitor Milestone Plan",
-            description: "Monitor milestone plan against activities",
-            roles: ["RCM"],
+            description: "Monitor progress of the milestone plan against activities.",
+            roles: ["RCM", "Incident Controller"],
           },
           {
             title: "Share Status Update",
             description:
               "Continue to send updated BLACK / RED / AMBER messages based on the information available.",
             roles: ["Information Controller"],
-          },
-          {
-            title: "Monitor Milestone Plan",
-            description: "Monitor progress of milestone plan",
-            roles: ["Incident Controller"],
           },
           {
             title: "Amend Train Service",

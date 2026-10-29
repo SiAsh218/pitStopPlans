@@ -92,7 +92,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Train Running Controller"],
           },
           {
-            title: "Confirm Tactical Plan",
+            title: "Develop Tactical Milestones",
             description:
               "Confirm the immediate tactical plan to include milestones with 1. RIC 2. IC 3. SIO / RIO 4. Senior TOC Manager 5. Embedded BTP Inspector",
             roles: ["RCM"],
@@ -109,7 +109,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Train Running Controller"],
           },
           {
-            title: "Confirm Tactical Plan",
+            title: "Coordinate Incident Tactical Plan",
             description:
               "Confirm immediate tactical plan with the RIO / RCM / SIO / TRC",
             roles: ["Incident Controller"],
@@ -162,7 +162,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["SNDM"],
           },
           {
-            title: "Assess Incident Impact",
+            title: "Review Operational Plan and Team Huddles",
             description:
               "Review route impact and evaluate tactical against operational plan Following Tactical/ Strategic conferences, huddles with IC & TRC teams are to be undertaken to provide details of decisions and create a shared situational awareness and recorded in CCIL",
             roles: ["RCM"],

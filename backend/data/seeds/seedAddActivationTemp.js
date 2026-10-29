@@ -1160,37 +1160,6 @@ function seedAddActivationTemplate(adminUser) {
    * Stage 3 Action 7
    * ========================================
    */
-  const action57Result = db
-    .prepare(
-      `
-        INSERT INTO plan_stage_actions
-        (
-          plan_stage_id,
-          action_number,
-          title,
-          description,
-          due_from_stage_start,
-          due_from_incident_start
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-    )
-    .run(
-      stage3Id,
-      7,
-      "Create Recovery Milestone Plan",
-      "Plan each train's recovery through the affected area after OLE recovery, if applicable.",
-      30,
-      60,
-    );
-
-  const action57Id = action57Result.lastInsertRowid;
-
-  /**
-   * ========================================
-   * Stage 3 Action 8
-   * ========================================
-   */
   const action58Result = db
     .prepare(
       `
@@ -1208,7 +1177,7 @@ function seedAddActivationTemplate(adminUser) {
     )
     .run(
       stage3Id,
-      8,
+      7,
       "Amend Train Service",
       "Work with the TOC/FOC to apply the contingency plan and assess risks when full service resumes.",
       30,
@@ -1384,9 +1353,9 @@ function seedAddActivationTemplate(adminUser) {
   insertActionRole.run(action52Id, sndmRole.id);
   insertActionRole.run(action53Id, sndmRole.id);
   insertActionRole.run(action54Id, rcmRole.id);
+  insertActionRole.run(action54Id, incidentControllerRole.id);
   insertActionRole.run(action55Id, rcmRole.id);
   insertActionRole.run(action56Id, infoControllerRole.id);
-  insertActionRole.run(action57Id, incidentControllerRole.id);
   insertActionRole.run(action58Id, trainRunningControllerRole.id);
 
   // STAGE 4 ROLES

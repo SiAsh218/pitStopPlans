@@ -205,14 +205,14 @@ module.exports = function seedTemplate(adminUser) {
             ]
           },
           {
-            "title": "Assess Coasting Option",
+            "title": "Resource Coasting Boards",
             "description": "If able to coast, are coasting boards being resourced? ETA to site.",
             "roles": [
               "Incident Controller"
             ]
           },
           {
-            "title": "Assess Coasting Option",
+            "title": "Assess Coasting Feasibility",
             "description": "Can coasting be considered? Be clear of emergency switch off limits OLE staff and ECRO need to agree block",
             "roles": [
               "SNDM"
@@ -241,7 +241,8 @@ module.exports = function seedTemplate(adminUser) {
             "title": "Create Milestone Plan",
             "description": "Develop a milestone recovery train service plan for each train through the affected area after restortation of the OLE.",
             "roles": [
-              "RCM"
+              "RCM",
+              "Incident Controller"
             ]
           },
           {
@@ -249,13 +250,6 @@ module.exports = function seedTemplate(adminUser) {
             "description": "Continue to send updated Tyrell / Amber messages based on the information available.",
             "roles": [
               "Information Controller"
-            ]
-          },
-          {
-            "title": "Create Milestone Plan",
-            "description": "Develop a milestone recovery train service plan for each train through the affected area after restortation of the OLE.",
-            "roles": [
-              "Incident Controller"
             ]
           },
           {

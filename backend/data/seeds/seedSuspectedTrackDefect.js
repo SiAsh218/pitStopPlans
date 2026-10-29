@@ -111,7 +111,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Train Running Controller"],
           },
           {
-            title: "Share Status Update",
+            title: "Escalate Track Defect Assessment",
             description:
               "If required escalate to maintenance L4 as per on call matrix. Contact on call RAM (Send photo from the P/way) to discuss can the speed be raised",
             roles: ["RCM"],

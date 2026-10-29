@@ -192,19 +192,14 @@ module.exports = function seedTemplate(adminUser) {
           {
             title: "Monitor Milestone Plan",
             description:
-              "Monitor milestone plan against activities. Advise NOC London (if incident affecting TV area)",
-            roles: ["RCM"],
+              "Monitor milestone plan against activities and advise NOC London if the incident affects the Thames Valley area.",
+            roles: ["RCM", "Incident Controller"],
           },
           {
             title: "Update Amber Messages",
             description:
               "Continue to send updated Tyrell / Amber messages based on the information available.",
             roles: ["Information Controller"],
-          },
-          {
-            title: "Monitor Milestone Plan",
-            description: "Monitor milestone plan against activities",
-            roles: ["Incident Controller"],
           },
           {
             title: "Amend Train Service",

@@ -64,7 +64,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Information Controller"],
           },
           {
-            title: "Share Status Update",
+            title: "Identify Possession Recovery Options",
             description:
               "Explore all options to reduce the impact of the overrun: - Is it possible to shorten back the possession / isolation? - Could the possession be lifted and replaced by a line blockage for the remaining activities to be completed? - Can the possession be given up around a train? -Could the possession be given up with an ESR?",
             roles: ["Infrastructure Controller"],

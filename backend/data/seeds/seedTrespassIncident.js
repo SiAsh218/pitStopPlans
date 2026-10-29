@@ -119,14 +119,8 @@ module.exports = function seedTemplate(adminUser) {
           {
             title: "Identify Stranded Trains",
             description:
-              "Identify any stranded trains and understand recovery options",
-            roles: ["RCM"],
-          },
-          {
-            title: "Identify Stranded Trains",
-            description:
-              "Identify Stranded trains and understand recovery option.",
-            roles: ["Incident Controller"],
+              "Identify any stranded trains and understand recovery options.",
+            roles: ["RCM", "Incident Controller"],
           },
         ],
       },
@@ -182,19 +176,13 @@ module.exports = function seedTemplate(adminUser) {
           {
             title: "Review Logging Prompts",
             description:
-              "Consider all the additional prompts mentioned in the CCIL logging template section",
-            roles: ["Incident Controller"],
+              "Consider all additional prompts in the CCIL logging template.",
+            roles: ["Incident Controller", "RCM"],
           },
           {
             title: "Hold Incident Conference",
             description: "Incident management conference held at:",
             roles: ["SNDM"],
-          },
-          {
-            title: "Review Logging Prompts",
-            description:
-              "Consider the Additional Prompts mentioned in the CCIL logging template",
-            roles: ["RCM"],
           },
           {
             title: "Share Status Update",

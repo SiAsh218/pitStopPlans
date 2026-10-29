@@ -83,7 +83,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Incident Controller"],
           },
           {
-            title: "Confirm Tactical Plan",
+            title: "Confirm Immediate Tactical Plan",
             description:
               "Confirm immediate tactical plan with IC and TOC control lead. Prepare for escalation if necessary.",
             roles: ["RCM"],
@@ -94,7 +94,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Incident Controller"],
           },
           {
-            title: "Confirm Tactical Plan",
+            title: "Agree Site Tactical Plan",
             description:
               "Confirm immediate tactical plan with the RIO / RCM / SIO / TRC Identify stranded trains and consider recovery options.",
             roles: ["Incident Controller"],

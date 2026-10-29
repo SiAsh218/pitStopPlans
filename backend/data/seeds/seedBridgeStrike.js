@@ -123,7 +123,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["Information Controller"],
           },
           {
-            title: "Share Status Update",
+            title: "Assess Remote BSE Dispensation",
             description:
               "If BSE required and response time is likley to be protracted can dispensation be granted remotely (BSE reviewing footge provided by the BSN)? Record BSN time to site on CCIL.",
             roles: ["Incident Controller"],

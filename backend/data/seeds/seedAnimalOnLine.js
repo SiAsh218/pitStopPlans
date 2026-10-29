@@ -119,14 +119,8 @@ module.exports = function seedTemplate(adminUser) {
           {
             title: "Identify Stranded Trains",
             description:
-              "Identify any stranded trains and understand recovery options",
-            roles: ["RCM"],
-          },
-          {
-            title: "Identify Stranded Trains",
-            description:
-              "Identify Stranded trains and understand recovery option.",
-            roles: ["Incident Controller"],
+              "Identify any stranded trains and understand recovery options.",
+            roles: ["RCM", "Incident Controller"],
           },
         ],
       },
