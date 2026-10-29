@@ -7,3 +7,15 @@ export function getPreferences() {
 export function savePreferences(data) {
   return api.put("/api/me/preferences", data);
 }
+
+export function cacheThemePreference(userId, theme) {
+  if (userId == null) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(`theme:${userId}`, theme);
+  } catch (error) {
+    console.warn("Could not cache the theme preference.", error);
+  }
+}

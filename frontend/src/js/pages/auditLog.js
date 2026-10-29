@@ -245,6 +245,11 @@ function formatAction(action) {
     RETIRE_TEMPLATE: "Retired Template",
     REINSTATE_TEMPLATE: "Reinstated Template",
     DELETE_DRAFT_TEMPLATE: "Discarded Draft Template",
+    CREATE_INCIDENT: "Created Incident",
+    CLOSE_INCIDENT: "Closed Incident",
+    REOPEN_INCIDENT: "Reopened Incident",
+    UPDATE_INCIDENT_TIN: "Updated Incident TIN",
+    UPDATE_INCIDENT_CCIL: "Updated Incident CCIL",
   };
 
   return labels[action] || action;

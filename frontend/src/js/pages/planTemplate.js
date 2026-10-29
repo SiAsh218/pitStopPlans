@@ -77,7 +77,26 @@ export async function initPlanTemplatePage() {
 }
 
 export async function refreshPlanTemplatePage() {
+  const matrixContainer = document.getElementById("template-matrix");
+  const sectionCard = matrixContainer?.querySelector(
+    ".template-page__section-card",
+  );
+  const containerScrollLeft = matrixContainer?.scrollLeft ?? 0;
+  const sectionScrollLeft = sectionCard?.scrollLeft ?? 0;
+
   await initPlanTemplatePage();
+
+  if (matrixContainer) {
+    matrixContainer.scrollLeft = containerScrollLeft;
+  }
+
+  const refreshedSectionCard = matrixContainer?.querySelector(
+    ".template-page__section-card",
+  );
+
+  if (refreshedSectionCard && sectionCard) {
+    refreshedSectionCard.scrollLeft = sectionScrollLeft;
+  }
 }
 
 function renderTemplateMeta(template, isDraft) {

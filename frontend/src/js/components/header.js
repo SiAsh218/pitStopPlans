@@ -1,5 +1,6 @@
 import { getCurrentUser, logout } from "../auth.js";
 import {
+  cacheThemePreference,
   getPreferences,
   savePreferences,
 } from "../services/userPreferenceService.js";
@@ -24,14 +25,17 @@ export async function initHeader() {
 
   const user = getCurrentUser();
 
-  let isDarkMode = false;
+  let isDarkMode = document.documentElement.dataset.theme === "dark";
 
   try {
     const preferences = await getPreferences();
     isDarkMode = preferences.theme === "dark";
     applyTheme(isDarkMode);
+    cacheThemePreference(user?.id, isDarkMode ? "dark" : "light");
   } catch (error) {
     showError(error?.message || "Failed to load your display preferences.");
+  } finally {
+    delete document.documentElement.dataset.themePending;
   }
 
   updateThemeToggle(themeToggle, isDarkMode);
@@ -45,6 +49,7 @@ export async function initHeader() {
 
     try {
       await savePreferences({ theme: isDarkMode ? "dark" : "light" });
+      cacheThemePreference(user?.id, isDarkMode ? "dark" : "light");
     } catch (error) {
       isDarkMode = previousTheme;
       applyTheme(isDarkMode);
