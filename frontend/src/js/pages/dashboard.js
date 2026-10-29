@@ -342,9 +342,13 @@ function buildIncidentCard(incident) {
         ${summary.total_actions}
         actions completed
       </small>
-      <small class="incident-card__overdue${overdueActions > 0 ? " incident-card__overdue--active" : ""}">
+      ${
+        incident.status === "closed"
+          ? ""
+          : `<small class="incident-card__overdue${overdueActions > 0 ? " incident-card__overdue--active" : ""}">
         (${overdueActions} overdue)
-      </small>
+      </small>`
+      }
       <div class="incident-card__actions">
         <button
           class="btn btn-primary btn--view-incident"
