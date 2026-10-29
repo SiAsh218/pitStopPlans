@@ -47,7 +47,7 @@ module.exports = [
     method: "POST",
     path: "/api/incidents/:id/close",
     handler: [
-      ...editorAccess,
+      ...authenticatedUser,
       validate("params", idParamSchema),
       incidentController.close,
     ],
@@ -77,7 +77,7 @@ module.exports = [
     method: "POST",
     path: "/api/incidents/:id/ccil",
     handler: [
-      ...editorAccess,
+      ...authenticatedUser,
       validate("params", idParamSchema),
       validate("body", updateCcilSchema),
       incidentController.updateCcil,
@@ -88,7 +88,7 @@ module.exports = [
     method: "POST",
     path: "/api/incidents/:id/tin",
     handler: [
-      ...editorAccess,
+      ...authenticatedUser,
       validate("params", idParamSchema),
       validate("body", updateTinSchema),
       incidentController.updateTin,
