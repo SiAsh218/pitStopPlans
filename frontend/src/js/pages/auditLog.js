@@ -243,6 +243,7 @@ function formatAction(action) {
     APPROVE_TEMPLATE: "Approved Template",
     CLONE_TEMPLATE: "Cloned Template",
     RETIRE_TEMPLATE: "Retired Template",
+    REINSTATE_TEMPLATE: "Reinstated Template",
     DELETE_DRAFT_TEMPLATE: "Discarded Draft Template",
   };
 

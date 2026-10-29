@@ -812,4 +812,47 @@ describe("PlanTemplateService", () => {
       expect(result).toBe(true);
     });
   });
+
+  describe("reinstateTemplate", () => {
+    it("returns false when template does not exist", () => {
+      planTemplateRepository.findById.mockReturnValue(null);
+
+      expect(planTemplateService.reinstateTemplate(1, 99)).toBe(false);
+    });
+
+    it("reinstates a retired template and records the change", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "retired",
+      });
+
+      const result = planTemplateService.reinstateTemplate(1, 99);
+
+      expect(planTemplateRepository.updateById).toHaveBeenCalledWith(1, {
+        status: "approved",
+      });
+      expect(auditService.log).toHaveBeenCalledWith(
+        99,
+        "REINSTATE_TEMPLATE",
+        "plan_template",
+        1,
+        {
+          before: { status: "retired" },
+          after: { status: "approved" },
+        },
+      );
+      expect(result).toBe(true);
+    });
+
+    it("throws when the template is not retired", () => {
+      planTemplateRepository.findById.mockReturnValue({
+        id: 1,
+        status: "draft",
+      });
+
+      expect(() => planTemplateService.reinstateTemplate(1, 99)).toThrow(
+        "Only retired templates can be reinstated",
+      );
+    });
+  });
 });

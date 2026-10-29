@@ -22,7 +22,7 @@ async function request(method, url, body = null, params = null, options = {}) {
 
   const isTemplateMutation =
     method !== "GET" &&
-    (/^\/api\/plan_templates\/\d+(?:\/(?:approve|retire|stages\/reorder))?$/.test(
+    (/^\/api\/plan_templates\/\d+(?:\/(?:approve|retire|reinstate|stages\/reorder))?$/.test(
       url,
     ) ||
       /^\/api\/plan_stages(?:\/\d+)?(?:\/actions\/reorder)?$/.test(url) ||

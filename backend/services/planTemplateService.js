@@ -508,6 +508,40 @@ class PlanTemplateService {
     return true;
   }
 
+  /**
+   * Reinstates a retired template.
+   *
+   * @param {number} id
+   * @param {number} userId
+   * @returns {boolean}
+   */
+  reinstateTemplate(id, userId) {
+    const template = planTemplateRepository.findById(id);
+
+    if (!template) {
+      return false;
+    }
+
+    if (template.status !== "retired") {
+      throw new AppError("Only retired templates can be reinstated", 400);
+    }
+
+    planTemplateRepository.updateById(id, {
+      status: "approved",
+    });
+
+    auditService.log(userId, "REINSTATE_TEMPLATE", "plan_template", id, {
+      before: {
+        status: "retired",
+      },
+      after: {
+        status: "approved",
+      },
+    });
+
+    return true;
+  }
+
   getTemplateSummary() {
     const rows = planTemplateRepository.findAllWithIncidentType();
 

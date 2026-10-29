@@ -75,6 +75,15 @@ function renderTemplates(templates) {
             <span class="template-card__badge ${versions.draft ? "template-card__badge--draft" : ""}">
               Draft: ${versions.draft ? `v${versions.draft.version}` : "None"}
             </span>
+            ${
+              versions.retired
+                ? `
+                  <span class="template-card__badge template-card__badge--retired">
+                    Retired: v${versions.retired.version}
+                  </span>
+                `
+                : ""
+            }
           </div>
         </div>
 
@@ -100,6 +109,19 @@ function renderTemplates(templates) {
                   data-template-id="${versions.draft.id}"
                 >
                   View Draft
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            versions.retired
+              ? `
+                <button
+                  class="btn btn-secondary btn-view-template"
+                  data-template-id="${versions.retired.id}"
+                >
+                  View Retired
                 </button>
               `
               : ""
@@ -289,6 +311,14 @@ function groupTemplates(templates) {
 
     if (template.status === "draft") {
       grouped[typeName].draft = template;
+    }
+
+    if (
+      template.status === "retired" &&
+      (!grouped[typeName].retired ||
+        template.version > grouped[typeName].retired.version)
+    ) {
+      grouped[typeName].retired = template;
     }
   });
 

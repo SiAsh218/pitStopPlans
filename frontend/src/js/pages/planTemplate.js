@@ -3,6 +3,7 @@ import {
   updateTemplate,
   approveTemplate,
   retireTemplate,
+  reinstateTemplate,
   deleteDraftTemplate,
   getTemplateHistory,
 } from "../services/planTemplateService.js";
@@ -66,6 +67,10 @@ export async function initPlanTemplatePage() {
     if (template.status === "approved") {
       wireRetireTemplateButton(template.id);
     }
+
+    if (template.status === "retired") {
+      wireReinstateTemplateButton(template.id);
+    }
   } catch (err) {
     console.error(err);
   }
@@ -83,6 +88,7 @@ function renderTemplateMeta(template, isDraft) {
   }
 
   const isApproved = template.status === "approved";
+  const isRetired = template.status === "retired";
 
   const user = getCurrentUser();
 
@@ -145,6 +151,15 @@ function renderTemplateMeta(template, isDraft) {
             ? `
               <button id="btn-retire-template" class="btn btn-danger">
                 Retire Template
+              </button>
+            `
+            : ""
+        }
+        ${
+          isRetired && user?.role === "admin"
+            ? `
+              <button id="btn-reinstate-template" class="btn btn-primary">
+                Reinstate Template
               </button>
             `
             : ""
@@ -1028,6 +1043,30 @@ function wireRetireTemplateButton(templateId) {
       console.error(err);
 
       showError(err.message || "Failed to retire template");
+    }
+  });
+}
+
+function wireReinstateTemplateButton(templateId) {
+  const button = document.getElementById("btn-reinstate-template");
+
+  button?.addEventListener("click", async () => {
+    const confirmed = await showConfirm(
+      "Reinstate Template",
+      "Are you sure you want to reinstate this template?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await reinstateTemplate(templateId);
+      showSuccess("Template reinstated successfully");
+      location.reload();
+    } catch (err) {
+      console.error(err);
+      showError(err.message || "Failed to reinstate template");
     }
   });
 }

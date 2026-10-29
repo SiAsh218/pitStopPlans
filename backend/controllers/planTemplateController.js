@@ -15,6 +15,7 @@ class PlanTemplateController {
     this.approve = this.approve.bind(this);
     this.clone = this.clone.bind(this);
     this.retire = this.retire.bind(this);
+    this.reinstate = this.reinstate.bind(this);
     this.getCurrent = this.getCurrent.bind(this);
     this.getSummary = this.getSummary.bind(this);
     this.getHistory = this.getHistory.bind(this);
@@ -212,6 +213,24 @@ class PlanTemplateController {
     this._sendJSON(res, 200, {
       success: true,
       message: "Plan Template retired",
+    });
+  }
+
+  /**
+   * Reinstate a retired template.
+   */
+  reinstate(req, res) {
+    const id = this._getId(req.params.id);
+
+    const reinstated = planTemplateService.reinstateTemplate(id, req.user.id);
+
+    if (!reinstated) {
+      throw new AppError("Plan Template not found", 404);
+    }
+
+    this._sendJSON(res, 200, {
+      success: true,
+      message: "Plan Template reinstated",
     });
   }
 

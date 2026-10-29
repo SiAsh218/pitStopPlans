@@ -112,6 +112,17 @@ module.exports = [
   },
 
   {
+    method: "POST",
+    path: "/api/plan_templates/:id/reinstate",
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      requireTemplateRevision(planTemplateController.reinstate),
+    ],
+  },
+
+  {
     method: "GET",
     path: "/api/plan_templates/:id/history",
     handler: [

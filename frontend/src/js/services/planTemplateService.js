@@ -24,6 +24,10 @@ export function retireTemplate(id) {
   return api.post(`/api/plan_templates/${id}/retire`);
 }
 
+export function reinstateTemplate(id) {
+  return api.post(`/api/plan_templates/${id}/reinstate`);
+}
+
 export async function getCurrentTemplates() {
   return api.get("/api/plan_templates/current");
 }
