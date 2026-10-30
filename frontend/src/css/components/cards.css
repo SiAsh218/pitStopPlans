@@ -96,13 +96,15 @@
 
 .incident-card__timestamp {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
+  grid-template-columns: 3.5rem max-content;
+  justify-content: end;
   align-items: baseline;
   gap: 0.5rem;
   line-height: 1.2;
 }
 
 .incident-card__timestamp > small {
+  justify-self: end;
   color: var(--color-text-secondary);
   font-size: 0.7rem;
   white-space: nowrap;
