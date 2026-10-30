@@ -552,7 +552,14 @@ function wireCompleteActionButtons() {
       event.stopPropagation();
 
       try {
-        await completeAction(button.dataset.actionId);
+        const actionId = button.dataset.actionId;
+        const updates = await getActionUpdates(actionId, { limit: 200 });
+        const completedAction = await completeAction(actionId);
+        await copyActionCompletionToClipboard(
+          completedAction,
+          updates,
+          "Action data copied to clipboard",
+        );
         await refreshIncidentPage();
       } catch (err) {
         showUnexpectedError(err);
@@ -568,7 +575,7 @@ function wireCompleteActionButtons() {
 async function openActionPanel(actionId) {
   try {
     const action = await getAction(actionId);
-    const updates = await getActionUpdates(actionId);
+    const updates = await getActionUpdates(actionId, { limit: 200 });
 
     renderActionPanel(action, updates);
   } catch (err) {
@@ -628,6 +635,37 @@ function renderActionPanel(action, updates = []) {
       </button>
     `;
   }
+
+  const copyCompletionButton =
+    action.status === "completed"
+      ? `
+        <button
+          class="btn btn-secondary"
+          id="btn-copy-action-completion"
+          type="button"
+          aria-label="Copy completion details to clipboard"
+          title="Copy completion details to clipboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect x="5" y="4" width="14" height="18" rx="2" />
+            <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+            <path d="M9 11h6M9 15h6" />
+          </svg>
+        </button>
+      `
+      : "";
 
   const updatesHtml =
     updates.length === 0
@@ -692,15 +730,75 @@ function renderActionPanel(action, updates = []) {
           Save Update
         </button>
         ${buttons}
+        ${copyCompletionButton}
       </div>
     </div>
   `;
 
-  wireActionButtons(action.id);
+  wireActionButtons(action.id, updates);
   wireUpdateButton(action.id);
+  wireCopyActionCompletionButton(action, updates);
 }
 
-function wireActionButtons(actionId) {
+function wireCopyActionCompletionButton(action, updates) {
+  document
+    .getElementById("btn-copy-action-completion")
+    ?.addEventListener("click", async () => {
+      await copyActionCompletionToClipboard(
+        action,
+        updates,
+        "Action completion copied to clipboard",
+      );
+    });
+}
+
+async function copyActionCompletionToClipboard(action, updates, message) {
+  const completionUpdate = updates.find(
+    (update) =>
+      update.update_type === "status_change" &&
+      update.new_status === "completed",
+  );
+  const completedBy =
+    completionUpdate?.user_email || currentUser?.email || "User";
+  const completedAt = formatDateTime(action.completed_at);
+  const notes = updates
+    .filter(
+      (update) =>
+        update.update_type === "comment" &&
+        typeof update.note === "string" &&
+        update.note.trim(),
+    )
+    .sort((first, second) => {
+      const firstCreatedAt = parseUtcDate(first.created_at)?.getTime() ?? 0;
+      const secondCreatedAt = parseUtcDate(second.created_at)?.getTime() ?? 0;
+
+      return (
+        firstCreatedAt - secondCreatedAt ||
+        Number(first.id) - Number(second.id)
+      );
+    })
+    .map((update) => update.note.trim());
+  const text = `${action.title} has been completed by ${completedBy} at ${completedAt}${
+    notes.length ? `\n\nNotes:\n${notes.join("\n")}` : ""
+  }`;
+  const escapedNotes = notes
+    .map(
+      (note) =>
+        `<div style="margin:0;padding:0">${escapeClipboardHtml(note).replace(/\r?\n/g, "<br>")}</div>`,
+    )
+    .join("");
+  const html = `<strong>${escapeClipboardHtml(action.title)}</strong> has been completed by <strong>${escapeClipboardHtml(completedBy)}</strong> at ${escapeClipboardHtml(completedAt)}${
+    notes.length ? `<br><br><strong>Notes:</strong><br>${escapedNotes}` : ""
+  }`;
+
+  await copyToClipboard(
+    html,
+    text,
+    message,
+  );
+}
+
+function wireActionButtons(actionId, updates) {
   document
     .querySelector(".incident-action-modal__close")
     ?.addEventListener("click", () => {
@@ -730,7 +828,12 @@ function wireActionButtons(actionId) {
     .getElementById("btn-complete-action")
     ?.addEventListener("click", async () => {
       try {
-        await completeAction(actionId);
+        const completedAction = await completeAction(actionId);
+        await copyActionCompletionToClipboard(
+          completedAction,
+          updates,
+          "Action data copied to clipboard",
+        );
         await refreshIncidentPage();
         await openActionPanel(actionId);
       } catch (err) {

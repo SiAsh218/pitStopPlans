@@ -23,7 +23,6 @@ canvas {
 
 .container {
   width: 100%;
-  max-width: 1600px;
   margin: 18px auto 24px;
   padding: clamp(12px, 2vw, 24px);
 }

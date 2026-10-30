@@ -1,7 +1,7 @@
 import { api } from "./api.js";
 
-export function getActionUpdates(id) {
-  return api.get(`/api/incident_actions/${id}/updates`);
+export function getActionUpdates(id, params = null) {
+  return api.get(`/api/incident_actions/${id}/updates`, params);
 }
 
 export function getIncidentActionUpdates(incidentId) {
