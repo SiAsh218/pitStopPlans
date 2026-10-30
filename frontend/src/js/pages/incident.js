@@ -72,6 +72,7 @@ export async function initIncidentPage() {
   registerLiveUpdateListeners();
 
   try {
+    currentUser = getCurrentUser();
     const incidentId = window.location.pathname.split("/").pop();
     const dashboard = await getDashboard(incidentId);
 
@@ -86,7 +87,6 @@ export async function initIncidentPage() {
     renderIncidentMeta(dashboard);
     renderActions(dashboard.actions);
     renderSummary(dashboard.summary);
-    currentUser = getCurrentUser();
   } catch (err) {
     showUnexpectedError(err);
 
@@ -124,7 +124,8 @@ function renderIncidentMeta(dashboard) {
 
   const incidentButton =
     incident.status === "closed"
-      ? `
+      ? currentUser?.role !== "user"
+        ? `
         <button
           class="btn btn-secondary"
           id="btn-reopen-incident"
@@ -132,6 +133,7 @@ function renderIncidentMeta(dashboard) {
           Reopen Incident
         </button>
       `
+        : ""
       : `
         <button
           class="btn btn-primary"
