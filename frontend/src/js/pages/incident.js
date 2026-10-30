@@ -778,7 +778,7 @@ async function copyActionCompletionToClipboard(action, updates, message) {
       );
     })
     .map((update) => update.note.trim());
-  const text = `${action.title} has been completed by ${completedBy} at ${completedAt}${
+  const text = `'${action.title}' has been completed by ${completedBy} at ${completedAt}${
     notes.length ? `\n\nNotes:\n${notes.join("\n")}` : ""
   }`;
   const escapedNotes = notes
@@ -787,7 +787,7 @@ async function copyActionCompletionToClipboard(action, updates, message) {
         `<div style="margin:0;padding:0">${escapeClipboardHtml(note).replace(/\r?\n/g, "<br>")}</div>`,
     )
     .join("");
-  const html = `<strong>${escapeClipboardHtml(action.title)}</strong> has been completed by <strong>${escapeClipboardHtml(completedBy)}</strong> at ${escapeClipboardHtml(completedAt)}${
+  const html = `'<strong>${escapeClipboardHtml(action.title)}</strong>' has been completed by <strong>${escapeClipboardHtml(completedBy)}</strong> at ${escapeClipboardHtml(completedAt)}${
     notes.length ? `<br><br><strong>Notes:</strong><br>${escapedNotes}` : ""
   }`;
 
