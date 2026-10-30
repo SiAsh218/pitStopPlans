@@ -1,0 +1,27 @@
+(() => {
+  const root = document.documentElement;
+  root.dataset.themePending = "true";
+
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (user?.id == null) {
+      return;
+    }
+
+    const theme = localStorage.getItem(`theme:${user.id}`);
+    if (theme !== "dark" && theme !== "light") {
+      return;
+    }
+
+    if (theme === "dark") {
+      root.dataset.theme = "dark";
+    } else {
+      delete root.dataset.theme;
+    }
+
+    root.style.backgroundColor = theme === "dark" ? "#111827" : "#f5f7fa";
+    delete root.dataset.themePending;
+  } catch (error) {
+    console.warn("Could not read the cached theme preference.", error);
+  }
+})();
