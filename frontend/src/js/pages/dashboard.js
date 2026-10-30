@@ -23,6 +23,7 @@ const state = {
   sseListenersRegistered: false,
   stats: null,
 };
+let incidentDurationInterval = null;
 // let sseListenersRegistered = false;
 
 // -----------------------------------------------------------------------------
@@ -153,6 +154,11 @@ function renderIncidents(incidents = []) {
     });
     container.appendChild(card);
   });
+
+  updateActiveIncidentDurations();
+  if (!incidentDurationInterval) {
+    incidentDurationInterval = setInterval(updateActiveIncidentDurations, 60000);
+  }
 }
 
 function renderPagination(meta = {}) {
@@ -330,9 +336,11 @@ function buildIncidentCard(incident) {
         <div class="incident-card__timestamps">
           ${renderIncidentTimestamp("Started", incident.started_at)}
           ${
-            incident.status === "closed" && incident.closed_at
-              ? renderIncidentTimestamp("Closed", incident.closed_at)
-              : ""
+            incident.status === "closed"
+              ? incident.closed_at
+                ? renderIncidentTimestamp("Closed", incident.closed_at)
+                : ""
+              : renderIncidentDuration(incident.started_at)
           }
         </div>
       </div>
@@ -402,6 +410,50 @@ function renderIncidentTimestamp(label, timestamp) {
       </time>
     </div>
   `;
+}
+
+function renderIncidentDuration(startedAt) {
+  const started = parseUtcDate(startedAt);
+
+  if (!started) {
+    return "";
+  }
+
+  return `
+    <div class="incident-card__timestamp">
+      <small>Duration</small>
+      <strong
+        class="incident-card__duration"
+        data-started-at="${started.toISOString()}"
+      ></strong>
+    </div>
+  `;
+}
+
+function updateActiveIncidentDurations() {
+  document.querySelectorAll(".incident-card__duration").forEach((element) => {
+    const started = parseUtcDate(element.dataset.startedAt);
+
+    if (!started) {
+      return;
+    }
+
+    const totalMinutes = Math.max(
+      0,
+      Math.floor((Date.now() - started.getTime()) / 60000),
+    );
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) {
+      element.textContent = `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      element.textContent = `${hours}h ${minutes}m`;
+    } else {
+      element.textContent = `${minutes}m`;
+    }
+  });
 }
 
 function openIncident(incidentId) {

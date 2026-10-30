@@ -23,7 +23,7 @@ module.exports = function seedTemplate(adminUser) {
             roles: ["RCM"],
           },
           {
-            title: "Categorisation of incident BLACK",
+            title: "Categorisation of incident",
             description:
               "Categorisation of incident BLACK / RED / AMBER Create Initial BLACK / RED /AMBER Message and inform stakeholders of whats happened, impact, where, when etc.",
             roles: ["Information Controller"],
