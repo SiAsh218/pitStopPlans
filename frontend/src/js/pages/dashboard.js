@@ -296,7 +296,9 @@ function showDashboardError(container, err) {
 
 function buildIncidentCard(incident) {
   const statusClass =
-    incident.status === "active" ? "status--active" : "status--closed";
+    incident.status === "active"
+      ? "incident-card__badge--active"
+      : "incident-card__badge--closed";
 
   const summary = incident.summary ?? {
     completion_percentage: 0,
@@ -317,43 +319,46 @@ function buildIncidentCard(incident) {
           ${incident.title}
         </h3>
 
-        <span
-          class="status-badge ${statusClass}"
-        >
+        <span class="incident-card__badge ${statusClass}">
           ${incident.status}
         </span>
       </div>
-      <p>
-        <strong>Type:</strong>
-        ${incident.incident_type.name}
-      </p>
-      <p>
-        <strong>Started:</strong>
-        ${formatDateTime(incident.started_at)}
-      </p>
-      ${
-        incident.status === "closed" && incident.closed_at
-          ? `<p><strong>Closed:</strong> ${formatDateTime(incident.closed_at)}</p>`
-          : ""
-      }
-      <div class="progress-bar">
-        <div
-          class="progress-bar__fill progress-bar__fill--${completionPercentage}"
-        ></div>
+      <div class="incident-card__details">
+        <span class="incident-card__badge incident-card__badge--type">
+          ${incident.incident_type.name}
+        </span>
+        <p>
+          <strong>Started:</strong>
+          ${formatDateTime(incident.started_at)}
+        </p>
+        ${
+          incident.status === "closed" && incident.closed_at
+            ? `<p><strong>Closed:</strong> ${formatDateTime(incident.closed_at)}</p>`
+            : ""
+        }
       </div>
-      <small>
-        ${summary.completed_actions}
-        /
-        ${summary.total_actions}
-        actions completed
-      </small>
-      ${
-        incident.status === "closed"
-          ? ""
-          : `<small class="incident-card__overdue${overdueActions > 0 ? " incident-card__overdue--active" : ""}">
-        (${overdueActions} overdue)
-      </small>`
-      }
+      <div class="incident-card__progress">
+        <div class="progress-bar">
+          <div
+            class="progress-bar__fill progress-bar__fill--${completionPercentage}"
+          ></div>
+        </div>
+        <div class="incident-card__progress-details">
+          <small>
+            ${summary.completed_actions}
+            /
+            ${summary.total_actions}
+            actions completed
+          </small>
+          ${
+            incident.status === "closed"
+              ? ""
+              : `<small class="incident-card__overdue${overdueActions > 0 ? " incident-card__overdue--active" : ""}">
+            (${overdueActions} overdue)
+          </small>`
+          }
+        </div>
+      </div>
       <div class="incident-card__actions">
         <button
           class="btn btn-primary btn--view-incident"
