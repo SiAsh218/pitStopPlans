@@ -30,6 +30,19 @@
   min-width: 0;
 }
 
+.incident-card__details {
+  flex-wrap: wrap;
+}
+
+.incident-card__timestamps {
+  display: grid;
+  flex: 0 1 17rem;
+  min-width: min(100%, 17rem);
+  max-width: 100%;
+  gap: 0.2rem;
+  margin-left: auto;
+}
+
 .incident-card__header {
   justify-content: space-between;
 }
@@ -66,11 +79,53 @@
 .incident-card__badge--type {
   background: var(--color-primary-light);
   color: var(--color-primary);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.incident-card__header h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .incident-card p {
   margin: 0;
   color: var(--color-text-secondary);
+}
+
+.incident-card__timestamp {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+  line-height: 1.2;
+}
+
+.incident-card__timestamp > small {
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.incident-card__timestamp time {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.incident-card__timestamp time span {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.incident-card__timestamp time strong,
+.incident-card__timestamp > strong {
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .incident-card .progress-bar {
@@ -110,6 +165,20 @@
   }
 }
 
+@media (max-width: 800px) {
+  .incident-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .incident-card__header {
+    grid-column: auto;
+  }
+
+  .incident-card__actions {
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 600px) {
   .incident-card {
     grid-template-columns: minmax(0, 1fr);
@@ -121,7 +190,13 @@
   }
 
   .incident-card__details {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .incident-card__timestamps {
+    width: 100%;
+    flex-basis: auto;
   }
 
   .incident-card__actions {

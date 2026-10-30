@@ -4,7 +4,7 @@
 
 import { getIncidentTypes } from "../services/incidentTypeService.js";
 import { getIncidents } from "../services/incidentService.js";
-import { formatDateTime } from "../utils/dateHandler.js";
+import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import liveUpdateSubscriptions from "../services/liveUpdateSubscriptions.cjs";
 
 // -----------------------------------------------------------------------------
@@ -327,15 +327,14 @@ function buildIncidentCard(incident) {
         <span class="incident-card__badge incident-card__badge--type">
           ${incident.incident_type.name}
         </span>
-        <p>
-          <strong>Started:</strong>
-          ${formatDateTime(incident.started_at)}
-        </p>
-        ${
-          incident.status === "closed" && incident.closed_at
-            ? `<p><strong>Closed:</strong> ${formatDateTime(incident.closed_at)}</p>`
-            : ""
-        }
+        <div class="incident-card__timestamps">
+          ${renderIncidentTimestamp("Started", incident.started_at)}
+          ${
+            incident.status === "closed" && incident.closed_at
+              ? renderIncidentTimestamp("Closed", incident.closed_at)
+              : ""
+          }
+        </div>
       </div>
       <div class="incident-card__progress">
         <div class="progress-bar">
@@ -367,6 +366,42 @@ function buildIncidentCard(incident) {
         </button>
       </div>
     `;
+}
+
+function renderIncidentTimestamp(label, timestamp) {
+  const date = parseUtcDate(timestamp);
+
+  if (!date) {
+    return `
+      <div class="incident-card__timestamp">
+        <small>${label}</small>
+        <strong>-</strong>
+      </div>
+    `;
+  }
+
+  const dateText = date.toLocaleDateString("en-GB", {
+    timeZone: "Europe/London",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const timeText = date.toLocaleTimeString("en-GB", {
+    timeZone: "Europe/London",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `
+    <div class="incident-card__timestamp">
+      <small>${label}</small>
+      <time datetime="${date.toISOString()}">
+        <span>${dateText}</span>
+        <strong>${timeText}</strong>
+      </time>
+    </div>
+  `;
 }
 
 function openIncident(incidentId) {
