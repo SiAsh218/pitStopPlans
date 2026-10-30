@@ -15,6 +15,7 @@ import { showConfirm } from "../modals/modalConfirm.js";
 import { getCurrentUser } from "../auth.js";
 
 import { copyToClipboard } from "../utils/copyToClipboard.js";
+import { formatClipboardUserName } from "../utils/formatClipboardUserName.js";
 import liveUpdateSubscriptions from "../services/liveUpdateSubscriptions.cjs";
 
 import {
@@ -559,6 +560,7 @@ function wireCompleteActionButtons() {
           completedAction,
           updates,
           "Action data copied to clipboard",
+          currentUser?.email,
         );
         await refreshIncidentPage();
       } catch (err) {
@@ -752,14 +754,31 @@ function wireCopyActionCompletionButton(action, updates) {
     });
 }
 
-async function copyActionCompletionToClipboard(action, updates, message) {
-  const completionUpdate = updates.find(
-    (update) =>
-      update.update_type === "status_change" &&
-      update.new_status === "completed",
-  );
+async function copyActionCompletionToClipboard(
+  action,
+  updates,
+  message,
+  completedByEmail,
+) {
+  const completionUpdate = updates
+    .filter(
+      (update) =>
+        update.update_type === "status_change" &&
+        update.new_status === "completed",
+    )
+    .sort((first, second) => {
+      const firstCreatedAt = parseUtcDate(first.created_at)?.getTime() ?? 0;
+      const secondCreatedAt = parseUtcDate(second.created_at)?.getTime() ?? 0;
+
+      return (
+        secondCreatedAt - firstCreatedAt ||
+        Number(second.id) - Number(first.id)
+      );
+    })[0];
   const completedBy =
-    completionUpdate?.user_email || currentUser?.email || "User";
+    formatClipboardUserName(
+      completedByEmail || completionUpdate?.user_email || currentUser?.email,
+    );
   const completedAt = formatDateTime(action.completed_at);
   const notes = updates
     .filter(
@@ -833,6 +852,7 @@ function wireActionButtons(actionId, updates) {
           completedAction,
           updates,
           "Action data copied to clipboard",
+          currentUser?.email,
         );
         await refreshIncidentPage();
         await openActionPanel(actionId);
@@ -1290,7 +1310,7 @@ function buildIncidentClipboardHtml(updates = []) {
               .map(
                 (update) => `
                   <li>
-                    <strong>${escapeClipboardHtml(update.user_email || "User")}</strong>
+                    <strong>${escapeClipboardHtml(formatClipboardUserName(update.user_email))}</strong>
                     <small> — ${escapeClipboardHtml(formatDateTime(update.created_at))}</small><br>
                     ${escapeClipboardHtml(update.note).replace(/\r?\n/g, "<br>")}
                   </li>
@@ -1401,7 +1421,7 @@ function buildActionUpdateText(updatesByAction) {
         .get(action.id)
         .map(
           (update) =>
-            `  - ${update.user_email || "User"} (${formatDateTime(update.created_at)}):\n    ${update.note.replace(/\r?\n/g, "\n    ")}`,
+            `  - ${formatClipboardUserName(update.user_email)} (${formatDateTime(update.created_at)}):\n    ${update.note.replace(/\r?\n/g, "\n    ")}`,
         );
 
       return `${action.title}\n${entries.join("\n")}`;
