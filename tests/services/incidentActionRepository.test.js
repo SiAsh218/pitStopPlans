@@ -41,8 +41,16 @@ describe("IncidentActionRepository", () => {
       CREATE TABLE incident_action_updates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         incident_action_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
         update_type TEXT NOT NULL,
         note TEXT
+      );
+
+      CREATE TABLE incident_action_update_reads (
+        user_id INTEGER NOT NULL,
+        incident_action_id INTEGER NOT NULL,
+        update_id INTEGER NOT NULL,
+        PRIMARY KEY (user_id, update_id)
       );
     `);
 
@@ -54,6 +62,7 @@ describe("IncidentActionRepository", () => {
     db.exec(`
       DELETE FROM incident_actions;
       DELETE FROM plan_stage_action_roles;
+      DELETE FROM incident_action_update_reads;
       DELETE FROM incident_action_updates;
       DELETE FROM roles;
     `);
@@ -78,12 +87,13 @@ describe("IncidentActionRepository", () => {
 
       INSERT INTO incident_action_updates (
         incident_action_id,
+        user_id,
         update_type,
         note
       )
       VALUES
-        (1, 'comment', 'Progress update'),
-        (2, 'status_change', 'Action started');
+        (1, 12, 'comment', 'Progress update'),
+        (2, 12, 'status_change', 'Action started');
 
       INSERT INTO incident_actions (
         id,
@@ -632,6 +642,51 @@ describe("IncidentActionRepository", () => {
       expect(incidentActionRepository.findByIncidentIdWithRoles(999)).toEqual(
         [],
       );
+    });
+
+    it("marks comments from other users as new until the action is opened", () => {
+      const unreadActions = incidentActionRepository.findByIncidentIdWithRoles(
+        10,
+        99,
+      );
+
+      expect(unreadActions.find((action) => action.id === 1))
+        .toEqual(expect.objectContaining({
+          has_text_update: true,
+          has_unseen_text_update: true,
+        }));
+      const lastCommentId = db
+        .prepare(
+          "SELECT MAX(id) AS id FROM incident_action_updates WHERE incident_action_id = 1 AND update_type = 'comment'",
+        )
+        .get().id;
+
+      db.prepare(`
+        INSERT INTO incident_action_update_reads (
+          user_id,
+          incident_action_id,
+          update_id
+        )
+        VALUES (?, ?, ?)
+      `).run(99, 1, lastCommentId);
+
+      const readActions = incidentActionRepository.findByIncidentIdWithRoles(
+        10,
+        99,
+      );
+
+      expect(readActions.find((action) => action.id === 1).has_unseen_text_update)
+        .toBe(false);
+    });
+
+    it("does not mark a user's own comment as new", () => {
+      const actions = incidentActionRepository.findByIncidentIdWithRoles(
+        10,
+        12,
+      );
+
+      expect(actions.find((action) => action.id === 1).has_unseen_text_update)
+        .toBe(false);
     });
   });
 

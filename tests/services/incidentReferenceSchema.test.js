@@ -1,5 +1,6 @@
 const {
   createIncidentSchema,
+  markActionUpdatesReadSchema,
   updateCcilSchema,
   updateNearestStationSchema,
   updateTinSchema,
@@ -21,6 +22,24 @@ describe.each([
           title: "Incident",
         }).success,
       ).toBe(true);
+    });
+
+    describe("mark action updates read schema", () => {
+      it("accepts a positive comment ID", () => {
+        expect(
+          markActionUpdatesReadSchema.safeParse({
+            update_ids: [15],
+          }).success,
+        ).toBe(true);
+      });
+
+      it("rejects invalid comment IDs", () => {
+        expect(
+          markActionUpdatesReadSchema.safeParse({
+            update_ids: [0],
+          }).success,
+        ).toBe(false);
+      });
     });
 
     it("accepts only station names from the shared station list", () => {

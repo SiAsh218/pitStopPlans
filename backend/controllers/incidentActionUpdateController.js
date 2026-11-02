@@ -9,6 +9,7 @@ class IncidentActionUpdateController {
     this.getByAction = this.getByAction.bind(this);
     this.getByIncident = this.getByIncident.bind(this);
     this.create = this.create.bind(this);
+    this.markRead = this.markRead.bind(this);
   }
 
   /**
@@ -76,6 +77,19 @@ class IncidentActionUpdateController {
         req.user.id,
         note,
       ),
+    });
+  }
+
+  markRead(req, res) {
+    incidentActionUpdateService.markUpdatesAsRead(
+      Number(req.params.id),
+      req.user.id,
+      req.body.update_ids,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: null,
     });
   }
 }

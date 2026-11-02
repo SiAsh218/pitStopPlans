@@ -36,6 +36,7 @@ import {
   getIncidentActionUpdates,
   getActionUpdates,
   addActionUpdate,
+  markActionUpdatesRead,
 } from "../services/incidentActionUpdateService.js";
 
 // -----------------------------------------------------------------------------
@@ -651,6 +652,20 @@ async function openActionPanel(actionId) {
     const updates = await getActionUpdates(actionId, { limit: 200 });
 
     renderActionPanel(action, updates);
+
+    const commentIds = updates
+      .filter(
+        (update) =>
+          update.update_type === "comment" &&
+          String(update.note ?? "").trim() !== "",
+      )
+      .map((update) => Number(update.id))
+      .filter(Number.isSafeInteger);
+
+    if (commentIds.length) {
+      await markActionUpdatesRead(actionId, commentIds);
+      await refreshIncidentPage();
+    }
   } catch (err) {
     showUnexpectedError(err);
   }
@@ -1550,8 +1565,8 @@ function buildActionCard(action) {
   const roleNames = action.roles.map((role) => role.name).join(", ");
   const textUpdateBadge = action.has_text_update
     ? `
-      <span class="matrix-action__note-badge" title="This action has a text update">
-        Note
+      <span class="matrix-action__note-badge" title="${action.has_unseen_text_update ? "New note you haven't seen" : "This action has a text update"}">
+        ${action.has_unseen_text_update ? "New" : "Note"}
       </span>
     `
     : "";

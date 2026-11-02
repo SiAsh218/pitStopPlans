@@ -393,14 +393,17 @@ class IncidentService {
    * @param {number} id
    * @returns {object|null}
    */
-  getIncidentDashboard(id) {
+  getIncidentDashboard(id, userId) {
     const incident = this.getIncidentById(id);
 
     if (!incident) {
       return null;
     }
 
-    const actions = incidentActionRepository.findByIncidentIdWithRoles(id);
+    const actions =
+      userId == null
+        ? incidentActionRepository.findByIncidentIdWithRoles(id)
+        : incidentActionRepository.findByIncidentIdWithRoles(id, userId);
 
     return {
       incident,

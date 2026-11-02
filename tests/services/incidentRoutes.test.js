@@ -14,6 +14,18 @@ describe("incident route permissions", () => {
     expect(roleCheck({ user: { role: "user" } }, {})).toBe(true);
   });
 
+  it("allows users to mark action notes as read", () => {
+    const actionUpdateRoutes = require("../../backend/routes/incidentActionUpdateRoutes");
+    const route = actionUpdateRoutes.find(
+      (item) =>
+        item.method === "POST" &&
+        item.path === "/api/incident_actions/:id/updates/read",
+    );
+    const roleCheck = route.handler[1];
+
+    expect(roleCheck({ user: { role: "user" } }, {})).toBe(true);
+  });
+
   it("keeps reopening restricted to admins and editors", () => {
     const route = findRoute("/api/incidents/:id/reopen");
     const roleCheck = route.handler[1];

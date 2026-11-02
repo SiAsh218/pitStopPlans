@@ -129,6 +129,12 @@ const createIncidentActionUpdateSchema = z
   })
   .strict();
 
+const markActionUpdatesReadSchema = z
+  .object({
+    update_ids: z.array(positiveInt).min(1).max(200),
+  })
+  .strict();
+
 const idParamSchema = z
   .object({
     id: positiveInt,
@@ -168,6 +174,7 @@ module.exports = {
   updateIncidentMetaSchema,
   assignActionSchema,
   createIncidentActionUpdateSchema,
+  markActionUpdatesReadSchema,
   idParamSchema,
   incidentIdParamSchema,
   planTemplateIdParamSchema,

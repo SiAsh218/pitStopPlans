@@ -188,6 +188,38 @@ class IncidentActionUpdateRepository extends BaseRepository {
       .get(id);
   }
 
+  findCommentIdByActionAndId(incidentActionId, updateId) {
+    return this.db
+      .prepare(
+        `
+        SELECT id
+        FROM incident_action_updates
+        WHERE id = ?
+          AND incident_action_id = ?
+          AND update_type = 'comment'
+          AND TRIM(COALESCE(note, '')) != ''
+      `,
+      )
+      .get(updateId, incidentActionId);
+  }
+
+  markCommentsAsRead(userId, incidentActionId, updateIds) {
+    const insertRead = this.db.prepare(`
+      INSERT OR IGNORE INTO incident_action_update_reads (
+        user_id,
+        incident_action_id,
+        update_id
+      )
+      VALUES (?, ?, ?)
+    `);
+
+    return this.db.transaction(() => {
+      for (const updateId of updateIds) {
+        insertRead.run(userId, incidentActionId, updateId);
+      }
+    })();
+  }
+
   /**
    * Returns all action updates with user details.
    *

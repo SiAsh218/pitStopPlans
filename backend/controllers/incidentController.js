@@ -133,7 +133,10 @@ class IncidentController {
    * @throws {AppError} When the incident cannot be found.
    */
   dashboard(req, res) {
-    const data = incidentService.getIncidentDashboard(Number(req.params.id));
+    const data = incidentService.getIncidentDashboard(
+      Number(req.params.id),
+      req.user.id,
+    );
 
     if (!data) {
       throw new AppError("Incident not found", 404);

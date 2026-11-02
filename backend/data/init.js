@@ -5,6 +5,7 @@
  */
 
 const db = require("./db");
+const ensureIncidentActionUpdateReadsTable = require("./migrations/incidentActionUpdateReads");
 
 function ensureIncidentNearestStationColumn() {
   const columns = db
@@ -593,6 +594,8 @@ function initialiseDatabase() {
     );
   `);
 
+  ensureIncidentActionUpdateReadsTable(db);
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -648,6 +651,9 @@ function initialiseDatabase() {
 
     CREATE INDEX IF NOT EXISTS idx_incident_actions_status
     ON incident_actions(status);
+
+    CREATE INDEX IF NOT EXISTS idx_incident_action_update_reads_user_action
+    ON incident_action_update_reads(user_id, incident_action_id, update_id);
 
     CREATE INDEX IF NOT EXISTS idx_actions_incident_status
     ON incident_actions(

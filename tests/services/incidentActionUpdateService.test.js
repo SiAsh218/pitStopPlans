@@ -50,6 +50,37 @@ describe("IncidentActionUpdateService", () => {
     ).not.toHaveBeenCalled();
   });
 
+  it("marks comments through the specified update as read for the user", () => {
+    incidentActionUpdateRepository.findCommentIdByActionAndId.mockReturnValue({
+      id: 100,
+    });
+
+    incidentActionUpdateService.markUpdatesAsRead(42, 12, [100, 101]);
+
+    expect(
+      incidentActionUpdateRepository.findCommentIdByActionAndId,
+    ).toHaveBeenNthCalledWith(1, 42, 100);
+    expect(
+      incidentActionUpdateRepository.findCommentIdByActionAndId,
+    ).toHaveBeenNthCalledWith(2, 42, 101);
+    expect(
+      incidentActionUpdateRepository.markCommentsAsRead,
+    ).toHaveBeenCalledWith(12, 42, [100, 101]);
+  });
+
+  it("rejects IDs that are not comments for the action", () => {
+    incidentActionUpdateRepository.findCommentIdByActionAndId.mockReturnValue(
+      undefined,
+    );
+
+    expect(() =>
+      incidentActionUpdateService.markUpdatesAsRead(42, 12, [404]),
+    ).toThrow("Comment update not found");
+    expect(
+      incidentActionUpdateRepository.markCommentsAsRead,
+    ).not.toHaveBeenCalled();
+  });
+
   it("broadcasts an incident refresh after persisting a comment", () => {
     const result = incidentActionUpdateService.addComment(
       42,

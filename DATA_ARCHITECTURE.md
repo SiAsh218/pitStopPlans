@@ -291,6 +291,18 @@ and status changes.
 | `new_status` | `TEXT` |
 | `created_at` | `DATETIME DEFAULT CURRENT_TIMESTAMP` |
 
+#### `incident_action_update_reads`
+
+Tracks which comment updates each user has viewed for an action. Unread comment
+updates by other users trigger the action card's new-note badge.
+
+| Column | Definition |
+|---|---|
+| `user_id` | `INTEGER NOT NULL FK -> users.id ON DELETE CASCADE` |
+| `incident_action_id` | `INTEGER NOT NULL FK -> incident_actions.id ON DELETE CASCADE` |
+| `update_id` | `INTEGER NOT NULL FK -> incident_action_updates.id ON DELETE CASCADE` |
+| Primary key | Composite: (`user_id`, `update_id`) |
+
 #### `audit_logs`
 
 Application audit event record. `entity_type` and `entity_id` identify the
@@ -312,14 +324,16 @@ Deleting a user preserves their audit events and clears the associated
 ## Referential behavior
 
 - Deleting a user cascades to their `user_roles`, `auth_sessions`, and
-  `user_preferences`; plan-template creator/approver references are set to
-  `NULL`, and audit-log user references are set to `NULL`.
+  `user_preferences` and `incident_action_update_reads`; plan-template
+  creator/approver references are set to `NULL`, and audit-log user references
+  are set to `NULL`.
 - Deleting a role cascades to its `user_roles` and
   `plan_stage_action_roles` assignments.
 - Deleting a plan template cascades through its stages, stage actions, and
   action-role assignments.
 - Deleting an incident cascades to its `incident_actions`; deleting an
-  incident action cascades to its `incident_action_updates`.
+  incident action cascades to its `incident_action_updates` and
+  `incident_action_update_reads`.
 - Other declared foreign keys use SQLite's default `NO ACTION` behavior.
 
 ## Indexes

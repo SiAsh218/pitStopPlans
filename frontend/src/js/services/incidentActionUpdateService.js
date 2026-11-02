@@ -13,3 +13,9 @@ export function addActionUpdate(id, note) {
     note,
   });
 }
+
+export function markActionUpdatesRead(id, updateIds) {
+  return api.post(`/api/incident_actions/${id}/updates/read`, {
+    update_ids: updateIds,
+  });
+}

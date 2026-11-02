@@ -817,6 +817,28 @@ describe("IncidentService", () => {
       ).toHaveBeenCalledWith(1);
     });
 
+    it("gets user-specific unseen note status for dashboard actions", () => {
+      incidentRepository.findByIdWithDetails.mockReturnValue({
+        id: 1,
+        title: "Broken Train",
+        description: null,
+        status: "active",
+        incident_type_id: 1,
+        incident_type_name: "Train Failure",
+        plan_template_id: 10,
+        template_version: 1,
+        created_by: 99,
+        created_by_email: "user@test.com",
+      });
+      incidentActionRepository.findByIncidentIdWithRoles.mockReturnValue([]);
+
+      incidentService.getIncidentDashboard(1, 42);
+
+      expect(
+        incidentActionRepository.findByIncidentIdWithRoles,
+      ).toHaveBeenCalledWith(1, 42);
+    });
+
     it("returns null when the incident does not exist", () => {
       incidentRepository.findByIdWithDetails.mockReturnValue(null);
 

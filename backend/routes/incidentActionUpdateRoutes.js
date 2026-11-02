@@ -8,6 +8,7 @@ const {
   idParamSchema,
   incidentIdParamSchema,
   createIncidentActionUpdateSchema,
+  markActionUpdatesReadSchema,
 } = require("../validation/schemas");
 
 module.exports = [
@@ -48,6 +49,18 @@ module.exports = [
       validate("params", idParamSchema),
       validate("body", createIncidentActionUpdateSchema),
       controller.create,
+    ],
+  },
+
+  {
+    method: "POST",
+    path: "/api/incident_actions/:id/updates/read",
+    handler: [
+      auth,
+      requireRole("admin", "editor", "user"),
+      validate("params", idParamSchema),
+      validate("body", markActionUpdatesReadSchema),
+      controller.markRead,
     ],
   },
 ];

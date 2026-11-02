@@ -59,16 +59,16 @@ class IncidentActionRepository extends BaseRepository {
     };
   }
 
-  findByIncidentIdWithRolesQuery(incidentId, options = {}) {
+  findByIncidentIdWithRolesQuery(incidentId, options = {}, userId) {
     const result = this.findByIncidentIdWithQuery(incidentId, options);
 
     return {
-      rows: this._attachRoles(result.rows),
+      rows: this._attachRoles(result.rows, userId),
       meta: result.meta,
     };
   }
 
-  _attachRoles(actions) {
+  _attachRoles(actions, userId) {
     if (!actions.length) {
       return [];
     }
@@ -91,6 +91,31 @@ class IncidentActionRepository extends BaseRepository {
     const textUpdateActionIds = new Set(
       textUpdateRows.map((row) => row.incident_action_id),
     );
+    const unseenTextUpdateActionIds = new Set();
+
+    if (userId != null) {
+      const unseenTextUpdateRows = this.db
+        .prepare(
+          `
+          SELECT DISTINCT iau.incident_action_id
+          FROM incident_action_updates iau
+          LEFT JOIN incident_action_update_reads iaur
+            ON iaur.update_id = iau.id
+            AND iaur.user_id = ?
+            AND iaur.incident_action_id = iau.incident_action_id
+          WHERE iau.update_type = 'comment'
+            AND TRIM(COALESCE(iau.note, '')) != ''
+            AND iau.user_id != ?
+            AND iaur.update_id IS NULL
+            AND iau.incident_action_id IN (${actionIds.map(() => "?").join(", ")})
+        `,
+        )
+        .all(userId, userId, ...actionIds);
+
+      for (const row of unseenTextUpdateRows) {
+        unseenTextUpdateActionIds.add(row.incident_action_id);
+      }
+    }
 
     for (const row of roleRows) {
       if (!roleMap.has(row.action_id)) {
@@ -107,6 +132,7 @@ class IncidentActionRepository extends BaseRepository {
       ...action,
       roles: roleMap.get(action.id) || [],
       has_text_update: textUpdateActionIds.has(action.id),
+      has_unseen_text_update: unseenTextUpdateActionIds.has(action.id),
     }));
   }
 
@@ -187,10 +213,10 @@ class IncidentActionRepository extends BaseRepository {
       .all(actionId);
   }
 
-  findByIncidentIdWithRoles(incidentId) {
+  findByIncidentIdWithRoles(incidentId, userId) {
     const actions = this.findByIncidentId(incidentId);
 
-    return this._attachRoles(actions);
+    return this._attachRoles(actions, userId);
   }
 
   findAllActionRoles() {

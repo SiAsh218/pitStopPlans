@@ -37,6 +37,28 @@ class IncidentActionUpdateService {
     );
   }
 
+  markUpdatesAsRead(incidentActionId, userId, updateIds) {
+    this._getActionOrThrow(incidentActionId);
+
+    for (const updateId of updateIds) {
+      const comment =
+        incidentActionUpdateRepository.findCommentIdByActionAndId(
+          incidentActionId,
+          updateId,
+        );
+
+      if (!comment) {
+        throw new AppError("Comment update not found", 404);
+      }
+    }
+
+    incidentActionUpdateRepository.markCommentsAsRead(
+      userId,
+      incidentActionId,
+      updateIds,
+    );
+  }
+
   getIncidentComments(incidentId) {
     if (!incidentRepository.findById(incidentId)) {
       throw new AppError("Incident not found", 404);
