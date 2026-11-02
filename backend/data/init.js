@@ -6,6 +6,20 @@
 
 const db = require("./db");
 
+function ensureIncidentNearestStationColumn() {
+  const columns = db
+    .prepare("PRAGMA table_info(incidents)")
+    .all()
+    .map((column) => column.name);
+
+  if (!columns.includes("nearest_station")) {
+    db.exec(`
+      ALTER TABLE incidents
+      ADD COLUMN nearest_station TEXT;
+    `);
+  }
+}
+
 /**
  * Ensures the roles table contains all required columns.
  *
@@ -509,6 +523,7 @@ function initialiseDatabase() {
       description TEXT,
       ccil_number TEXT,
       tin_number TEXT,
+      nearest_station TEXT,
       status TEXT NOT NULL DEFAULT 'active',
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       closed_at DATETIME,
@@ -528,6 +543,8 @@ function initialiseDatabase() {
         REFERENCES users(id)
     );
   `);
+
+  ensureIncidentNearestStationColumn();
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS incident_actions (

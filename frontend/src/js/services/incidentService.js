@@ -36,6 +36,12 @@ export function updateIncidentTin(id, tinNumber) {
   });
 }
 
+export function updateIncidentNearestStation(id, nearestStation) {
+  return api.post(`/api/incidents/${id}/nearest-station`, {
+    nearest_station: nearestStation,
+  });
+}
+
 export async function updateIncidentMeta(incidentId, title, description) {
   return api.post(`/api/incidents/${incidentId}/meta`, {
     title,

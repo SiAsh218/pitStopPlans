@@ -54,10 +54,13 @@ describe("live update page subscriptions", () => {
     eventTarget.dispatch("incident-reopened", { incidentId: 42 });
     eventTarget.dispatch("incident-ccil-updated", { incidentId: 42 });
     eventTarget.dispatch("incident-tin-updated", { incidentId: 42 });
+    eventTarget.dispatch("incident-nearest-station-updated", {
+      incidentId: 42,
+    });
     eventTarget.dispatch("incident-meta-updated", { incidentId: 42 });
     eventTarget.dispatch("live-update-reconnected");
     eventTarget.dispatch("incident-action-updated");
 
-    expect(refreshIncidentPage).toHaveBeenCalledTimes(7);
+    expect(refreshIncidentPage).toHaveBeenCalledTimes(8);
   });
 });

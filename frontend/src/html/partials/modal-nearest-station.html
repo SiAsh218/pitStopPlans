@@ -1,0 +1,36 @@
+<div class="modal-form hidden" id="modal-form-incident-nearest-station">
+  <div class="modal-form__overlay"></div>
+
+  <div class="modal-form__container">
+    <button class="modal-form__close" type="button">×</button>
+
+    <div class="modal-form__container-body">
+      <h2 class="modal-form__title">Update Nearest Station</h2>
+
+      <form class="modal-form__form" id="modal-nearest-station-form">
+        <input type="hidden" id="modal-nearest-station-incident-id" />
+
+        <div class="modal-form__group">
+          <label class="modal-form__label" for="modal-nearest-station">
+            Nearest Station
+          </label>
+
+          <select
+            class="modal-form__select"
+            id="modal-nearest-station"
+          >
+            <option value="">Select Nearest Station</option>
+          </select>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          id="modal-nearest-station-submit"
+          type="submit"
+        >
+          Save Nearest Station
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

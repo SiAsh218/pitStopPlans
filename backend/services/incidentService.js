@@ -10,6 +10,8 @@ const incidentActionRepository = require("../data/repositories/incidentActionRep
 const auditService = require("../services/auditLogService");
 
 const eventService = require("../services/eventService.js");
+const { stations } = require("../../shared/stations.json");
+const stationNames = new Set(stations);
 
 class IncidentService {
   /**
@@ -25,6 +27,7 @@ class IncidentService {
       description: row.description,
       ccil_number: row.ccil_number ?? null,
       tin_number: row.tin_number ?? null,
+      nearest_station: row.nearest_station ?? null,
       status: row.status,
       started_at: row.started_at,
       closed_at: row.closed_at,
@@ -212,6 +215,7 @@ class IncidentService {
    */
   createIncident(data, userId) {
     this._validateIncidentType(data.incident_type_id);
+    this._validateNearestStation(data.nearest_station);
 
     const template = this._getLatestApprovedTemplate(data.incident_type_id);
 
@@ -226,6 +230,7 @@ class IncidentService {
         description: data.description ?? null,
         ccil_number: data.ccil_number ?? null,
         tin_number: data.tin_number ?? null,
+        nearest_station: data.nearest_station || null,
         status: "active",
         created_by: userId,
         incident_manager_id: userId,
@@ -304,9 +309,13 @@ class IncidentService {
       return this.getIncidentById(id);
     }
 
-    if (!incident.ccil_number || !incident.tin_number) {
+    if (
+      !incident.ccil_number ||
+      !incident.tin_number ||
+      !incident.nearest_station
+    ) {
       throw new AppError(
-        "CCIL Number and TIN Number must be completed before an incident can be closed",
+        "CCIL Number, TIN Number and Nearest Station must be completed before an incident can be closed",
         400,
       );
     }
@@ -559,6 +568,50 @@ class IncidentService {
 
     eventService.broadcast({
       type: "incident-tin-updated",
+      incidentId: id,
+    });
+
+    return updatedIncident;
+  }
+
+  _validateNearestStation(nearestStation) {
+    if (nearestStation && !stationNames.has(nearestStation)) {
+      throw new AppError(
+        "Nearest station must be selected from the station list",
+        400,
+      );
+    }
+  }
+
+  updateNearestStation(id, nearestStation, userId) {
+    const incident = this._getIncidentOrThrow(id);
+
+    this._validateIncidentIsActive(id);
+    this._validateNearestStation(nearestStation);
+
+    incidentRepository.updateById(id, {
+      nearest_station: nearestStation || null,
+    });
+
+    const updatedIncident = this.getIncidentById(id);
+
+    auditService.log(
+      userId,
+      "UPDATE_INCIDENT_NEAREST_STATION",
+      "incident",
+      id,
+      {
+        before: {
+          nearestStation: incident.nearest_station,
+        },
+        after: {
+          nearestStation: updatedIncident.nearest_station,
+        },
+      },
+    );
+
+    eventService.broadcast({
+      type: "incident-nearest-station-updated",
       incidentId: id,
     });
 

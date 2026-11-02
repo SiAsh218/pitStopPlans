@@ -237,11 +237,15 @@ when it was created.
 | `description` | `TEXT` |
 | `ccil_number` | `TEXT` |
 | `tin_number` | `TEXT` |
+| `nearest_station` | `TEXT` — optional while active; selected from `shared/stations.json` |
 | `status` | `TEXT NOT NULL DEFAULT 'active'` |
 | `started_at` | `DATETIME DEFAULT CURRENT_TIMESTAMP` |
 | `closed_at` | `DATETIME` |
 | `created_by` | `INTEGER NOT NULL FK -> users.id` |
 | `incident_manager_id` | `INTEGER FK -> users.id` |
+
+The nearest-station selector and API validation share the station catalog in
+[`shared/stations.json`](shared/stations.json).
 
 #### `incident_actions`
 

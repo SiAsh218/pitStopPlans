@@ -31,6 +31,7 @@ describe("IncidentRepository", () => {
         description TEXT,
         ccil_number TEXT,
         tin_number TEXT,
+        nearest_station TEXT,
         status TEXT NOT NULL,
         created_by INTEGER NOT NULL,
         incident_manager_id INTEGER,
@@ -461,6 +462,7 @@ describe("IncidentRepository", () => {
         description: "Something went wrong",
         ccil_number: "CCIL-999",
         tin_number: "TIN-999",
+        nearest_station: "Reading",
         status: "active",
         created_by: 1,
         incident_manager_id: 1,
@@ -479,6 +481,7 @@ describe("IncidentRepository", () => {
           description: "Something went wrong",
           ccil_number: "CCIL-999",
           tin_number: "TIN-999",
+          nearest_station: "Reading",
           status: "active",
           incident_type_id: 1,
           plan_template_id: 40,
@@ -498,6 +501,7 @@ describe("IncidentRepository", () => {
         description: null,
         ccil_number: null,
         tin_number: null,
+        nearest_station: null,
         status: "active",
         created_by: 1,
         incident_manager_id: 1,
@@ -510,6 +514,7 @@ describe("IncidentRepository", () => {
       expect(inserted.description).toBeNull();
       expect(inserted.ccil_number).toBeNull();
       expect(inserted.tin_number).toBeNull();
+      expect(inserted.nearest_station).toBeNull();
     });
   });
 

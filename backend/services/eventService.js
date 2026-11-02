@@ -6,6 +6,7 @@ const ALLOWED_EVENT_TYPES = new Set([
   "incident-action-assigned",
   "incident-ccil-updated",
   "incident-tin-updated",
+  "incident-nearest-station-updated",
   "incident-meta-updated",
 ]);
 

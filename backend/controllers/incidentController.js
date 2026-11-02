@@ -15,6 +15,7 @@ class IncidentController {
     this.reopen = this.reopen.bind(this);
     this.updateCcil = this.updateCcil.bind(this);
     this.updateTin = this.updateTin.bind(this);
+    this.updateNearestStation = this.updateNearestStation.bind(this);
     this.dashboard = this.dashboard.bind(this);
     this.updateMeta = this.updateMeta.bind(this);
   }
@@ -161,6 +162,19 @@ class IncidentController {
     const incident = incidentService.updateTinNumber(
       Number(req.params.id),
       req.body.tin_number,
+      req.user.id,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: incident,
+    });
+  }
+
+  updateNearestStation(req, res) {
+    const incident = incidentService.updateNearestStation(
+      Number(req.params.id),
+      req.body.nearest_station,
       req.user.id,
     );
 

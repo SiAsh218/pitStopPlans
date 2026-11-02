@@ -250,6 +250,7 @@ function formatAction(action) {
     REOPEN_INCIDENT: "Reopened Incident",
     UPDATE_INCIDENT_TIN: "Updated Incident TIN",
     UPDATE_INCIDENT_CCIL: "Updated Incident CCIL",
+    UPDATE_INCIDENT_NEAREST_STATION: "Updated Incident Nearest Station",
   };
 
   return labels[action] || action;

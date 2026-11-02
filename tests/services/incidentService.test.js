@@ -60,6 +60,7 @@ describe("IncidentService", () => {
         description: null,
         ccil_number: null,
         tin_number: null,
+        nearest_station: null,
         status: "active",
         incident_type_id: 1,
         incident_type_name: "Train Failure",
@@ -140,6 +141,7 @@ describe("IncidentService", () => {
         description: null,
         ccil_number: null,
         tin_number: null,
+        nearest_station: null,
         status: "active",
         incident_type_id: 1,
         incident_type_name: "Train Failure",
@@ -264,6 +266,7 @@ describe("IncidentService", () => {
         description: "Train has failed",
         ccil_number: "CCIL-123",
         tin_number: "TIN-123",
+        nearest_station: "Reading",
         status: "active",
         started_at: "2026-08-19T10:00:00.000Z",
         closed_at: null,
@@ -285,6 +288,7 @@ describe("IncidentService", () => {
         description: "Train has failed",
         ccil_number: "CCIL-123",
         tin_number: "TIN-123",
+        nearest_station: "Reading",
         status: "active",
         started_at: "2026-08-19T10:00:00.000Z",
         closed_at: null,
@@ -323,6 +327,7 @@ describe("IncidentService", () => {
             description: "Train has failed",
             ccil_number: "CCIL-123",
             tin_number: "TIN-123",
+            nearest_station: "Reading",
             status: "active",
             started_at: "2026-08-19T10:00:00.000Z",
             closed_at: null,
@@ -464,7 +469,7 @@ describe("IncidentService", () => {
       expect(() => {
         incidentService.closeIncident(1, 99);
       }).toThrow(
-        "CCIL Number and TIN Number must be completed before an incident can be closed",
+        "CCIL Number, TIN Number and Nearest Station must be completed before an incident can be closed",
       );
 
       expect(incidentRepository.updateById).not.toHaveBeenCalled();
@@ -481,7 +486,7 @@ describe("IncidentService", () => {
       expect(() => {
         incidentService.closeIncident(1, 99);
       }).toThrow(
-        "CCIL Number and TIN Number must be completed before an incident can be closed",
+        "CCIL Number, TIN Number and Nearest Station must be completed before an incident can be closed",
       );
 
       expect(incidentRepository.updateById).not.toHaveBeenCalled();
@@ -498,17 +503,35 @@ describe("IncidentService", () => {
       expect(() => {
         incidentService.closeIncident(1, 99);
       }).toThrow(
-        "CCIL Number and TIN Number must be completed before an incident can be closed",
+        "CCIL Number, TIN Number and Nearest Station must be completed before an incident can be closed",
       );
 
       expect(incidentRepository.updateById).not.toHaveBeenCalled();
     });
+
+    it("throws when nearest station is missing", () => {
+      incidentRepository.findById.mockReturnValue({
+        id: 1,
+        status: "active",
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
+        nearest_station: null,
+      });
+
+      expect(() => incidentService.closeIncident(1, 99)).toThrow(
+        "CCIL Number, TIN Number and Nearest Station must be completed before an incident can be closed",
+      );
+
+      expect(incidentRepository.updateById).not.toHaveBeenCalled();
+    });
+
     it("closes an active incident", () => {
       incidentRepository.findById.mockReturnValue({
         id: 1,
         status: "active",
         ccil_number: "CCIL-123",
         tin_number: "TIN-123",
+        nearest_station: "Reading",
       });
 
       incidentRepository.findByIdWithDetails.mockReturnValue({
@@ -524,6 +547,7 @@ describe("IncidentService", () => {
         created_by_email: "user@test.com",
         ccil_number: "CCIL-123",
         tin_number: "TIN-123",
+        nearest_station: "Reading",
       });
 
       incidentActionRepository.findByIncidentIdWithRoles.mockReturnValue([]);
@@ -583,6 +607,64 @@ describe("IncidentService", () => {
       expect(incidentRepository.updateById).not.toHaveBeenCalled();
     });
   });
+
+  describe("updateNearestStation", () => {
+    it("stores a station selected from the shared list", () => {
+      incidentRepository.findByIdWithDetails.mockReturnValue({
+        id: 1,
+        title: "Broken Train",
+        ccil_number: "CCIL-123",
+        tin_number: "TIN-123",
+        nearest_station: "Reading",
+        status: "active",
+        incident_type_id: 1,
+        incident_type_name: "Train Failure",
+        plan_template_id: 10,
+        template_version: 1,
+        created_by: 99,
+        created_by_email: "user@test.com",
+      });
+      incidentRepository.findById.mockReturnValue({
+        id: 1,
+        status: "active",
+      });
+
+      const result = incidentService.updateNearestStation(1, "Reading", 99);
+
+      expect(incidentRepository.updateById).toHaveBeenCalledWith(1, {
+        nearest_station: "Reading",
+      });
+      expect(result.nearest_station).toBe("Reading");
+      expect(auditService.log).toHaveBeenCalledWith(
+        99,
+        "UPDATE_INCIDENT_NEAREST_STATION",
+        "incident",
+        1,
+        expect.any(Object),
+      );
+      expect(eventService.broadcast).toHaveBeenCalledWith({
+        type: "incident-nearest-station-updated",
+        incidentId: 1,
+      });
+    });
+
+    it("rejects values outside the shared station list", () => {
+      incidentRepository.findByIdWithDetails.mockReturnValue({
+        id: 1,
+        status: "active",
+      });
+      incidentRepository.findById.mockReturnValue({
+        id: 1,
+        status: "active",
+      });
+
+      expect(() =>
+        incidentService.updateNearestStation(1, "Unknown station", 99),
+      ).toThrow("Nearest station must be selected from the station list");
+      expect(incidentRepository.updateById).not.toHaveBeenCalled();
+    });
+  });
+
   describe("reopenIncident", () => {
     it("reopens a closed incident", () => {
       incidentRepository.findById.mockReturnValue({

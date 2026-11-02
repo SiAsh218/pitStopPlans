@@ -269,11 +269,12 @@ class IncidentRepository extends BaseRepository {
           description,
           ccil_number,
           tin_number,
+          nearest_station,
           status,
           created_by,
           incident_manager_id
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       )
       .run(
@@ -284,6 +285,7 @@ class IncidentRepository extends BaseRepository {
         data.description,
         data.ccil_number,
         data.tin_number,
+        data.nearest_station,
         data.status,
         data.created_by,
         data.incident_manager_id,

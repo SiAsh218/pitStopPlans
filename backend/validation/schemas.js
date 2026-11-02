@@ -1,4 +1,15 @@
 const { z } = require("zod");
+const { stations } = require("../../shared/stations.json");
+const stationNames = new Set(stations);
+
+const nearestStationSchema = z
+  .string()
+  .trim()
+  .max(100)
+  .refine((value) => value === "" || stationNames.has(value), {
+    message: "Nearest station must be selected from the station list",
+  })
+  .transform((value) => value || null);
 
 const positiveInt = z.coerce.number().int().positive();
 
@@ -69,6 +80,7 @@ const createIncidentSchema = z
     description: z.string().trim().max(5000).nullable().optional(),
     ccil_number: z.string().trim().max(100).nullable().optional(),
     tin_number: z.string().trim().max(100).nullable().optional(),
+    nearest_station: nearestStationSchema.nullable().optional(),
   })
   .strict();
 
@@ -89,6 +101,12 @@ const updateTinSchema = z
       .trim()
       .regex(/^(?:\d+|NA)$/i)
       .transform((value) => (value.toUpperCase() === "NA" ? "NA" : value)),
+  })
+  .strict();
+
+const updateNearestStationSchema = z
+  .object({
+    nearest_station: nearestStationSchema.nullable(),
   })
   .strict();
 
@@ -146,6 +164,7 @@ module.exports = {
   createIncidentSchema,
   updateCcilSchema,
   updateTinSchema,
+  updateNearestStationSchema,
   updateIncidentMetaSchema,
   assignActionSchema,
   createIncidentActionUpdateSchema,

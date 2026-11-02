@@ -9,6 +9,7 @@ const {
   createIncidentSchema,
   updateCcilSchema,
   updateTinSchema,
+  updateNearestStationSchema,
   updateIncidentMetaSchema,
 } = require("../validation/schemas");
 
@@ -92,6 +93,17 @@ module.exports = [
       validate("params", idParamSchema),
       validate("body", updateTinSchema),
       incidentController.updateTin,
+    ],
+  },
+
+  {
+    method: "POST",
+    path: "/api/incidents/:id/nearest-station",
+    handler: [
+      ...authenticatedUser,
+      validate("params", idParamSchema),
+      validate("body", updateNearestStationSchema),
+      incidentController.updateNearestStation,
     ],
   },
 

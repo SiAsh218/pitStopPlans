@@ -25,7 +25,7 @@ describe("incident route permissions", () => {
     expect(roleCheck({ user: { role: "admin" } }, {})).toBe(true);
   });
 
-  it.each(["ccil", "tin"])(
+  it.each(["ccil", "tin", "nearest-station"])(
     "allows users to update incident %s metadata",
     (metadata) => {
       const route = findRoute(`/api/incidents/:id/${metadata}`);

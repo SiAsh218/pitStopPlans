@@ -7,8 +7,10 @@ import {
   reopenIncident,
   updateIncidentCcil,
   updateIncidentTin,
+  updateIncidentNearestStation,
   updateIncidentMeta,
 } from "../services/incidentService.js";
+import stationData from "../../../../shared/stations.json";
 import { formatDateTime, parseUtcDate } from "../utils/dateHandler.js";
 import { showSuccess, showWarning, showError } from "../utils/myAlert.js";
 import { showConfirm } from "../modals/modalConfirm.js";
@@ -51,6 +53,10 @@ let currentUser = null;
 let incidentStartedAt = null;
 let currentSummary = null;
 let currentIncident = null;
+const { stations } = stationData;
+const sortedStations = [...stations].sort((first, second) =>
+  first.localeCompare(second, undefined, { sensitivity: "base" }),
+);
 
 // -----------------------------------------------------------------------------
 // Initialisation
@@ -69,6 +75,7 @@ export async function initIncidentPage() {
 
   wireCcilModal();
   wireTinModal();
+  wireNearestStationModal();
   wireIncidentMetaModal();
   registerLiveUpdateListeners();
 
@@ -160,6 +167,9 @@ function renderIncidentMeta(dashboard) {
         <span class="incident-meta__chip${canEditIncident ? " incident-meta__chip--interactive" : ""}" id="chip-tin">
           TIN: ${incident.tin_number || "Click to Add"}
         </span>
+        <span class="incident-meta__chip${canEditIncident ? " incident-meta__chip--interactive" : ""}" id="chip-nearest-station">
+          Nearest Station: ${incident.nearest_station || "Click to Add"}
+        </span>
       </div>
     </div>
 
@@ -182,6 +192,7 @@ function renderIncidentMeta(dashboard) {
   if (canEditIncident) {
     wireEditCcilChip(incident.id, incident.ccil_number);
     wireEditTinChip(incident.id, incident.tin_number);
+    wireEditNearestStationChip(incident.id, incident.nearest_station);
     wireEditIncidentMetaButton(
       incident.id,
       incident.title,
@@ -228,6 +239,20 @@ function wireEditTinChip(incidentId, tinNumber) {
       .getElementById("modal-form-incident-tin")
       .classList.remove("hidden");
   });
+}
+
+function wireEditNearestStationChip(incidentId, nearestStation) {
+  document
+    .getElementById("chip-nearest-station")
+    ?.addEventListener("click", () => {
+      document.getElementById("modal-nearest-station-incident-id").value =
+        incidentId;
+      document.getElementById("modal-nearest-station").value =
+        nearestStation ?? "";
+      document
+        .getElementById("modal-form-incident-nearest-station")
+        .classList.remove("hidden");
+    });
 }
 
 function wireEditIncidentMetaButton(incidentId, title, description) {
@@ -370,6 +395,52 @@ function wireTinModal() {
   input.addEventListener("input", () => {
     error.hidden = true;
   });
+}
+
+function wireNearestStationModal() {
+  const modal = document.getElementById(
+    "modal-form-incident-nearest-station",
+  );
+  const select = document.getElementById("modal-nearest-station");
+
+  if (!modal || !select) {
+    return;
+  }
+
+  sortedStations.forEach((station) => {
+    const option = document.createElement("option");
+    option.value = station;
+    option.textContent = station;
+    select.appendChild(option);
+  });
+
+  modal.querySelector(".modal-form__close")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  modal.querySelector(".modal-form__overlay")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document
+    .getElementById("modal-nearest-station-form")
+    ?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const incidentId = document.getElementById(
+        "modal-nearest-station-incident-id",
+      ).value;
+
+      try {
+        await updateIncidentNearestStation(incidentId, select.value || null);
+
+        modal.classList.add("hidden");
+
+        await refreshIncidentPage();
+      } catch (err) {
+        showUnexpectedError(err);
+      }
+    });
 }
 
 function wireIncidentMetaModal() {
@@ -924,7 +995,11 @@ function wireCloseIncidentButton(incidentId) {
   document
     .getElementById("btn-close-incident")
     ?.addEventListener("click", async () => {
-      if (!currentIncident.ccil_number || !currentIncident.tin_number) {
+      if (
+        !currentIncident.ccil_number ||
+        !currentIncident.tin_number ||
+        !currentIncident.nearest_station
+      ) {
         highlightMissingFields();
 
         showError(
@@ -956,6 +1031,7 @@ function wireCloseIncidentButton(incidentId) {
 function highlightMissingFields() {
   const ccilChip = document.getElementById("chip-ccil");
   const tinChip = document.getElementById("chip-tin");
+  const nearestStationChip = document.getElementById("chip-nearest-station");
 
   if (!currentIncident?.ccil_number) {
     ccilChip?.classList.add("incident-meta__chip--error");
@@ -963,6 +1039,10 @@ function highlightMissingFields() {
 
   if (!currentIncident?.tin_number) {
     tinChip?.classList.add("incident-meta__chip--error");
+  }
+
+  if (!currentIncident?.nearest_station) {
+    nearestStationChip?.classList.add("incident-meta__chip--error");
   }
 }
 
@@ -1253,6 +1333,7 @@ Incident: ${currentIncident.title}
 Status: ${currentIncident.status}
 CCIL: ${currentIncident.ccil_number}
 TIN: ${currentIncident.tin_number}
+Nearest Station: ${currentIncident.nearest_station || "Not specified"}
 Progress: ${currentSummary.completion_percentage}% Complete
 
 Actions:
@@ -1331,6 +1412,7 @@ function buildIncidentClipboardHtml(updates = []) {
   <strong>Status:</strong> ${escapeClipboardHtml(currentIncident.status)}<br>
   <strong>CCIL:</strong> ${escapeClipboardHtml(currentIncident.ccil_number)}<br>
   <strong>TIN:</strong> ${escapeClipboardHtml(currentIncident.tin_number)}<br>
+  <strong>Nearest Station:</strong> ${escapeClipboardHtml(currentIncident.nearest_station || "Not specified")}<br>
   <strong>Progress:</strong> ${currentSummary.completion_percentage}% Complete
 </p>
 

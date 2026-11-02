@@ -13,6 +13,7 @@ const INCIDENT_EVENT_TYPES = [
   "incident-reopened",
   "incident-ccil-updated",
   "incident-tin-updated",
+  "incident-nearest-station-updated",
   "incident-meta-updated",
 ];
 
