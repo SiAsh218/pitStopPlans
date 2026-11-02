@@ -1565,7 +1565,7 @@ function buildActionCard(action) {
   const roleNames = action.roles.map((role) => role.name).join(", ");
   const textUpdateBadge = action.has_text_update
     ? `
-      <span class="matrix-action__note-badge" title="${action.has_unseen_text_update ? "New note you haven't seen" : "This action has a text update"}">
+      <span class="matrix-action__note-badge${action.has_unseen_text_update ? " matrix-action__note-badge--new" : ""}" title="${action.has_unseen_text_update ? "New note you haven't seen" : "This action has a text update"}">
         ${action.has_unseen_text_update ? "New" : "Note"}
       </span>
     `
