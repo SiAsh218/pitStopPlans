@@ -38,7 +38,7 @@ class IncidentActionUpdateService {
   }
 
   markUpdatesAsRead(incidentActionId, userId, updateIds) {
-    this._getActionOrThrow(incidentActionId);
+    const action = this._getActionOrThrow(incidentActionId);
 
     for (const updateId of updateIds) {
       const comment =
@@ -57,6 +57,11 @@ class IncidentActionUpdateService {
       incidentActionId,
       updateIds,
     );
+
+    eventService.broadcast({
+      type: "incident-action-updated",
+      incidentId: action.incident_id,
+    });
   }
 
   getIncidentComments(incidentId) {

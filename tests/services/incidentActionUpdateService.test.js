@@ -66,6 +66,10 @@ describe("IncidentActionUpdateService", () => {
     expect(
       incidentActionUpdateRepository.markCommentsAsRead,
     ).toHaveBeenCalledWith(12, 42, [100, 101]);
+    expect(eventService.broadcast).toHaveBeenCalledWith({
+      type: "incident-action-updated",
+      incidentId: 7,
+    });
   });
 
   it("rejects IDs that are not comments for the action", () => {
