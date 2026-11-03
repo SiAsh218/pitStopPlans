@@ -142,64 +142,57 @@ function seedDatabase() {
 
   if (roleCount.count === 0) {
     console.log("🌱 Seeding roles...");
+  }
 
-    const insertRole = db.prepare(`
-      INSERT INTO roles (name)
-      VALUES (?)
-    `);
+  const operationRoles = [
+    "SNDM",
+    "RCM",
+    "Information Controller",
+    "Incident Controller",
+    "Train Running Controller",
+    "Infrastructure Controller",
+  ];
 
-    insertRole.run("SNDM");
-    insertRole.run("RCM");
-    insertRole.run("Information Controller");
-    insertRole.run("Incident Controller");
-    insertRole.run("Train Running Controller");
+  const insertRole = db.prepare(
+    "INSERT OR IGNORE INTO roles (name) VALUES (?)",
+  );
+  operationRoles.forEach((roleName) => insertRole.run(roleName));
 
+  if (roleCount.count === 0) {
     console.log("✅ Roles seeded");
   }
 
-  db.prepare("INSERT OR IGNORE INTO roles (name) VALUES (?)").run(
-    "Infrastructure Controller",
+  /**
+   * Assign operation roles to the seeded test users.
+   */
+  const findUserId = db.prepare("SELECT id FROM users WHERE email = ?");
+  const findRoleId = db.prepare("SELECT id FROM roles WHERE name = ?");
+  const assignRole = db.prepare(
+    "INSERT OR IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?)",
   );
 
-  /**
-   * ============================================================
-   * Assign Test User Role
-   * ============================================================
-   */
-  const sndmUser = db
-    .prepare(
-      `
-    SELECT id
-    FROM users
-    WHERE email = ?
-  `,
-    )
-    .get(sndmEmail);
+  const seededUserRoles = [
+    { email: sndmEmail, roles: operationRoles },
+    {
+      email: basicEmail,
+      roles: ["Incident Controller", "Train Running Controller"],
+    },
+  ];
 
-  const sndmRole = db
-    .prepare(
-      `
-    SELECT id
-    FROM roles
-    WHERE name = ?
-  `,
-    )
-    .get("SNDM");
+  seededUserRoles.forEach(({ email, roles }) => {
+    const user = findUserId.get(email);
 
-  if (sndmUser && sndmRole) {
-    db.prepare(
-      `
-    INSERT OR IGNORE INTO user_roles
-    (
-      user_id,
-      role_id
-    )
-    VALUES (?, ?)
-  `,
-    ).run(sndmUser.id, sndmRole.id);
+    if (!user) {
+      return;
+    }
 
-    console.log("✅ SNDM role assigned to test user");
-  }
+    roles.forEach((roleName) => {
+      const role = findRoleId.get(roleName);
+      assignRole.run(user.id, role.id);
+    });
+
+    console.log(`✅ Operation roles assigned to ${email}`);
+  });
 
   const templateCount = db
     .prepare("SELECT COUNT(*) as count FROM plan_templates")
