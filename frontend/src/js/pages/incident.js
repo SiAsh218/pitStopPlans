@@ -766,7 +766,7 @@ function renderActionPanel(action, updates = []) {
             <div class="action-update">
               <p>
                 <strong>
-                  ${update.user_email ?? "User"}
+                  ${formatClipboardUserName(update.user_email)}
                 </strong>
               </p>
               <p>
