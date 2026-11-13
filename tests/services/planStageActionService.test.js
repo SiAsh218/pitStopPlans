@@ -4,11 +4,13 @@ jest.mock("../../backend/data/repositories/roleRepository");
 jest.mock("../../backend/data/repositories/planTemplateRepository");
 jest.mock("../../backend/data/repositories/planStageRepository");
 jest.mock("../../backend/data/repositories/planStageActionRepository");
+jest.mock("../../backend/utils/templateRoleOrder");
 
 const roleRepository = require("../../backend/data/repositories/roleRepository");
 const planTemplateRepository = require("../../backend/data/repositories/planTemplateRepository");
 const planStageRepository = require("../../backend/data/repositories/planStageRepository");
 const planStageActionRepository = require("../../backend/data/repositories/planStageActionRepository");
+const { persistTemplateRoleOrder } = require("../../backend/utils/templateRoleOrder");
 const planStageActionService = require("../../backend/services/planStageActionService");
 
 describe("PlanStageActionService due times", () => {
@@ -56,6 +58,10 @@ describe("PlanStageActionService due times", () => {
         due_from_stage_start: 30,
         due_from_incident_start: 60,
       }),
+    );
+    expect(persistTemplateRoleOrder).toHaveBeenCalledWith(
+      planTemplateRepository.db,
+      stage.plan_template_id,
     );
   });
 
@@ -128,6 +134,10 @@ describe("PlanStageActionService due times", () => {
         due_from_stage_start: 25,
         due_from_incident_start: 55,
       }),
+    );
+    expect(persistTemplateRoleOrder).toHaveBeenCalledWith(
+      planTemplateRepository.db,
+      stage.plan_template_id,
     );
   });
 });

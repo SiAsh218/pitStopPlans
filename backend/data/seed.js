@@ -39,6 +39,7 @@ const additionalTemplateSeeders = [
 
 const db = require("./db");
 const bcrypt = require("bcrypt");
+const { persistTemplateRoleOrder } = require("../utils/templateRoleOrder");
 
 function seedDatabase() {
   console.log("Checking if seeding is required...");
@@ -207,6 +208,21 @@ function seedDatabase() {
   additionalTemplateSeeders.forEach((seedTemplate) =>
     seedTemplate(adminUser),
   );
+
+  const templatesWithoutRoleOrder = db
+    .prepare(
+      `
+        SELECT id
+        FROM plan_templates
+        WHERE status = 'approved'
+          AND role_order = '[]'
+      `,
+    )
+    .all();
+
+  templatesWithoutRoleOrder.forEach((template) => {
+    persistTemplateRoleOrder(db, template.id);
+  });
 
   db.prepare(
     `

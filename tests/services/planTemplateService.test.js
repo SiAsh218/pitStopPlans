@@ -5,12 +5,14 @@ jest.mock("../../backend/data/repositories/incidentTypeRepository");
 jest.mock("../../backend/data/repositories/planStageRepository");
 jest.mock("../../backend/data/repositories/planStageActionRepository");
 jest.mock("../../backend/services/auditLogService");
+jest.mock("../../backend/utils/templateRoleOrder");
 
 const planStageRepository = require("../../backend/data/repositories/planStageRepository");
 const planStageActionRepository = require("../../backend/data/repositories/planStageActionRepository");
 const planTemplateRepository = require("../../backend/data/repositories/planTemplateRepository");
 const incidentTypeRepository = require("../../backend/data/repositories/incidentTypeRepository");
 const auditService = require("../../backend/services/auditLogService");
+const { persistTemplateRoleOrder } = require("../../backend/utils/templateRoleOrder");
 
 const planTemplateService = require("../../backend/services/planTemplateService");
 
@@ -263,6 +265,10 @@ describe("PlanTemplateService", () => {
           version: 2,
           role_order: "[3,2]",
         }),
+      );
+      expect(persistTemplateRoleOrder).toHaveBeenCalledWith(
+        planTemplateRepository.db,
+        2,
       );
 
       expect(result.version).toBe(2);

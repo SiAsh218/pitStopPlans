@@ -4,6 +4,7 @@ const roleRepository = require("../data/repositories/roleRepository");
 const planTemplateRepository = require("../data/repositories/planTemplateRepository");
 const planStageRepository = require("../data/repositories/planStageRepository");
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
+const { persistTemplateRoleOrder } = require("../utils/templateRoleOrder");
 
 class PlanStageActionService {
   _getActionDueTimes(stage, dueFromStageStart) {
@@ -144,6 +145,10 @@ class PlanStageActionService {
     });
 
     planStageActionRepository.setRoles(result.lastInsertRowid, data.role_ids);
+    persistTemplateRoleOrder(
+      planTemplateRepository.db,
+      stage.plan_template_id,
+    );
 
     return planStageActionRepository.getWithRoles(result.lastInsertRowid);
   }
@@ -184,6 +189,10 @@ class PlanStageActionService {
       this._validateRoles(updates.role_ids);
 
       planStageActionRepository.setRoles(id, updates.role_ids);
+      persistTemplateRoleOrder(
+        planTemplateRepository.db,
+        stage.plan_template_id,
+      );
     }
 
     return planStageActionRepository.getWithRoles(id);
@@ -232,7 +241,16 @@ class PlanStageActionService {
 
     this._ensureTemplateEditable(stage.plan_template_id);
 
-    return planStageActionRepository.deleteById(id).changes > 0;
+    const deleted = planStageActionRepository.deleteById(id).changes > 0;
+
+    if (deleted) {
+      persistTemplateRoleOrder(
+        planTemplateRepository.db,
+        stage.plan_template_id,
+      );
+    }
+
+    return deleted;
   }
 }
 

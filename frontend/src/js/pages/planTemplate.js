@@ -328,7 +328,25 @@ function renderTemplateMatrix(plan, isDraft, template, currentRoles = []) {
       });
     });
   });
-  const assignedRoleIds = [...roleById.keys()];
+  const preferredRoleOrder = [
+    "SNDM",
+    "RCM",
+    "Train Running Controller",
+    "Incident Controller",
+    "Information Controller",
+    "Infrastructure Controller",
+  ];
+  const roleRank = new Map(
+    preferredRoleOrder.map((name, index) => [name, index]),
+  );
+  const assignedRoleIds = [...roleById.keys()].sort((a, b) => {
+    const roleA = roleById.get(a);
+    const roleB = roleById.get(b);
+    const rankA = roleRank.get(roleA.name) ?? preferredRoleOrder.length;
+    const rankB = roleRank.get(roleB.name) ?? preferredRoleOrder.length;
+
+    return rankA - rankB || roleA.name.localeCompare(roleB.name);
+  });
   const savedRoleIds = Array.isArray(template.role_order)
     ? template.role_order.map(Number).filter((roleId) => roleById.has(roleId))
     : [];

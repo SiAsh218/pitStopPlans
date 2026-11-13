@@ -2,6 +2,7 @@ const planTemplateRepository = require("../data/repositories/planTemplateReposit
 const incidentTypeRepository = require("../data/repositories/incidentTypeRepository");
 const planStageRepository = require("../data/repositories/planStageRepository");
 const planStageActionRepository = require("../data/repositories/planStageActionRepository");
+const { persistTemplateRoleOrder } = require("../utils/templateRoleOrder");
 
 const auditService = require("../services/auditLogService");
 
@@ -462,6 +463,8 @@ class PlanTemplateService {
           planStageActionRepository.cloneAction(action.id, newStage.id);
         }
       }
+
+      persistTemplateRoleOrder(planTemplateRepository.db, newTemplateId);
     });
 
     transaction();

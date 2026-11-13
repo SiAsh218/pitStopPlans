@@ -1,4 +1,5 @@
 const db = require("../db");
+const { persistTemplateRoleOrder } = require("../../utils/templateRoleOrder");
 
 const STAGE_DUE_TIMES = [10, 30, 60, 1440];
 const ACTION_DUE_TIMES = [10, 20, 30, 1380];
@@ -16,6 +17,22 @@ function seedPlanTemplate(adminUser, plan) {
     db.prepare(
       "UPDATE plan_templates SET title = ? WHERE incident_type_id = ?",
     ).run(plan.name, existingType.id);
+    const existingTemplates = db
+      .prepare(
+        `
+          SELECT id, role_order
+          FROM plan_templates
+          WHERE incident_type_id = ?
+            AND status = 'approved'
+        `,
+      )
+      .all(existingType.id);
+
+    existingTemplates.forEach((template) => {
+      if (!template.role_order || template.role_order === "[]") {
+        persistTemplateRoleOrder(db, template.id);
+      }
+    });
     return;
   }
 
@@ -133,6 +150,8 @@ function seedPlanTemplate(adminUser, plan) {
         });
       });
     });
+
+    persistTemplateRoleOrder(db, template.lastInsertRowid);
   });
 
   seed();
