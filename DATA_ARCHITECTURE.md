@@ -5,9 +5,11 @@
 Pit Stop Plans uses a single SQLite database at `backend/data/database.sqlite`.
 The shared connection and SQLite settings are configured in `backend/data/db.js`;
 the schema is created and migrated at application startup by
-`backend/data/init.js`. Foreign-key enforcement is enabled on the shared
-connection, write-ahead logging (WAL) is enabled, and synchronous mode is set
-to `NORMAL`.
+`backend/data/init.js` and the numbered migrations in
+`backend/data/migrations/`. Migration versions are recorded in
+`schema_migrations`, so each migration is applied once. Foreign-key enforcement
+is enabled on the shared connection, write-ahead logging (WAL) is enabled, and
+synchronous mode is set to `NORMAL`.
 
 The schema has three main areas:
 
@@ -352,9 +354,10 @@ indexes for:
 
 ## Maintenance notes
 
-- Keep this document aligned with both the schema and migrations in
-  `backend/data/init.js`; older databases may be updated by its migration
-  helpers at startup.
+- `backend/data/init.js` defines the current schema for new databases.
+  Add later schema changes as new numbered migrations under
+  `backend/data/migrations/`; do not edit an already released migration.
+- Keep this document aligned with the schema and numbered migrations.
 - The schema declares `due_from_incident_start`,
   `due_from_stage_start`, and `stage_due_from_incident_start` as integer
   offsets. Their interpretation and unit belong to application behavior.
