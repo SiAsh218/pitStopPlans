@@ -23,26 +23,6 @@ The server is the authority for authentication and authorization:
    role.
 7. Repositories issue parameterized SQLite statements to the local database.
 
-Browsers must be treated as untrusted. HTML, JavaScript, API payloads, browser
-storage, cookies that JavaScript can read, and field names can be inspected.
-Obfuscating field names does not change the trust boundary.
-
-## Login fields
-
-The browser login form currently submits JSON fields named `field1` and
-`field2`:
-
-- `field1` is normalized by Zod and mapped back to the email address.
-- `field2` is normalized by Zod and mapped back to the password.
-- These names appear in the HTML, JavaScript bundle, network requests, and
-  request payload. They are not hidden or secret.
-- Database column names remain server-side implementation details, but knowing
-  a database field name would not itself grant access.
-
-The backend's public login contract is `/api/auth/login`; valid requests
-contain `field1` and `field2`. Renaming login fields should not be treated as
-a security control.
-
 ## Authentication flow
 
 ### Password storage
