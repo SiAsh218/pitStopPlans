@@ -3,8 +3,7 @@
 ## Purpose and scope
 
 This document describes how security and authentication are currently
-implemented in Pit Stop Plans. It identifies both controls that exist and
-known gaps that must be handled before or during deployment.
+implemented in Pit Stop Plans.
 
 This application uses a Node.js HTTP server, a browser frontend, and a local
 SQLite database. The frontend does not connect directly to SQLite and has no
@@ -278,92 +277,30 @@ The application loads environment variables through `dotenv`.
 
 Required or deployment-critical variables:
 
-| Variable | Purpose |
-|---|---|
-| `JWT_SECRET` | Signs and verifies access JWTs; required |
-| `REPORTING_API_KEY` | Protects reporting API endpoints |
-| `NODE_ENV` | Enables production behavior and secure cookies |
-| `PORT` | Optional HTTP server port |
-| `JWT_ISSUER` | Expected JWT issuer |
-| `JWT_AUDIENCE` | Expected JWT audience |
-| `ACCESS_TOKEN_EXPIRES_IN` | Access-token lifetime |
-| `SESSION_EXPIRES_IN_DAYS` | Refresh-session lifetime |
-| `BCRYPT_ROUNDS` | Login/authentication bcrypt cost |
-| `BCRYPT_SALT` | User creation/password bcrypt cost |
-| `MAX_LOGIN_ATTEMPTS` | Failed-login limit |
-| `LOGIN_LOCKOUT_MINUTES` | Account lockout duration |
-| `ADMIN_EMAIL` | Initial administrator seed email |
-| `ADMIN_PASSWORD` | Initial administrator seed password |
-| `SNDM_USER_EMAIL` | Optional seeded user email |
-| `SNDM_USER_PASSWORD` | Optional seeded user password |
-| `BASIC_USER_EMAIL` | Optional seeded user email |
-| `BASIC_USER_PASSWORD` | Optional seeded user password |
-| `LOG_LEVEL` | Pino log level |
+| Variable                  | Purpose                                        |
+| ------------------------- | ---------------------------------------------- |
+| `JWT_SECRET`              | Signs and verifies access JWTs; required       |
+| `REPORTING_API_KEY`       | Protects reporting API endpoints               |
+| `NODE_ENV`                | Enables production behavior and secure cookies |
+| `PORT`                    | Optional HTTP server port                      |
+| `JWT_ISSUER`              | Expected JWT issuer                            |
+| `JWT_AUDIENCE`            | Expected JWT audience                          |
+| `ACCESS_TOKEN_EXPIRES_IN` | Access-token lifetime                          |
+| `SESSION_EXPIRES_IN_DAYS` | Refresh-session lifetime                       |
+| `BCRYPT_ROUNDS`           | Login/authentication bcrypt cost               |
+| `BCRYPT_SALT`             | User creation/password bcrypt cost             |
+| `MAX_LOGIN_ATTEMPTS`      | Failed-login limit                             |
+| `LOGIN_LOCKOUT_MINUTES`   | Account lockout duration                       |
+| `ADMIN_EMAIL`             | Initial administrator seed email               |
+| `ADMIN_PASSWORD`          | Initial administrator seed password            |
+| `SNDM_USER_EMAIL`         | Optional seeded user email                     |
+| `SNDM_USER_PASSWORD`      | Optional seeded user password                  |
+| `BASIC_USER_EMAIL`        | Optional seeded user email                     |
+| `BASIC_USER_PASSWORD`     | Optional seeded user password                  |
+| `LOG_LEVEL`               | Pino log level                                 |
 
 `JWT_SECRET`, `REPORTING_API_KEY`, and seed passwords must be high entropy,
 unique to the deployment, stored outside source control, and changed if
 exposed.
 
 There is no built-in secret vault or secret rotation process.
-
-## Known security limitations
-
-The following items are not fully addressed and must be managed or fixed:
-
-1. Login errors currently distinguish some wrong-password attempts and lockout
-   states. Generic credential responses and dummy bcrypt timing are needed to
-   reduce account enumeration.
-2. Password changes do not currently increment `token_version` or revoke
-   `auth_sessions`.
-3. The application serves plain HTTP unless placed behind a TLS terminator.
-4. Access tokens are stored in `localStorage`, making XSS theft possible.
-5. Seed credentials require environment-specific passwords. Default fallback
-   emails do not replace them.
-6. Login and authentication do not use a rate limit at the application-server
-   or IP level beyond per-email failed-attempt tracking.
-7. The login route does not currently expose a CSRF token requirement.
-8. There is no built-in password recovery or MFA flow.
-9. There is no built-in key rotation endpoint for JWT or reporting secrets.
-10. Backup, restore, encryption-at-rest, OS permissions for SQLite, and secret
-    storage are deployment responsibilities.
-11. A reverse proxy should provide HTTPS, TLS policy, external request limiting,
-    forwarding rules, and operational security headers.
-
-## Production deployment checklist
-
-Before hosting:
-
-- Set `NODE_ENV=production`.
-- Use an HTTPS reverse proxy or HTTPS listener.
-- Generate and securely store a strong `JWT_SECRET`.
-- Generate and securely store a strong `REPORTING_API_KEY`.
-- Set all seed passwords; do not ship known defaults.
-- Set restrictive file permissions on the SQLite database and directory.
-- Back up SQLite safely, including WAL state, and test restores.
-- Do not commit `.env`, database files, secrets, or generated tokens.
-- Restrict direct network access to port 3000 and expose only the HTTPS proxy.
-- Configure a real external rate limiter for login and sensitive APIs.
-- Fix password-change session revocation.
-- Make login error responses generic.
-- Add monitoring and alerts for repeated failures and lockouts.
-- Review application dependencies and run a security-focused test suite.
-- Consider Content Security Policy, CSP reporting, and XSS review.
-- Test logout, refresh rotation, account disablement, role changes, and
-  password changes.
-
-## Field-name and table-name guidance
-
-Database column names and login request fields are implementation information,
-not authentication secrets.
-
-Field obfuscation:
-
-- Does not hide fields from browser inspection.
-- Does not prevent direct API requests.
-- Does not protect SQLite.
-- Does not replace validation or authorization.
-- May increase maintenance and debugging risk.
-
-The application is protected only insofar as server-side controls verify who
-is making a request and whether that identity is authorized to perform the
-operation.
