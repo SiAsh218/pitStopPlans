@@ -57,7 +57,7 @@ class AuthController {
    * @returns {void}
    */
   login(req, res) {
-    const { email, password } = req.body;
+    const { field1: email, field2: password } = req.body;
 
     const result = authService.login(email, password);
 

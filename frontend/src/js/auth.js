@@ -8,8 +8,8 @@ export async function login(email, password) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email,
-      password,
+      field1: email,
+      field2: password,
     }),
   });
 

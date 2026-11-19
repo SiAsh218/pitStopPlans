@@ -26,8 +26,8 @@ const role = z.enum(["admin", "editor", "user"]);
 
 const loginSchema = z
   .object({
-    email,
-    password,
+    field1: email,
+    field2: password,
   })
   .strict();
 

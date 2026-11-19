@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const result = await login(
-        formData.get("email"),
-        formData.get("password"),
+        formData.get("field1"),
+        formData.get("field2"),
       );
 
       window.location.href = "/";
