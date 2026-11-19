@@ -90,13 +90,16 @@ Authorization: Bearer <access-token>
 
 The authentication middleware:
 
-- Requires an authorization header.
-- Requires exactly `Bearer` plus a token.
+- Accepts an access token from the `accessToken` HttpOnly cookie.
+- Retains bearer-header compatibility and requires exactly `Bearer` plus a
+  token when that header is used.
 - Verifies signature, algorithm, issuer, audience, and expiry.
 - Confirms that the token subject is a positive integer.
 - Reloads the user account.
 - Rejects inactive accounts.
 - Rejects tokens whose `tokenVersion` differs from the current database value.
+- Limits accounts with `must_change_password` to password change, logout, and
+  validate operations.
 
 The access token is stored in an `HttpOnly` cookie, so JavaScript cannot read
 or modify it. Basic user information used by the interface remains in
@@ -139,6 +142,40 @@ Disabling or deleting a user must be considered separate from password reset:
 - Role changes increment `token_version` and reject existing access tokens.
 - Password changes increment `token_version` and revoke all refresh sessions.
 
+### Forced password change
+
+The `users.must_change_password` flag is set when:
+
+- An administrator creates a new user.
+- An administrator resets or changes an existing user's password.
+- A seeded administrator or user is created during database seeding.
+
+After login, the response identifies the flag in `user.mustChangePassword`.
+The interface redirects that account to `/change-password`.
+
+The password-change endpoint is `POST /api/auth/change-password`. It:
+
+- Uses the authenticated user's ID from the access token or access cookie.
+- Requires the user's current password.
+- Requires the new password to pass complexity validation.
+- Requires the new password to differ from the current password.
+- Clears `must_change_password`.
+- Increments `token_version`.
+- Revokes all refresh sessions.
+- Requires CSRF validation.
+
+Accounts with the flag cannot access protected application routes until they
+change their password. They may use the password-change, logout, and validate
+endpoints. A password change can only be submitted for the currently
+authenticated account.
+
+Administrators can also see temporary login-lockout status on the protected
+Users page. The server adds `login_lockout` to the admin user DTO with the
+locked state, failed-attempt count, remaining minutes, and lockout expiry.
+An administrator can explicitly clear the lockout from that page. This action
+clears that user's login-attempt record, is separate from resetting the
+password, and is recorded in the audit log.
+
 ## Cookie protections
 
 The access-token cookie is named `accessToken` and is configured with:
@@ -163,8 +200,8 @@ The CSRF cookie is named `csrfToken` and is configured with:
 - `Secure`: enabled in production.
 
 The CSRF middleware compares a random cookie value with the `X-CSRF-Token`
-request header using `crypto.timingSafeEqual`. Refresh and logout routes require
-this check.
+request header using `crypto.timingSafeEqual`. Refresh, logout, and
+password-change routes require this check.
 
 The login route is not CSRF-protected, because it creates the session. CSRF
 hardening should still be reviewed if deployment conditions allow cross-site
@@ -293,15 +330,16 @@ There is no built-in secret vault or secret rotation process.
 
 ## Known Limitations
 
-- Login responses can still distinguish some wrong-password attempts and
-  lockout states, which may allow account enumeration.
+- Login responses use a generic `401 Invalid credentials` response for unknown,
+ disabled, incorrect-password, and lockout cases. Per-account lockout state
+ remains an internal control and is not returned to the browser.
 - Login throttling is tracked per email in SQLite. It does not provide
   application-level IP-based throttling or distributed rate limiting.
 - The application server does not terminate TLS itself. Production deployments
   must place it behind an HTTPS reverse proxy or add a TLS listener.
 - There is no built-in MFA or self-service password-recovery flow. Forced
   first-login password changes are now implemented for administrator-created
-  users and password resets.
+  users, seeded users, and password resets.
 - Access tokens are protected from JavaScript by `HttpOnly` cookies, but a
   successful XSS attack can still perform actions as the authenticated user
   while the access and refresh sessions remain valid.

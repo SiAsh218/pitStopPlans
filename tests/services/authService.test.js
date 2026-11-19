@@ -346,7 +346,10 @@ describe("AuthService", () => {
         authService.login("missing@test.com", "Password123!"),
       ).toThrow(new AppError("Invalid credentials", 401));
 
-      expect(bcrypt.compareSync).not.toHaveBeenCalled();
+      expect(bcrypt.compareSync).toHaveBeenCalledWith(
+        "Password123!",
+        expect.any(String),
+      );
 
       expect(loginAttemptRepository.recordFailure).not.toHaveBeenCalled();
     });
@@ -362,7 +365,10 @@ describe("AuthService", () => {
         new AppError("Invalid credentials", 401),
       );
 
-      expect(bcrypt.compareSync).not.toHaveBeenCalled();
+      expect(bcrypt.compareSync).toHaveBeenCalledWith(
+        "Password123!",
+        expect.any(String),
+      );
 
       expect(loginAttemptRepository.recordFailure).not.toHaveBeenCalled();
     });
@@ -376,12 +382,7 @@ describe("AuthService", () => {
 
       expect(() =>
         authService.login("locked@test.com", "Password123!"),
-      ).toThrow(
-        new AppError(
-          "Too many failed login attempts. Please try again in 7 minutes.",
-          429,
-        ),
-      );
+      ).toThrow(new AppError("Invalid credentials", 401));
 
       expect(userRepository.findByEmail).not.toHaveBeenCalled();
 
@@ -407,12 +408,7 @@ describe("AuthService", () => {
 
       expect(() =>
         authService.login("user@test.com", "WrongPassword123!"),
-      ).toThrow(
-        new AppError(
-          "Invalid credentials. You have 4 attempts remaining.",
-          401,
-        ),
-      );
+      ).toThrow(new AppError("Invalid credentials", 401));
 
       expect(loginAttemptRepository.recordFailure).toHaveBeenCalledWith(
         "user@test.com",
@@ -440,7 +436,7 @@ describe("AuthService", () => {
 
       expect(() =>
         authService.login("user@test.com", "WrongPassword123!"),
-      ).toThrow("Invalid credentials. You have 1 attempt remaining.");
+      ).toThrow(new AppError("Invalid credentials", 401));
     });
 
     it("locks the account when the final allowed attempt fails", () => {
@@ -462,12 +458,7 @@ describe("AuthService", () => {
 
       expect(() =>
         authService.login("user@test.com", "WrongPassword123!"),
-      ).toThrow(
-        new AppError(
-          "Too many failed login attempts. Your account has been temporarily locked for 15 minutes.",
-          429,
-        ),
-      );
+      ).toThrow(new AppError("Invalid credentials", 401));
 
       expect(loginAttemptRepository.recordFailure).toHaveBeenCalledWith(
         "user@test.com",

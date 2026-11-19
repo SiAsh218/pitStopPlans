@@ -35,3 +35,7 @@ export async function disableUser(userId) {
 export async function enableUser(userId) {
   return api.put(`/api/users/${userId}/enable`, {});
 }
+
+export async function clearLoginLockout(userId) {
+  return api.put(`/api/users/${userId}/clear-lockout`, {});
+}

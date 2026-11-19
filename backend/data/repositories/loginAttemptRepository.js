@@ -80,6 +80,8 @@ class LoginAttemptRepository {
         locked: false,
         attemptsRemaining: maxAttempts,
         lockoutRemainingMinutes: 0,
+        failedAttempts: 0,
+        lockoutUntil: null,
       };
     }
 
@@ -88,6 +90,8 @@ class LoginAttemptRepository {
         locked: false,
         attemptsRemaining: Math.max(maxAttempts - attempt.failed_attempts, 0),
         lockoutRemainingMinutes: 0,
+        failedAttempts: attempt.failed_attempts,
+        lockoutUntil: null,
       };
     }
 
@@ -117,6 +121,8 @@ class LoginAttemptRepository {
         locked: false,
         attemptsRemaining: maxAttempts,
         lockoutRemainingMinutes: 0,
+        failedAttempts: 0,
+        lockoutUntil: null,
       };
     }
 
@@ -124,6 +130,8 @@ class LoginAttemptRepository {
       locked: true,
       attemptsRemaining: 0,
       lockoutRemainingMinutes: result.remaining_minutes,
+      failedAttempts: attempt.failed_attempts,
+      lockoutUntil: attempt.locked_until,
     };
   }
 

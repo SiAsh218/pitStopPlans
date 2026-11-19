@@ -4,6 +4,7 @@ const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
 const roleRepository = require("../data/repositories/roleRepository");
 const sessionRepository = require("../data/repositories/sessionRepository");
+const loginAttemptRepository = require("../data/repositories/loginAttemptRepository");
 
 const auditService = require("../services/auditLogService");
 const { validatePassword } = require("../utils/validatePassword");
@@ -21,10 +22,20 @@ class UserService {
    */
   _toDTO(user) {
     const { password: _password, ...safeUser } = user;
+    const lockout = loginAttemptRepository.getStatus(
+      safeUser.email,
+      Number(process.env.MAX_LOGIN_ATTEMPTS || 5),
+    );
 
     return {
       ...safeUser,
       job_roles: userRoleRepository.findByUserId(user.id),
+      login_lockout: {
+        locked: lockout.locked,
+        failedAttempts: lockout.failedAttempts,
+        remainingMinutes: lockout.lockoutRemainingMinutes,
+        lockoutUntil: lockout.lockoutUntil,
+      },
     };
   }
 
@@ -211,6 +222,22 @@ class UserService {
     auditService.log(currentUserId, "ENABLE_USER", "user", userId, {
       email: user.email,
     });
+
+    return this.getUserById(userId);
+  }
+
+  clearLoginLockout(userId, currentUserId) {
+    const user = this._getUserOrThrow(userId);
+
+    loginAttemptRepository.reset(user.email);
+
+    auditService.log(
+      currentUserId,
+      "CLEAR_LOGIN_LOCKOUT",
+      "user",
+      userId,
+      { email: user.email },
+    );
 
     return this.getUserById(userId);
   }

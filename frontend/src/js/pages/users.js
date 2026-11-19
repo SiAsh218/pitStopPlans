@@ -4,9 +4,11 @@ import {
   updateUser,
   disableUser,
   enableUser,
+  clearLoginLockout,
 } from "../services/userService.js";
 import { getRoles } from "../services/roleService.js";
 import { showSuccess, showError } from "../utils/myAlert.js";
+import { showConfirm } from "../modals/modalConfirm.js";
 
 import { getCurrentUser } from "../auth.js";
 
@@ -305,6 +307,19 @@ function renderUsers(users) {
               ${user.active ? "Active" : "Disabled"}
             </span>
 
+            ${
+              user.login_lockout?.locked
+                ? `
+                  <span
+                    class="user-card__badge user-card__badge--disabled"
+                    title="Login lockout until ${user.login_lockout.lockoutUntil || "expiry"}"
+                  >
+                    Temporarily Locked
+                  </span>
+                `
+                : ""
+            }
+
           </div>
 
         </div>
@@ -344,7 +359,7 @@ function renderUsers(users) {
             user.active
               ? `
                 <button
-                  class="btn btn-secondary btn-disable-user user-card__disable-button"
+                  class="btn btn-secondary btn-disable-user user-card__action-button"
                   data-user-id="${user.id}"
                 >
                   Disable User
@@ -352,12 +367,25 @@ function renderUsers(users) {
               `
               : `
                 <button
-                  class="btn btn-secondary btn-enable-user"
+                  class="btn btn-secondary btn-enable-user user-card__action-button"
                   data-user-id="${user.id}"
                 >
                   Enable User
                 </button>
               `
+          }
+
+          ${
+            user.login_lockout?.locked
+              ? `
+                <button
+                  class="btn btn-secondary btn-clear-login-lockout user-card__action-button"
+                  data-user-id="${user.id}"
+                >
+                  Clear Lockout
+                </button>
+              `
+              : ""
           }
 
         </div>
@@ -370,6 +398,7 @@ function renderUsers(users) {
   wireEditButtons();
   wireDisableButtons();
   wireEnableButtons();
+  wireClearLoginLockoutButtons();
 }
 
 function wireEditButtons() {
@@ -484,6 +513,37 @@ function wireEnableButtons() {
 
         showSuccess("User enabled successfully");
 
+        await loadUsers();
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+  });
+}
+
+function wireClearLoginLockoutButtons() {
+  document.querySelectorAll(".btn-clear-login-lockout").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const user = userState.users.find(
+        (candidate) => candidate.id === Number(button.dataset.userId),
+      );
+
+      if (!user) {
+        return;
+      }
+
+      const confirmed = await showConfirm(
+        "Clear Login Lockout",
+        `Are you sure you want to clear the login lockout for ${user.email}?`,
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await clearLoginLockout(user.id);
+        showSuccess("Login lockout cleared successfully");
         await loadUsers();
       } catch (err) {
         showError(err.message);

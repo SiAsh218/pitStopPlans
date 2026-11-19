@@ -7,12 +7,14 @@ jest.mock("../../backend/data/repositories/userRepository");
 jest.mock("../../backend/data/repositories/userRoleRepository");
 jest.mock("../../backend/data/repositories/roleRepository");
 jest.mock("../../backend/data/repositories/sessionRepository");
+jest.mock("../../backend/data/repositories/loginAttemptRepository");
 jest.mock("../../backend/services/auditLogService");
 
 const userRepository = require("../../backend/data/repositories/userRepository");
 const userRoleRepository = require("../../backend/data/repositories/userRoleRepository");
 const roleRepository = require("../../backend/data/repositories/roleRepository");
 const sessionRepository = require("../../backend/data/repositories/sessionRepository");
+const loginAttemptRepository = require("../../backend/data/repositories/loginAttemptRepository");
 const auditService = require("../../backend/services/auditLogService");
 
 const userService = require("../../backend/services/userService");
@@ -20,6 +22,13 @@ const userService = require("../../backend/services/userService");
 describe("UserService", () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    loginAttemptRepository.getStatus.mockReturnValue({
+      locked: false,
+      attemptsRemaining: 5,
+      lockoutRemainingMinutes: 0,
+      failedAttempts: 0,
+      lockoutUntil: null,
+    });
   });
 
   describe("getUserById", () => {
@@ -369,6 +378,46 @@ describe("UserService", () => {
       userRepository.findById.mockReturnValue(null);
 
       expect(() => userService.enableUser(999, 99)).toThrow(AppError);
+    });
+  });
+
+  describe("clearLoginLockout", () => {
+    it("clears the target user's login attempts and audits the action", () => {
+      userRepository.findById
+        .mockReturnValueOnce({
+          id: 2,
+          email: "locked@test.com",
+          role: "user",
+          active: true,
+        })
+        .mockReturnValueOnce({
+          id: 2,
+          email: "locked@test.com",
+          role: "user",
+          active: true,
+        });
+      userRoleRepository.findByUserId.mockReturnValue([]);
+
+      const result = userService.clearLoginLockout(2, 1);
+
+      expect(loginAttemptRepository.reset).toHaveBeenCalledWith(
+        "locked@test.com",
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        1,
+        "CLEAR_LOGIN_LOCKOUT",
+        "user",
+        2,
+        { email: "locked@test.com" },
+      );
+      expect(result.email).toBe("locked@test.com");
+    });
+
+    it("throws when the target user does not exist", () => {
+      userRepository.findById.mockReturnValue(null);
+
+      expect(() => userService.clearLoginLockout(999, 1)).toThrow(AppError);
+      expect(loginAttemptRepository.reset).not.toHaveBeenCalled();
     });
   });
 

@@ -76,6 +76,17 @@ module.exports = [
 
   {
     method: "PUT",
+    path: "/api/users/:id/clear-lockout",
+    handler: [
+      auth,
+      requireRole("admin"),
+      validate("params", idParamSchema),
+      userController.clearLoginLockout,
+    ],
+  },
+
+  {
+    method: "PUT",
     path: "/api/users/:id/roles",
     handler: [
       auth,

@@ -16,6 +16,9 @@ const MAX_LOGIN_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS || 5);
 
 const LOGIN_LOCKOUT_MINUTES = Number(process.env.LOGIN_LOCKOUT_MINUTES || 15);
 
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$K4GvYQ6VQ1PzZ1uQfRrP4uH8l4fXxZ3gZ9mQ8sD7nY3vC6xR2eDk1S";
+
 if (!SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -114,19 +117,13 @@ class AuthService {
     );
 
     if (loginStatus.locked) {
-      throw new AppError(
-        `Too many failed login attempts. Please try again in ${loginStatus.lockoutRemainingMinutes} minutes.`,
-        429,
-      );
+      throw new AppError("Invalid credentials", 401);
     }
 
     const user = userRepository.findByEmail(email);
 
-    if (!user) {
-      throw new AppError("Invalid credentials", 401);
-    }
-
-    if (!user.active) {
+    if (!user || !user.active) {
+      bcrypt.compareSync(password, DUMMY_PASSWORD_HASH);
       throw new AppError("Invalid credentials", 401);
     }
 
@@ -144,19 +141,7 @@ class AuthService {
         MAX_LOGIN_ATTEMPTS,
       );
 
-      if (status.locked) {
-        throw new AppError(
-          `Too many failed login attempts. Your account has been temporarily locked for ${LOGIN_LOCKOUT_MINUTES} minutes.`,
-          429,
-        );
-      }
-
-      throw new AppError(
-        `Invalid credentials. You have ${status.attemptsRemaining} attempt${
-          status.attemptsRemaining === 1 ? "" : "s"
-        } remaining.`,
-        401,
-      );
+      throw new AppError("Invalid credentials", 401);
     }
 
     loginAttemptRepository.reset(email);

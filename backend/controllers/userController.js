@@ -12,6 +12,7 @@ class UserController {
     this.update = this.update.bind(this);
     this.disable = this.disable.bind(this);
     this.enable = this.enable.bind(this);
+    this.clearLoginLockout = this.clearLoginLockout.bind(this);
     this.updateRoles = this.updateRoles.bind(this);
     this.delete = this.delete.bind(this);
   }
@@ -131,6 +132,18 @@ class UserController {
    */
   enable(req, res) {
     const user = userService.enableUser(
+      this._getId(req.params.id),
+      req.user.id,
+    );
+
+    this._sendJSON(res, 200, {
+      success: true,
+      data: user,
+    });
+  }
+
+  clearLoginLockout(req, res) {
+    const user = userService.clearLoginLockout(
       this._getId(req.params.id),
       req.user.id,
     );
