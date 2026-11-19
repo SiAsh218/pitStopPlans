@@ -19,6 +19,7 @@ class ViewController {
   constructor() {
     this.dashboard = this.dashboard.bind(this);
     this.login = this.login.bind(this);
+    this.changePassword = this.changePassword.bind(this);
     this.createPlanTemplate = this.createPlanTemplate.bind(this);
     this.users = this.users.bind(this);
     this.roles = this.roles.bind(this);
@@ -78,6 +79,13 @@ class ViewController {
     return this._render(res, "login.html", {
       title: "Login",
       isLoggedIn: false,
+    });
+  }
+
+  async changePassword(req, res) {
+    return this._render(res, "change-password.html", {
+      title: "Change Password",
+      isLoggedIn: true,
     });
   }
 

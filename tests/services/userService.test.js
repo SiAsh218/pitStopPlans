@@ -6,11 +6,13 @@ jest.mock("bcrypt");
 jest.mock("../../backend/data/repositories/userRepository");
 jest.mock("../../backend/data/repositories/userRoleRepository");
 jest.mock("../../backend/data/repositories/roleRepository");
+jest.mock("../../backend/data/repositories/sessionRepository");
 jest.mock("../../backend/services/auditLogService");
 
 const userRepository = require("../../backend/data/repositories/userRepository");
 const userRoleRepository = require("../../backend/data/repositories/userRoleRepository");
 const roleRepository = require("../../backend/data/repositories/roleRepository");
+const sessionRepository = require("../../backend/data/repositories/sessionRepository");
 const auditService = require("../../backend/services/auditLogService");
 
 const userService = require("../../backend/services/userService");
@@ -229,11 +231,44 @@ describe("UserService", () => {
       expect(userRepository.updateUser).toHaveBeenCalledWith(1, {
         role: "admin",
         password: "new-hash",
+        mustChangePassword: true,
       });
 
       expect(userRoleRepository.setRoles).toHaveBeenCalledWith(1, [20]);
 
+      expect(sessionRepository.revokeAllForUser).toHaveBeenCalledWith(1);
       expect(auditService.log).toHaveBeenCalled();
+    });
+
+    it("revokes all sessions when only the password changes", () => {
+      userRepository.findById
+        .mockReturnValueOnce({
+          id: 1,
+          email: "user@test.com",
+          role: "user",
+        })
+        .mockReturnValueOnce({
+          id: 1,
+          email: "user@test.com",
+          role: "user",
+        })
+        .mockReturnValueOnce({
+          id: 1,
+          email: "user@test.com",
+          role: "user",
+        });
+
+      userRoleRepository.findByUserId.mockReturnValue([]);
+      bcrypt.hashSync.mockReturnValue("new-hash");
+
+      userService.updateUser(1, { password: "NewPassword1!" }, 99);
+
+      expect(userRepository.updateUser).toHaveBeenCalledWith(1, {
+        role: undefined,
+        password: "new-hash",
+        mustChangePassword: true,
+      });
+      expect(sessionRepository.revokeAllForUser).toHaveBeenCalledWith(1);
     });
 
     it("throws when user does not exist", () => {

@@ -1,4 +1,4 @@
-import { getToken, refreshAccessToken } from "../auth.js";
+import { refreshAccessToken } from "../auth.js";
 
 let templateRevision = null;
 
@@ -28,7 +28,6 @@ async function request(method, url, body = null, params = null, options = {}) {
       /^\/api\/plan_stages(?:\/\d+)?(?:\/actions\/reorder)?$/.test(url) ||
       /^\/api\/plan_stage_actions(?:\/\d+)?$/.test(url));
   const headers = {
-    Authorization: `Bearer ${getToken()}`,
     "Content-Type": "application/json",
   };
 

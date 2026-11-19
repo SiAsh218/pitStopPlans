@@ -31,6 +31,13 @@ const loginSchema = z
   })
   .strict();
 
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(128),
+    newPassword: z.string().min(1).max(128),
+  })
+  .strict();
+
 const registerSchema = z
   .object({
     email,
@@ -161,6 +168,7 @@ const planStageIdParamSchema = z
 
 module.exports = {
   loginSchema,
+  changePasswordSchema,
   registerSchema,
   createUserSchema,
   updateUserSchema,

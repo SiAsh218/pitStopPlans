@@ -11,6 +11,7 @@ class AuthController {
     this.validate = this.validate.bind(this);
     this.refresh = this.refresh.bind(this);
     this.logout = this.logout.bind(this);
+    this.changePassword = this.changePassword.bind(this);
   }
 
   /**
@@ -61,12 +62,32 @@ class AuthController {
 
     const result = authService.login(email, password);
 
+    this._setAccessCookie(res, result.accessToken);
     this._setRefreshCookie(res, result.refreshToken);
     setCsrfCookie(res);
 
+    delete result.accessToken;
     delete result.refreshToken;
 
     this._send(res, 200, result);
+  }
+
+  _setAccessCookie(res, accessToken) {
+    const secure = process.env.NODE_ENV === "production";
+
+    const cookie = [
+      `accessToken=${encodeURIComponent(accessToken)}`,
+      "HttpOnly",
+      "Path=/",
+      "SameSite=Strict",
+      secure ? "Secure" : "",
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    const existing = res.getHeader("Set-Cookie");
+
+    res.setHeader("Set-Cookie", existing ? [...existing, cookie] : [cookie]);
   }
 
   _setRefreshCookie(res, refreshToken) {
@@ -99,6 +120,7 @@ class AuthController {
     this._send(res, 200, {
       id: req.user.id,
       role: req.user.role,
+      mustChangePassword: Boolean(req.user.must_change_password),
     });
   }
 
@@ -107,8 +129,10 @@ class AuthController {
 
     const data = await authService.refresh(refreshToken);
 
+    this._setAccessCookie(res, data.accessToken);
     this._setRefreshCookie(res, data.refreshToken);
 
+    delete data.accessToken;
     delete data.refreshToken;
 
     return this._send(res, 200, data);
@@ -139,11 +163,25 @@ class AuthController {
     return cookies.refreshToken || null;
   }
 
+  changePassword(req, res) {
+    const result = authService.changePassword(
+      req.user.id,
+      req.body.currentPassword,
+      req.body.newPassword,
+    );
+
+    this._clearAccessCookie(res);
+    this._clearRefreshCookie(res);
+
+    return this._send(res, 200, result);
+  }
+
   async logout(req, res) {
     const refreshToken = this._getRefreshToken(req);
 
     await authService.logout(refreshToken);
 
+    this._clearAccessCookie(res);
     this._clearRefreshCookie(res);
 
     return this._send(res, 200, {
@@ -158,6 +196,25 @@ class AuthController {
       "refreshToken=",
       "HttpOnly",
       "Path=/api/auth",
+      "SameSite=Strict",
+      "Max-Age=0",
+      secure ? "Secure" : "",
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    const existing = res.getHeader("Set-Cookie");
+
+    res.setHeader("Set-Cookie", existing ? [...existing, cookie] : [cookie]);
+  }
+
+  _clearAccessCookie(res) {
+    const secure = process.env.NODE_ENV === "production";
+
+    const cookie = [
+      "accessToken=",
+      "HttpOnly",
+      "Path=/",
       "SameSite=Strict",
       "Max-Age=0",
       secure ? "Secure" : "",

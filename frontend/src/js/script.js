@@ -18,6 +18,7 @@ import "../css/pages/planTemplate.css";
 // AUTH
 import login from "./login.js";
 import { requireAuth } from "./auth.js";
+import "./changePassword.js";
 
 // COMPONENTS
 import { initHeader } from "./components/header.js";
@@ -40,7 +41,10 @@ import { initAuditLogsPage } from "./pages/auditLog.js";
 import { initialiseLiveUpdates } from "./services/liveUpdates.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (document.getElementById("login-form")) {
+  if (
+    document.getElementById("login-form") ||
+    document.getElementById("change-password-form")
+  ) {
     return;
   }
 

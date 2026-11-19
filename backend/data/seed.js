@@ -73,9 +73,10 @@ function seedDatabase() {
       (
         email,
         password,
-        role
+        role,
+        must_change_password
       )
-      VALUES (?, ?, ?)
+      VALUES (?, ?, ?, 1)
     `,
       ).run(adminEmail, passwordHash, "admin");
 
@@ -94,11 +95,12 @@ function seedDatabase() {
     (
       email,
       password,
-      role
-    )
-    VALUES (?, ?, ?)
-  `,
-      ).run(sndmEmail, sndmPasswordHash, "editor");
+        role,
+        must_change_password
+      )
+    VALUES (?, ?, ?, 1)
+    `,
+        ).run(sndmEmail, sndmPasswordHash, "editor");
 
       console.log("✅ SNDM user seeded");
     }
@@ -115,9 +117,10 @@ function seedDatabase() {
     (
       email,
       password,
-      role
+      role,
+      must_change_password
     )
-    VALUES (?, ?, ?)
+    VALUES (?, ?, ?, 1)
   `,
       ).run(basicEmail, basicPasswordHash, "user");
 

@@ -17,7 +17,8 @@ describe("UserRepository", () => {
         password TEXT NOT NULL,
         role TEXT NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
-        token_version INTEGER NOT NULL DEFAULT 0
+        token_version INTEGER NOT NULL DEFAULT 0,
+        must_change_password INTEGER NOT NULL DEFAULT 0
       );
 
       CREATE TABLE roles (
@@ -120,6 +121,7 @@ describe("UserRepository", () => {
           email: "new@test.com",
           password: "new-password-hash",
           role: "user",
+          must_change_password: 1,
         }),
       );
 
@@ -164,13 +166,13 @@ describe("UserRepository", () => {
       );
     });
 
-    it("updates the password without changing token version", () => {
+    it("updates the password and increments token version", () => {
       const result = userRepository.updateUser(1, {
         password: "new-hash",
       });
 
       expect(result.password).toBe("new-hash");
-      expect(result.token_version).toBe(0);
+      expect(result.token_version).toBe(1);
     });
 
     it("updates the role and increments token version", () => {

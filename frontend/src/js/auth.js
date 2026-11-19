@@ -19,19 +19,15 @@ export async function login(email, password) {
     throw new Error(json.error || "Login failed");
   }
 
-  const { accessToken, user } = json.data;
+  const { user } = json.data;
 
-  if (!accessToken || !user) {
+  if (!user) {
     throw new Error("Invalid login response");
   }
 
-  localStorage.setItem("accessToken", accessToken);
   localStorage.setItem("user", JSON.stringify(user));
 
-  return {
-    accessToken,
-    user,
-  };
+  return { user };
 }
 
 function getCsrfToken() {
@@ -73,14 +69,9 @@ export async function logout() {
     console.error("Logout failed:", err);
   }
 
-  localStorage.removeItem("accessToken");
   localStorage.removeItem("user");
 
   window.location.href = "/login";
-}
-
-export function getToken() {
-  return localStorage.getItem("accessToken");
 }
 
 export async function refreshAccessToken() {
@@ -104,22 +95,12 @@ export async function refreshAccessToken() {
       const json = await response.json();
 
       if (!response.ok) {
-        localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
 
         return false;
       }
 
-      const { accessToken, user } = json.data || {};
-
-      if (!accessToken) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-
-        return false;
-      }
-
-      localStorage.setItem("accessToken", accessToken);
+      const { user } = json.data || {};
 
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
@@ -139,17 +120,9 @@ export async function refreshAccessToken() {
 }
 
 export async function isAuthenticated() {
-  const token = getToken();
-
-  if (!token) {
-    return await refreshAccessToken();
-  }
-
   try {
     const response = await fetch("/api/auth/validate", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     if (response.ok) {

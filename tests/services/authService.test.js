@@ -101,6 +101,7 @@ describe("AuthService", () => {
         email: "newuser@test.com",
         password: "hashed-password",
         role: "user",
+        must_change_password: 1,
       });
 
       expect(result).toEqual({

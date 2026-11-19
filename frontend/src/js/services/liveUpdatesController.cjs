@@ -1,6 +1,5 @@
 function createLiveUpdates({
   eventTarget,
-  getToken,
   refreshAccessToken,
   fetch,
   dispatchEvent,
@@ -43,16 +42,7 @@ function createLiveUpdates({
       let connectionStartedAt = null;
 
       try {
-        let token = getToken();
-
-        if (!token && !(await refreshAccessToken())) {
-          redirect("/login");
-          return;
-        }
-
-        token = getToken();
         const response = await fetch("/events", {
-          headers: { Authorization: `Bearer ${token}` },
           credentials: "same-origin",
           signal,
         });

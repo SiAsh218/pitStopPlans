@@ -29,12 +29,18 @@ class AuthService {
    * @returns {object}
    */
   _toUserDTO(user, jobRoles = []) {
-    return {
+    const dto = {
       id: user.id,
       email: user.email,
       role: user.role,
       jobRoles,
     };
+
+    if (user.must_change_password) {
+      dto.mustChangePassword = true;
+    }
+
+    return dto;
   }
 
   /**
@@ -84,6 +90,7 @@ class AuthService {
       email,
       password: passwordHash,
       role: "user",
+      must_change_password: 1,
     });
 
     return {
@@ -275,6 +282,40 @@ class AuthService {
       accessToken,
       refreshToken: newRefreshToken,
       user: this._toUserDTO(user, jobRoles),
+    };
+  }
+
+  changePassword(userId, currentPassword, newPassword) {
+    const user = userRepository.findById(userId);
+
+    if (!user || !user.active) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    if (!bcrypt.compareSync(currentPassword, user.password)) {
+      throw new AppError("Current password is incorrect", 400);
+    }
+
+    validatePassword(newPassword);
+
+    if (bcrypt.compareSync(newPassword, user.password)) {
+      throw new AppError(
+        "New password must be different from the current password",
+        400,
+      );
+    }
+
+    const passwordHash = bcrypt.hashSync(newPassword, BCRYPT_ROUNDS);
+
+    userRepository.updateUser(userId, {
+      password: passwordHash,
+      mustChangePassword: false,
+    });
+
+    sessionRepository.revokeAllForUser(userId);
+
+    return {
+      message: "Password changed successfully",
     };
   }
 

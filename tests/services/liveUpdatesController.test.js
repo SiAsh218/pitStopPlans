@@ -56,7 +56,6 @@ function createHarness(overrides = {}) {
   });
   const dependencies = {
     eventTarget,
-    getToken: jest.fn(() => "access-token"),
     refreshAccessToken,
     fetch,
     dispatchEvent: (...args) => dispatchedEvents.push(args),
@@ -211,13 +210,10 @@ describe("browser live update connection", () => {
   });
 
   it("refreshes the token and retries immediately after a 401 response", async () => {
-    let token = "expired-token";
     let requestNumber = 0;
     const requestSignals = [];
     const harness = createHarness({
-      getToken: jest.fn(() => token),
       refreshAccessToken: jest.fn(async () => {
-        token = "refreshed-token";
         return true;
       }),
       fetch: jest.fn((url, options) => {
@@ -243,12 +239,8 @@ describe("browser live update connection", () => {
 
     expect(harness.refreshAccessToken).toHaveBeenCalledTimes(1);
     expect(harness.fetch).toHaveBeenCalledTimes(2);
-    expect(harness.fetch.mock.calls[0][1].headers.Authorization).toBe(
-      "Bearer expired-token",
-    );
-    expect(harness.fetch.mock.calls[1][1].headers.Authorization).toBe(
-      "Bearer refreshed-token",
-    );
+    expect(harness.fetch.mock.calls[0][1].headers).toBeUndefined();
+    expect(harness.fetch.mock.calls[1][1].headers).toBeUndefined();
     expect(harness.delay).not.toHaveBeenCalled();
 
     harness.controller.stopLiveUpdates();
@@ -256,9 +248,8 @@ describe("browser live update connection", () => {
 
   it("redirects to login when a missing token cannot be refreshed", async () => {
     const redirect = jest.fn();
-    const fetch = jest.fn();
+    const fetch = jest.fn(async () => ({ status: 401 }));
     const harness = createHarness({
-      getToken: jest.fn(() => null),
       refreshAccessToken: jest.fn(async () => false),
       fetch,
       redirect,
@@ -269,7 +260,7 @@ describe("browser live update connection", () => {
     await Promise.resolve();
 
     expect(harness.refreshAccessToken).toHaveBeenCalledTimes(1);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
     expect(redirect).toHaveBeenCalledWith("/login");
 
     harness.controller.stopLiveUpdates();

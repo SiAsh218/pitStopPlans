@@ -169,6 +169,12 @@ function ensurePlanTemplateUserSetNull(db) {
 function migrateLegacySchema(db) {
   ensureColumn(
     db,
+    "users",
+    "must_change_password",
+    "ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0",
+  );
+  ensureColumn(
+    db,
     "roles",
     "active",
     "ALTER TABLE roles ADD COLUMN active INTEGER NOT NULL DEFAULT 1",

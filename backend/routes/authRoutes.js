@@ -4,7 +4,11 @@ const validate = require("../middleware/validate");
 const { csrf } = require("../middleware/csrf");
 const authController = require("../controllers/authController");
 
-const { loginSchema, registerSchema } = require("../validation/schemas");
+const {
+  loginSchema,
+  registerSchema,
+  changePasswordSchema,
+} = require("../validation/schemas");
 
 module.exports = [
   {
@@ -40,5 +44,15 @@ module.exports = [
     method: "POST",
     path: "/api/auth/logout",
     handler: [csrf, authController.logout],
+  },
+  {
+    method: "POST",
+    path: "/api/auth/change-password",
+    handler: [
+      auth,
+      csrf,
+      validate("body", changePasswordSchema),
+      authController.changePassword,
+    ],
   },
 ];

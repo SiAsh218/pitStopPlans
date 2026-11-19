@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const userRepository = require("../data/repositories/userRepository");
 const userRoleRepository = require("../data/repositories/userRoleRepository");
 const roleRepository = require("../data/repositories/roleRepository");
+const sessionRepository = require("../data/repositories/sessionRepository");
 
 const auditService = require("../services/auditLogService");
 const { validatePassword } = require("../utils/validatePassword");
@@ -144,9 +145,14 @@ class UserService {
 
     if (data.password) {
       updates.password = this._hashPassword(data.password);
+      updates.mustChangePassword = true;
     }
 
     userRepository.updateUser(userId, updates);
+
+    if (data.password) {
+      sessionRepository.revokeAllForUser(userId);
+    }
 
     if (Array.isArray(data.role_ids)) {
       this._validateRoles(data.role_ids);

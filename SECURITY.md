@@ -80,7 +80,9 @@ JWT verification uses:
 `JWT_SECRET` is mandatory and the application refuses to start if it is
 missing.
 
-Protected routes use the bearer token format:
+Protected browser requests send the access token in the `accessToken` HttpOnly
+cookie. The middleware also retains bearer-token compatibility for existing
+API clients:
 
 ```text
 Authorization: Bearer <access-token>
@@ -96,9 +98,9 @@ The authentication middleware:
 - Rejects inactive accounts.
 - Rejects tokens whose `tokenVersion` differs from the current database value.
 
-The frontend stores the access token and basic user information in
-`localStorage`. This makes a successful script injection capable of reading the
-access token. The CSP below is therefore an important XSS defense, but it does
+The access token is stored in an `HttpOnly` cookie, so JavaScript cannot read
+or modify it. Basic user information used by the interface remains in
+`localStorage`. The CSP below is therefore an important XSS defense, but it does
 not replace secure coding and dependency review.
 
 ### Refresh sessions
@@ -135,12 +137,16 @@ Disabling or deleting a user must be considered separate from password reset:
 - Disabling a user increments `token_version` and rejects existing access
   tokens.
 - Role changes increment `token_version` and reject existing access tokens.
-- Password changes currently change the password hash but do not increment
-  `token_version` or revoke refresh sessions.
-- Password reset and password-change flows should revoke sessions until this
-  gap is fixed.
+- Password changes increment `token_version` and revoke all refresh sessions.
 
 ## Cookie protections
+
+The access-token cookie is named `accessToken` and is configured with:
+
+- `HttpOnly`: JavaScript cannot read or change it.
+- `SameSite=Strict`: cross-site submission is restricted.
+- `Path=/`: protected application and event endpoints receive it.
+- `Secure`: enabled in production.
 
 The refresh-token cookie is configured with:
 
@@ -284,3 +290,26 @@ unique to the deployment, stored outside source control, and changed if
 exposed.
 
 There is no built-in secret vault or secret rotation process.
+
+## Known Limitations
+
+- Login responses can still distinguish some wrong-password attempts and
+  lockout states, which may allow account enumeration.
+- Login throttling is tracked per email in SQLite. It does not provide
+  application-level IP-based throttling or distributed rate limiting.
+- The application server does not terminate TLS itself. Production deployments
+  must place it behind an HTTPS reverse proxy or add a TLS listener.
+- There is no built-in MFA or self-service password-recovery flow. Forced
+  first-login password changes are now implemented for administrator-created
+  users and password resets.
+- Access tokens are protected from JavaScript by `HttpOnly` cookies, but a
+  successful XSS attack can still perform actions as the authenticated user
+  while the access and refresh sessions remain valid.
+- There is no built-in JWT-secret or reporting-API-key rotation mechanism.
+- SQLite database backups, restore procedures, encryption at rest, OS file
+  permissions, and database-file access control are deployment responsibilities.
+- The application does not provide built-in monitoring or alerts for repeated
+  login failures, lockouts, session activity, or secret exposure.
+- CSP, secure cookies, request validation, and server-side authorization reduce
+  attack risk but do not replace dependency review, secure coding, and periodic
+  security testing.

@@ -13,6 +13,11 @@ module.exports = [
   },
   {
     method: "GET",
+    path: "/change-password",
+    handler: viewController.changePassword,
+  },
+  {
+    method: "GET",
     path: "/templates",
     handler: viewController.createPlanTemplate,
   },

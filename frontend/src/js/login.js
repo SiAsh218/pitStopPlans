@@ -26,7 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.get("field2"),
       );
 
-      window.location.href = "/";
+      if (result.user?.mustChangePassword) {
+        window.location.href = "/change-password";
+      } else {
+        window.location.href = "/";
+      }
     } catch (err) {
       showError(err?.message || "Error Logging In!");
     }

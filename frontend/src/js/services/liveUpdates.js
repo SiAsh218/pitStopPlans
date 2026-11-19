@@ -1,10 +1,9 @@
-import { getToken, refreshAccessToken } from "../auth.js";
+import { refreshAccessToken } from "../auth.js";
 import eventStream from "./eventStream.cjs";
 import liveUpdatesController from "./liveUpdatesController.cjs";
 
 const liveUpdates = liveUpdatesController.createLiveUpdates({
   eventTarget: window,
-  getToken,
   refreshAccessToken,
   fetch: (...args) => fetch(...args),
   dispatchEvent: (type, payload) => {

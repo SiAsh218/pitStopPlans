@@ -72,6 +72,7 @@ One account per user.
 | `role` | `TEXT DEFAULT 'user'` — singular role text field |
 | `active` | `INTEGER NOT NULL DEFAULT 1` |
 | `token_version` | `INTEGER NOT NULL DEFAULT 0` |
+| `must_change_password` | `INTEGER NOT NULL DEFAULT 0` — requires the account holder to change password on next login |
 | `created_at` | `DATETIME DEFAULT CURRENT_TIMESTAMP` |
 
 `user_roles` is the normalized relation for assigning multiple roles to a user.

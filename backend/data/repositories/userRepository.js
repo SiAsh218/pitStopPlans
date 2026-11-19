@@ -28,6 +28,7 @@ class UserRepository extends BaseRepository {
       email,
       password: passwordHash,
       role,
+      must_change_password: 1,
     });
 
     return this.findById(result.lastInsertRowid);
@@ -51,14 +52,19 @@ class UserRepository extends BaseRepository {
 
     if (updates.role !== undefined) {
       fields.role = updates.role;
-
-      // Changing an application's role invalidates
-      // all existing access tokens.
-      fields.token_version = existingUser.token_version + 1;
     }
 
     if (updates.password !== undefined) {
       fields.password = updates.password;
+    }
+
+    if (updates.mustChangePassword !== undefined) {
+      fields.must_change_password = updates.mustChangePassword ? 1 : 0;
+    }
+
+    if (updates.role !== undefined || updates.password !== undefined) {
+      // Role and password changes invalidate existing access tokens.
+      fields.token_version = existingUser.token_version + 1;
     }
 
     if (!Object.keys(fields).length) {
